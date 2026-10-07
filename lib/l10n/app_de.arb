@@ -1,0 +1,150 @@
+{
+  "@@locale": "de",
+  "appTitle": "OpenShelf",
+  "navLibrary": "Bibliothek",
+  "navShelf": "Regal",
+  "navScan": "Scannen",
+  "navImport": "Import",
+  "assignLocation": "Standort zuweisen",
+  "selectedCount": "{count} ausgewählt",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chooseLocation": "Standort wählen",
+  "searchHint": "Suchen",
+  "noBooksYet": "Noch keine Bücher",
+  "errorLoadingLibrary": "Fehler beim Laden der Bibliothek",
+  "addBookTitle": "Buch hinzufügen",
+  "editBookTitle": "Buch bearbeiten",
+  "fieldTitle": "Titel",
+  "fieldSubtitle": "Untertitel",
+  "fieldAuthors": "Autoren (durch Komma getrennt)",
+  "fieldIsbn": "ISBN",
+  "fieldPublisher": "Verlag",
+  "fieldYear": "Jahr",
+  "fieldPages": "Seiten",
+  "fieldLanguage": "Sprache",
+  "fieldFormat": "Format",
+  "fieldStatus": "Status",
+  "fieldLocation": "Standort",
+  "noLocation": "Kein Standort",
+  "save": "Speichern",
+  "lookupMetadataTooltip": "Metadaten suchen",
+  "invalidIsbn": "Ungültige ISBN",
+  "noMetadataFound": "Keine Metadaten gefunden",
+  "ratingLabel": "Bewertung",
+  "statusLabel": "Status",
+  "isbn13Label": "ISBN-13",
+  "isbn10Label": "ISBN-10",
+  "publisherLabel": "Verlag",
+  "yearLabel": "Jahr",
+  "pagesLabel": "Seiten",
+  "languageLabel": "Sprache",
+  "formatLabel": "Format",
+  "seriesVolumeLabel": "Band",
+  "lentTo": "Verliehen an {name}",
+  "@lentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "markReturned": "Zurückgegeben",
+  "borrowerNameHint": "Name des Entleihers",
+  "lend": "Verleihen",
+  "dnbVerified": "DNB-verifiziert",
+  "edited": "bearbeitet",
+  "myShelf": "Mein Regal",
+  "noLocationsYet": "Noch keine Orte",
+  "locationName": "Ortsname",
+  "cancel": "Abbrechen",
+  "ok": "OK",
+  "locationNotEmpty": "Ort ist nicht leer — zuerst Bücher verschieben",
+  "scannerTitle": "Scanner",
+  "scannerUnsupported": "Scanner ist auf dieser Plattform nicht verfügbar. ISBN bitte manuell hinzufügen.",
+  "stagedCount": "{count} erfasst",
+  "@stagedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alreadyInLibrary": "Bereits in der Bibliothek",
+  "saveAll": "Alle speichern",
+  "saving": "Speichern…",
+  "importTitle": "Import",
+  "chooseFile": "CSV/JSON-Datei auswählen",
+  "detectedFormat": "Format: {name}",
+  "@detectedFormat": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "importAction": "Importieren",
+  "rowsProcessed": "{count} Zeilen verarbeitet",
+  "@rowsProcessed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importedCount": "Importiert: {count}",
+  "@importedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "skippedCount": "Übersprungen: {count}",
+  "@skippedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rowError": "Zeile {row}: {reason}",
+  "@rowError": {
+    "placeholders": {
+      "row": {
+        "type": "int"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "navStats": "Statistik",
+  "statisticsTitle": "Statistik",
+  "totalBooks": "Bücher gesamt",
+  "pagesRead": "Gelesene Seiten",
+  "topLocations": "Top Standorte",
+  "topAuthors": "Top Autoren",
+  "settingsTitle": "Einstellungen",
+  "themeLabel": "Darstellung",
+  "themeSystem": "System",
+  "themeLight": "Hell",
+  "themeDark": "Dunkel",
+  "languageGerman": "Deutsch",
+  "languageEnglish": "English",
+  "exportLabel": "Daten",
+  "exportJson": "JSON exportieren",
+  "exportCsv": "CSV exportieren",
+  "exportDone": "Exportiert nach:",
+  "appInfoLabel": "App-Info",
+  "versionLabel": "Version",
+  "licenseLabel": "Lizenz",
+  "licenseText": "GPL-3.0",
+  "openSourceCreditsLabel": "Open-Source-Danksagungen",
+  "creditsText": "Flutter, Drift, BLoC"
+}

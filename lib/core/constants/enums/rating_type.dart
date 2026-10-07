@@ -1,4 +1,0 @@
-enum RatingType {
-  bar,
-  number,
-}

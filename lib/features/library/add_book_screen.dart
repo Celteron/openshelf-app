@@ -1,0 +1,334 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:openreads/core/helpers/isbn.dart';
+import 'package:openreads/core/helpers/rating.dart';
+import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/domain/models/book_draft.dart';
+import 'package:openreads/domain/models/book_metadata.dart';
+import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/repositories/location_repository.dart';
+import 'package:openreads/features/library/library_cubit.dart';
+import 'package:openreads/features/library/widgets/rating_control.dart';
+import 'package:openreads/features/metadata/metadata_cubit.dart';
+import 'package:openreads/l10n/app_localizations.dart';
+
+/// Manual book entry with optional ISBN metadata lookup (US1/US2).
+///
+/// Pass an existing [book] to open the form in edit mode: fields are
+/// pre-filled and saving updates the record instead of inserting a new one.
+class AddBookScreen extends StatefulWidget {
+  final Book? book;
+  const AddBookScreen({super.key, this.book});
+
+  @override
+  State<AddBookScreen> createState() => _AddBookScreenState();
+}
+
+class _AddBookScreenState extends State<AddBookScreen> {
+  final _title = TextEditingController();
+  final _subtitle = TextEditingController();
+  final _authors = TextEditingController();
+  final _isbn = TextEditingController();
+  final _publisher = TextEditingController();
+  final _year = TextEditingController();
+  final _pages = TextEditingController();
+  final _language = TextEditingController();
+  BookFormat _format = BookFormat.paperback;
+  BookStatus _status = BookStatus.unread;
+  double _rating = 0.0;
+  int? _locationId;
+  bool _loading = false;
+
+  bool get _isEditing => widget.book != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final book = widget.book;
+    if (book != null) {
+      _title.text = book.title;
+      _subtitle.text = book.subtitle ?? '';
+      _authors.text = book.authors.join(', ');
+      _isbn.text = book.isbn13 ?? book.isbn10 ?? '';
+      _publisher.text = book.publisher ?? '';
+      _year.text = book.publishedYear?.toString() ?? '';
+      _pages.text = book.pageCount?.toString() ?? '';
+      _language.text = book.language ?? '';
+      _format = book.format ?? BookFormat.paperback;
+      _status = book.status;
+      _rating = book.rating;
+      _locationId = book.locationId;
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in [
+      _title,
+      _subtitle,
+      _authors,
+      _isbn,
+      _publisher,
+      _year,
+      _pages,
+      _language,
+    ]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _lookup() async {
+    final l10n = AppLocalizations.of(context);
+    final isbn13 = normalizeIsbn(_isbn.text);
+    if (isbn13 == null) {
+      _showSnack(l10n.invalidIsbn);
+      return;
+    }
+
+    setState(() => _loading = true);
+    await context.read<MetadataCubit>().lookup(BookMetadata(isbn13: isbn13));
+    if (!mounted) return;
+    setState(() => _loading = false);
+
+    final state = context.read<MetadataCubit>().state;
+    if (state is MetadataLoaded) {
+      final m = state.result.metadata;
+      if (m.title == null || m.title!.isEmpty) {
+        _showSnack(l10n.noMetadataFound);
+        return;
+      }
+      setState(() {
+        _title.text = m.title ?? _title.text;
+        _subtitle.text = m.subtitle ?? _subtitle.text;
+        _authors.text = m.authors.join(', ');
+        _publisher.text = m.publisher ?? _publisher.text;
+        _year.text = m.publishedYear?.toString() ?? _year.text;
+        _pages.text = m.pageCount?.toString() ?? _pages.text;
+        _language.text = m.language ?? _language.text;
+      });
+    } else if (state is MetadataError) {
+      _showSnack(state.message);
+    } else {
+      _showSnack(l10n.noMetadataFound);
+    }
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  List<String> _parseAuthors() => _authors.text
+      .split(',')
+      .map((a) => a.trim())
+      .where((a) => a.isNotEmpty)
+      .toList();
+
+  Future<void> _save() async {
+    final isbn13 = normalizeIsbn(_isbn.text);
+    final isbn10 = isbn13 != null ? null : cleanIsbn(_isbn.text);
+    final draft = BookDraft(
+      title: _title.text.trim(),
+      subtitle: _subtitle.text.isEmpty ? null : _subtitle.text,
+      authors: _parseAuthors(),
+      isbn13: isbn13,
+      isbn10: isbn10,
+      publisher: _publisher.text.isEmpty ? null : _publisher.text,
+      publishedYear: int.tryParse(_year.text),
+      pageCount: int.tryParse(_pages.text),
+      language: _language.text.isEmpty ? null : _language.text,
+      format: _format,
+      status: _status,
+      rating: normalizeRating(_rating),
+      metadataSource: _isEditing
+          ? widget.book!.metadataSource
+          : MetadataSource.manual,
+      locationId: _locationId,
+      coverUrl: widget.book?.coverUrl,
+      description: widget.book?.description,
+      seriesVolume: widget.book?.seriesVolume,
+      editedFields: _isEditing ? _editedFields() : const {},
+    );
+
+    final cubit = context.read<LibraryCubit>();
+    if (_isEditing) {
+      await cubit.updateBook(widget.book!.id, draft);
+    } else {
+      await cubit.addBook(draft);
+    }
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  /// Fields the user changed vs. the original record (drives the verification
+  /// badge: a hand-edited DNB book becomes "bearbeitet").
+  Set<String> _editedFields() {
+    final b = widget.book!;
+    final changed = <String>{};
+
+    if (_title.text.trim() != b.title) changed.add('title');
+    final subtitle = _subtitle.text.isEmpty ? null : _subtitle.text;
+    if (subtitle != b.subtitle) changed.add('subtitle');
+    if (!listEquals(_parseAuthors(), b.authors)) changed.add('authors');
+    if (_publisher.text.isEmpty
+        ? b.publisher != null
+        : _publisher.text != b.publisher) {
+      changed.add('publisher');
+    }
+    if (int.tryParse(_year.text) != b.publishedYear) {
+      changed.add('publishedYear');
+    }
+    if (int.tryParse(_pages.text) != b.pageCount) changed.add('pageCount');
+    final language = _language.text.isEmpty ? null : _language.text;
+    if (language != b.language) changed.add('language');
+    if (_format != (b.format ?? BookFormat.paperback)) changed.add('format');
+    final isbn13 = normalizeIsbn(_isbn.text);
+    if (isbn13 != b.isbn13) changed.add('isbn13');
+
+    return changed;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_isEditing ? l10n.editBookTitle : l10n.addBookTitle),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _field(_title, l10n.fieldTitle),
+          _field(_subtitle, l10n.fieldSubtitle),
+          _field(_authors, l10n.fieldAuthors),
+          Row(
+            children: [
+              Expanded(child: _field(_isbn, l10n.fieldIsbn)),
+              IconButton(
+                onPressed: _loading ? null : _lookup,
+                icon: _loading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.search),
+                tooltip: l10n.lookupMetadataTooltip,
+              ),
+            ],
+          ),
+          _field(_publisher, l10n.fieldPublisher),
+          _field(_year, l10n.fieldYear),
+          _field(_pages, l10n.fieldPages),
+          _field(_language, l10n.fieldLanguage),
+          const SizedBox(height: 8),
+          _dropdown<BookFormat>(
+            label: l10n.fieldFormat,
+            value: _format,
+            items: BookFormat.values,
+            onChanged: (v) => setState(() => _format = v),
+          ),
+          _dropdown<BookStatus>(
+            label: l10n.fieldStatus,
+            value: _status,
+            items: BookStatus.values,
+            onChanged: (v) => setState(() => _status = v),
+          ),
+          _locationDropdown(),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.ratingLabel),
+                RatingControl(
+                  value: _rating,
+                  onChanged: (v) => setState(() => _rating = v),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          FilledButton(onPressed: _save, child: Text(l10n.save)),
+        ],
+      ),
+    );
+  }
+
+  Widget _locationDropdown() {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: FutureBuilder<List<Location>>(
+        future: context.read<LocationRepository>().getLocations(),
+        builder: (context, snapshot) {
+          final locations = snapshot.data ?? const <Location>[];
+          return InputDecorator(
+            decoration: InputDecoration(labelText: l10n.fieldLocation),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int?>(
+                value: _locationId,
+                isExpanded: true,
+                items: [
+                  DropdownMenuItem<int?>(
+                    value: null,
+                    child: Text(l10n.noLocation),
+                  ),
+                  for (final location in locations)
+                    DropdownMenuItem<int?>(
+                      value: location.id,
+                      child: Text(location.name),
+                    ),
+                ],
+                onChanged: (v) => setState(() => _locationId = v),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _dropdown<T>({
+    required String label,
+    required T value,
+    required List<T> items,
+    required ValueChanged<T> onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: InputDecorator(
+        decoration: InputDecoration(labelText: label),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<T>(
+            value: value,
+            isExpanded: true,
+            items: [
+              for (final item in items)
+                DropdownMenuItem(
+                  value: item,
+                  child: Text(item.toString().split('.').last),
+                ),
+            ],
+            onChanged: (v) {
+              if (v != null) onChanged(v);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _field(TextEditingController controller, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(labelText: label),
+      ),
+    );
+  }
+}

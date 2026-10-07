@@ -1,0 +1,123 @@
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/data/database/daos/books_dao.dart';
+import 'package:openreads/data/repositories/book_repository_impl.dart';
+import 'package:openreads/domain/models/book_draft.dart';
+import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/import.dart';
+import 'package:openreads/domain/repositories/book_repository.dart';
+import 'package:openreads/domain/services/import_service.dart';
+
+void main() {
+  late AppDatabase db;
+  late BookRepositoryImpl repository;
+  late ImportService service;
+
+  setUp(() {
+    db = AppDatabase(NativeDatabase.memory());
+    repository = BookRepositoryImpl(BooksDao(db));
+    service = ImportService(repository);
+  });
+
+  tearDown(() async {
+    await db.close();
+  });
+
+  Stream<ImportRow> rowsOf(List<BookImport> books) async* {
+    for (var i = 0; i < books.length; i++) {
+      yield ImportRow(rowNumber: i + 1, book: books[i]);
+    }
+  }
+
+  BookImport book(String title, String isbn) =>
+      BookImport(title: title, isbn13: isbn, authors: const ['A']);
+
+  test('imports books and skips duplicates by ISBN', () async {
+    await repository.insertBook(
+      BooksCompanion.insert(
+        title: 'Existing',
+        authors: const ['A'],
+        editedFields: const [],
+        isbn13: const Value('9780000000001'),
+      ),
+    );
+
+    final result = await service.import(
+      rowsOf([
+        book('One', '9780000000001'), // duplicate of existing
+        book('Two', '9780000000002'),
+        book('Three', '9780000000002'), // duplicate within import
+        const BookImport(title: '', authors: []), // missing title
+      ]),
+    );
+
+    expect(result.imported, 1);
+    expect(result.skipped, 3);
+    expect(result.errors, hasLength(3));
+  });
+
+  test('rolls back the current batch on a critical failure', () async {
+    // A repository that fails on the first batch insert.
+    final failingRepo = _ThrowingRepository();
+
+    final result = await ImportService(failingRepo).import(
+      rowsOf([book('One', '9780000000001'), book('Two', '9780000000002')]),
+    );
+
+    expect(result.imported, 0);
+    expect(result.skipped, 2);
+    expect(
+      result.errors.any((e) => e.reason.startsWith('Critical failure')),
+      isTrue,
+    );
+  });
+}
+
+class _ThrowingRepository implements BookRepository {
+  @override
+  Future<int> addBook(BookDraft draft) async => 0;
+
+  @override
+  Future<bool> isbnExists(String isbn13) async => false;
+
+  @override
+  Future<int> insertAll(List<BooksCompanion> books) async {
+    throw Exception('constraint failed');
+  }
+
+  @override
+  Future<void> bulkAssignLocation(List<int> bookIds, int? locationId) async {}
+
+  @override
+  Future<Book?> getBook(int id) async => null;
+
+  @override
+  Future<List<Book>> getAllBooks() async => const [];
+
+  @override
+  Future<int> insertBook(BooksCompanion book) async => 0;
+
+  @override
+  Future<List<Book>> searchLocal(String query) async => const [];
+
+  @override
+  Future<void> updateBook(int id, BooksCompanion book) async {}
+
+  @override
+  Future<void> updateBookDraft(int id, BookDraft draft) async {}
+
+  @override
+  Future<void> updateRating(int id, double rating) async {}
+
+  @override
+  Future<void> updateStatus(int id, BookStatus status) async {}
+
+  @override
+  Stream<List<Book>> watchBooks({
+    String? query,
+    BookStatus? status,
+    int? locationId,
+  }) async* {}
+}

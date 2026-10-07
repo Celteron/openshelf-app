@@ -6,14 +6,17 @@ publish_to: "none"
 version: 2.11.0+59
 
 environment:
-  sdk: ">=2.18.2 <3.0.0"
+  sdk: ">=3.9.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
   flutter_rating_bar: ^4.0.1
-  sqflite: ^2.1.0
+  drift: ^2.35.1
+  drift_flutter: ^0.3.1
+  xml: ^6.5.0
+  mobile_scanner: ^7.4.2
   path_provider: ^2.0.11
   rxdart: ^0.28.0
   path: ^1.9.0
@@ -39,7 +42,6 @@ dependencies:
   url_launcher: ^6.1.6
   font_awesome_flutter: ^10.2.1
   hydrated_bloc: ^10.0.0
-  barcode_scan2: ^4.2.1
   permission_handler: ^12.0.1
   filesystem_picker: ^4.0.0
   archive: ^4.0.2
@@ -59,7 +61,7 @@ dependencies:
   csv: ^6.0.0
   file_picker: ^8.3.1
   smooth_page_indicator: ^1.1.0
-  intl: ^0.20.2
+  intl: ^0.20.3
   dotted_border: ^3.1.0
   flutter_cache_manager: ^3.3.1
   modal_bottom_sheet: ^3.0.0
@@ -74,6 +76,9 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
   flutter_launcher_icons: "^0.13.1"
+  drift_dev: ^2.35.1
+  build_runner: ^2.4.13
+  test: ^1.25.0
 
 flutter_launcher_icons:
   image_path: "./assets/icons/icon.png"
