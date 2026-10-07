@@ -75,7 +75,7 @@ void main() {
           url: 'https://x/c.jpg',
           local: existing,
         ),
-        book(4, isbn13: '9783000000204'), // no URL at all
+        book(4, isbn13: '9783000000204'), // no URL: Open Library by ISBN
         book(5, isbn13: '9783000000205', url: 'https://x/fail.jpg'), // 404
         book(
           6,
@@ -90,18 +90,18 @@ void main() {
         onProgress: (done, total) => progress.add((done, total)),
       );
 
-      expect(result.total, 4);
-      expect(result.downloaded, 3);
+      expect(result.total, 5);
+      expect(result.downloaded, 4);
       expect(result.failed, 1);
-      expect(repo.paths.keys, unorderedEquals([1, 2, 6]));
+      expect(repo.paths.keys, unorderedEquals([1, 2, 4, 6]));
       expect(repo.paths[1], '${dir.path}/covers/9783000000201.jpg');
       expect(repo.paths[2], '${dir.path}/covers/book-2.jpg');
-      expect(progress.last, (4, 4));
+      expect(progress.last, (5, 5));
     },
   );
 
   test('nothing missing is a quick no-op', () async {
-    final repo = _Repo([book(1), book(2, isbn13: '9783000000207')]);
+    final repo = _Repo([book(1), book(2)]);
 
     final result = await CoverSyncService(repo, cache({})).downloadMissing();
 

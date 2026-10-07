@@ -969,4 +969,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String lendingHistory(int count) {
     return 'Frühere Leihen ($count)';
   }
+
+  @override
+  String get filePickerFailed =>
+      'Der Dateidialog ist nicht verfügbar (unter Linux wird zenity oder kdialog benötigt). Gib den Pfad unten ein.';
+
+  @override
+  String get fileNotReadable => 'Die Datei konnte nicht gelesen werden';
+
+  @override
+  String get importPathLabel => 'Dateipfad';
+
+  @override
+  String get importFromPath => 'Aus Pfad laden';
 }

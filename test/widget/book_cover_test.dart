@@ -169,6 +169,28 @@ void main() {
     expect(requests, 1);
   });
 
+  testWidgets(
+    'an imported book (ISBN, no cover URL) asks Open Library by ISBN',
+    (tester) async {
+      final repo = _Repo();
+      await pump(
+        tester,
+        BookCover(book: book(isbn13: '9783000000105')),
+        cache: service(),
+        repo: repo,
+      );
+
+      expect(
+        find.byKey(
+          ValueKey('cover-image:${dir.path}/covers/9783000000105.jpg'),
+        ),
+        findsOneWidget,
+      );
+      expect(requests, 1);
+      expect(repo.paths[1], isNotNull);
+    },
+  );
+
   testWidgets('a missing local file falls back to the cover URL', (
     tester,
   ) async {

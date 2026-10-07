@@ -548,5 +548,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "filePickerFailed": "Der Dateidialog ist nicht verfügbar (unter Linux wird zenity oder kdialog benötigt). Gib den Pfad unten ein.",
+  "fileNotReadable": "Die Datei konnte nicht gelesen werden",
+  "importPathLabel": "Dateipfad",
+  "importFromPath": "Aus Pfad laden"
 }

@@ -489,5 +489,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "filePickerFailed": "The file dialog is unavailable (Linux needs zenity or kdialog). Enter the path below.",
+  "fileNotReadable": "The file could not be read",
+  "importPathLabel": "File path",
+  "importFromPath": "Load from path"
 }

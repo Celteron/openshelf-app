@@ -1753,6 +1753,30 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Frühere Leihen ({count})'**
   String lendingHistory(int count);
+
+  /// No description provided for @filePickerFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Dateidialog ist nicht verfügbar (unter Linux wird zenity oder kdialog benötigt). Gib den Pfad unten ein.'**
+  String get filePickerFailed;
+
+  /// No description provided for @fileNotReadable.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Datei konnte nicht gelesen werden'**
+  String get fileNotReadable;
+
+  /// No description provided for @importPathLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Dateipfad'**
+  String get importPathLabel;
+
+  /// No description provided for @importFromPath.
+  ///
+  /// In de, this message translates to:
+  /// **'Aus Pfad laden'**
+  String get importFromPath;
 }
 
 class _AppLocalizationsDelegate

@@ -10,6 +10,11 @@ import 'package:http/http.dart' as http;
 /// chosen covers (camera/gallery) are stored next to them. Downloads are
 /// limited to a few at a time so scrolling a long library does not hammer the
 /// cover hosts.
+/// Open Library serves a cover for most ISBNs; `default=false` makes it answer
+/// 404 (instead of a blank image) when it has none.
+String openLibraryCoverUrl(String isbn) =>
+    'https://covers.openlibrary.org/b/isbn/$isbn-L.jpg?default=false';
+
 class CoverCacheService {
   static const _maxConcurrentDownloads = 4;
 

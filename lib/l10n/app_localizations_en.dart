@@ -966,4 +966,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String lendingHistory(int count) {
     return 'Past lendings ($count)';
   }
+
+  @override
+  String get filePickerFailed =>
+      'The file dialog is unavailable (Linux needs zenity or kdialog). Enter the path below.';
+
+  @override
+  String get fileNotReadable => 'The file could not be read';
+
+  @override
+  String get importPathLabel => 'File path';
+
+  @override
+  String get importFromPath => 'Load from path';
 }

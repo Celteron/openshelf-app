@@ -31,7 +31,7 @@ class CoverSyncService {
   }) async {
     final missing = [
       for (final book in await _books.getAllBooks())
-        if ((book.coverUrl ?? '').isNotEmpty &&
+        if (((book.coverUrl ?? '').isNotEmpty || book.isbn13 != null) &&
             !_covers.exists(book.coverLocalPath))
           book,
     ];
@@ -39,7 +39,10 @@ class CoverSyncService {
     var done = 0;
     var downloaded = 0;
     for (final book in missing) {
-      final path = await _covers.resolve(keyFor(book), book.coverUrl);
+      final url = (book.coverUrl ?? '').isNotEmpty
+          ? book.coverUrl
+          : openLibraryCoverUrl(book.isbn13!);
+      final path = await _covers.resolve(keyFor(book), url);
       if (path != null) {
         await _books.setCoverLocalPath(book.id, path);
         downloaded++;
