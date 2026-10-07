@@ -482,6 +482,18 @@ abstract class AppLocalizations {
   /// **'Übersprungen: {count}'**
   String skippedCount(int count);
 
+  /// No description provided for @updatedCount.
+  ///
+  /// In de, this message translates to:
+  /// **'Aktualisiert: {count}'**
+  String updatedCount(int count);
+
+  /// No description provided for @duplicatesSkippedCount.
+  ///
+  /// In de, this message translates to:
+  /// **'Davon bereits vorhandene Duplikate: {count}'**
+  String duplicatesSkippedCount(int count);
+
   /// No description provided for @rowError.
   ///
   /// In de, this message translates to:

@@ -136,14 +136,46 @@ class RowError {
   const RowError({required this.rowNumber, required this.reason});
 }
 
+/// What persisting one batch did to the library.
+class ImportBatchOutcome {
+  /// New books.
+  final int inserted;
+
+  /// Existing books that gained missing fields, tags, notes or sessions.
+  final int updated;
+
+  /// Existing books that already had everything the import offered.
+  final int unchanged;
+
+  const ImportBatchOutcome({
+    this.inserted = 0,
+    this.updated = 0,
+    this.unchanged = 0,
+  });
+}
+
 class ImportResult {
+  /// New books added to the library.
   final int imported;
+
+  /// Rows that were not added and did not change anything: invalid rows plus
+  /// [duplicates].
   final int skipped;
   final List<RowError> errors;
+
+  /// Rows that matched an existing book (same ISBN, or same title and
+  /// authors) and enriched it with missing data instead of creating a copy.
+  final int updated;
+
+  /// Rows that matched an existing book which already had all of their data.
+  /// Counted in [skipped] as well; they are not errors.
+  final int duplicates;
 
   const ImportResult({
     required this.imported,
     required this.skipped,
     required this.errors,
+    this.updated = 0,
+    this.duplicates = 0,
   });
 }

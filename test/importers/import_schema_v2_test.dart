@@ -255,11 +255,12 @@ void main() {
 
   group('reading progress and sessions', () {
     BookImport book({
+      String title = 'T',
       BookStatus? status,
       int? pages,
       List<ReadingImport> readings = const [],
     }) => BookImport(
-      title: 'T',
+      title: title,
       authors: const ['A'],
       status: status,
       pageCount: pages,
@@ -274,9 +275,9 @@ void main() {
     test('a read book is complete; others start at page 0', () async {
       await service.import(
         rows([
-          book(status: BookStatus.read, pages: 300),
-          book(status: BookStatus.reading, pages: 300),
-          book(status: BookStatus.read), // unknown page count
+          book(title: 'A', status: BookStatus.read, pages: 300),
+          book(title: 'B', status: BookStatus.reading, pages: 300),
+          book(title: 'C', status: BookStatus.read), // unknown page count
         ]),
       );
       final pages = [
@@ -339,19 +340,20 @@ void main() {
             notes: const [NoteImport(content: 'n')],
             readings: [ReadingImport(startedAt: DateTime(2024))],
           ),
-          // Same ISBN-13 → UNIQUE constraint failure after the first book was
+          // Unknown location → foreign-key failure after the first book was
           // already written inside the transaction.
           ImportedBook(
             book: BooksCompanion.insert(
-              title: 'Doppelt',
-              authors: const ['A'],
+              title: 'Kaputt',
+              authors: const ['B'],
               editedFields: const [],
-              isbn13: const Value('9780000000001'),
+              isbn13: const Value('9780000000002'),
+              locationId: const Value(9999),
             ),
           ),
         ];
 
-        await expectLater(BooksDao(db).insertImported(batch), throwsException);
+        await expectLater(BooksDao(db).importBatch(batch), throwsException);
 
         expect(await db.select(db.books).get(), isEmpty);
         expect(await db.select(db.tags).get(), isEmpty);

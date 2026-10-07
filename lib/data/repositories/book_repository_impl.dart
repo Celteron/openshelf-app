@@ -86,8 +86,8 @@ class BookRepositoryImpl implements BookRepository {
   Future<int> insertAll(List<BooksCompanion> books) => _dao.insertAll(books);
 
   @override
-  Future<int> insertImported(List<ImportedBook> books) =>
-      _dao.insertImported(books);
+  Future<ImportBatchOutcome> importBatch(List<ImportedBook> books) =>
+      _dao.importBatch(books);
 
   @override
   Future<void> deleteBook(int id) => _dao.delete(id);

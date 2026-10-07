@@ -39,3 +39,12 @@ Legend: `[X]` done. Each task traces to FR-P2-xx in `spec.md`.
 - [X] T2-22 Fix: tag names are matched case-insensitively in Dart (SQLite `lower()` is ASCII-only) — regression
   test with `Übernatürliches`.
 - [X] T2-23 `dart analyze` = 0, `flutter test` = 100%.
+
+## Sprint 10 — Duplicate-safe re-import, licence, parity audit
+- [X] T2-24 `BooksDao.importBatch` + `import_merge.dart`: ISBN-13 → ISBN-10 → title+authors matching inside the batch
+  transaction, gap-filling merge, tag/note/session union; `ImportResult.updated/duplicates`; summary UI + DE/EN strings. (FR-P2-18)
+- [X] T2-25 `test/importers/duplicate_import_test.dart` (773-book re-import is a no-op, merge/no-overwrite, matching rules,
+  CSV round trip) + `test/widget/importer_summary_test.dart`. (FR-P2-18)
+- [X] T2-26 Root `LICENSE` → GPL-3.0; licence-text test. Open issue recorded in FR-P2-19. (FR-P2-19)
+- [X] T2-27 `legacy-parity-audit.md`: feature-by-feature audit against upstream `74b613b0` with a gap backlog.
+- [X] T2-28 `dart analyze` = 0, `flutter test` = 100%.

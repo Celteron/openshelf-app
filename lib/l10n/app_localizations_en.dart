@@ -216,6 +216,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String updatedCount(int count) {
+    return 'Updated: $count';
+  }
+
+  @override
+  String duplicatesSkippedCount(int count) {
+    return 'Of those, already-present duplicates: $count';
+  }
+
+  @override
   String rowError(int row, String reason) {
     return 'Row $row: $reason';
   }

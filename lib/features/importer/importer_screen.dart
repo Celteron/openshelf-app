@@ -77,7 +77,10 @@ class _ImporterScreenState extends State<ImporterScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(l10n.importedCount(result.imported)),
+                  Text(l10n.updatedCount(result.updated)),
                   Text(l10n.skippedCount(result.skipped)),
+                  if (result.duplicates > 0)
+                    Text(l10n.duplicatesSkippedCount(result.duplicates)),
                   const SizedBox(height: 16),
                   Flexible(
                     child: ListView(

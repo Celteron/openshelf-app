@@ -23,7 +23,11 @@ abstract class BookRepository {
   Future<int> insertAll(List<BooksCompanion> books);
 
   /// Imports books with their tags, notes and reading sessions atomically.
-  Future<int> insertImported(List<ImportedBook> books);
+  ///
+  /// A row matching an existing book (ISBN-13, ISBN-10, or identical title and
+  /// authors) is merged into it instead of duplicated: only missing data is
+  /// added, nothing the user entered is overwritten.
+  Future<ImportBatchOutcome> importBatch(List<ImportedBook> books);
 
   /// Deletes the book; its sessions, notes, tag links and lending records go
   /// with it (foreign-key cascade).

@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/data/database/daos/import_merge.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/import.dart';
 
@@ -63,11 +64,16 @@ class BooksDao {
     return books.length;
   }
 
-  /// Persists imported books together with their tags, notes and reading
-  /// sessions (schema v2) in ONE transaction: any failure rolls the whole batch
-  /// back, so no book is left half-imported.
-  Future<int> insertImported(List<ImportedBook> batch) {
+  /// Persists an import batch in ONE transaction: any failure rolls the whole
+  /// batch back, so no book is left half-imported.
+  ///
+  /// Rows matching an existing book are merged into it ([mergeMissingFields],
+  /// plus tags, notes and sessions it does not have yet); the rest is inserted.
+  /// Matching also sees books inserted earlier in the same batch, so duplicates
+  /// inside one file collapse as well.
+  Future<ImportBatchOutcome> importBatch(List<ImportedBook> batch) {
     return db.transaction(() async {
+      final index = BookMatchIndex(await db.select(db.books).get());
       // Tag names are matched case-insensitively in Dart: SQLite's lower()
       // only folds ASCII, so `Übernatürliches` would never match itself.
       final tagIds = <String, int>{
@@ -75,60 +81,141 @@ class BooksDao {
           tag.name.toLowerCase(): tag.id,
       };
 
+      var inserted = 0;
+      var updated = 0;
+      var unchanged = 0;
+
       for (final item in batch) {
-        final bookId = await db.into(db.books).insert(item.book);
-
-        for (final name in item.tags) {
-          final key = name.toLowerCase();
-          final tagId = tagIds[key] ??= await db
-              .into(db.tags)
-              .insert(TagsCompanion.insert(name: name));
-          await db
-              .into(db.bookTags)
-              .insert(
-                BookTagsCompanion.insert(bookId: bookId, tagId: tagId),
-                mode: InsertMode.insertOrIgnore,
-              );
+        final existing = index.find(item.book);
+        if (existing == null) {
+          final bookId = await db.into(db.books).insert(item.book);
+          index.put((await getById(bookId))!);
+          await _addSatellites(bookId, item, tagIds);
+          inserted++;
+          continue;
         }
 
-        for (final note in item.notes) {
-          await db
-              .into(db.bookNotes)
-              .insert(
-                BookNotesCompanion.insert(
-                  bookId: bookId,
-                  kind: note.kind,
-                  content: note.content,
-                  pageNumber: Value(note.pageNumber),
-                  createdAt: note.createdAt == null
-                      ? const Value.absent()
-                      : Value(note.createdAt!),
-                  updatedAt: note.createdAt == null
-                      ? const Value.absent()
-                      : Value(note.createdAt!),
-                ),
-              );
+        var changed = false;
+        final patch = mergeMissingFields(existing, item.book);
+        if (patch != null) {
+          await update(existing.id, patch);
+          index.put((await getById(existing.id))!);
+          changed = true;
         }
-
-        for (final reading in item.readings) {
-          final startedAt =
-              reading.startedAt ?? reading.finishedAt ?? DateTime.now();
-          await db
-              .into(db.readingSessions)
-              .insert(
-                ReadingSessionsCompanion.insert(
-                  bookId: bookId,
-                  startedAt: startedAt,
-                  // A session always ends: an open one would show up as the
-                  // book's running timer.
-                  endedAt: Value(reading.finishedAt ?? startedAt),
-                  durationSeconds: Value(reading.duration?.inSeconds ?? 0),
-                ),
-              );
-        }
+        changed |= await _addSatellites(
+          existing.id,
+          item,
+          tagIds,
+          merging: true,
+        );
+        changed ? updated++ : unchanged++;
       }
-      return batch.length;
+
+      return ImportBatchOutcome(
+        inserted: inserted,
+        updated: updated,
+        unchanged: unchanged,
+      );
     });
+  }
+
+  /// Adds the tags, notes and sessions of [item] to [bookId]. When [merging],
+  /// entries the book already has are left alone. Returns whether anything
+  /// was added.
+  Future<bool> _addSatellites(
+    int bookId,
+    ImportedBook item,
+    Map<String, int> tagIds, {
+    bool merging = false,
+  }) async {
+    var added = false;
+
+    final linkedTags = merging
+        ? {
+            for (final link in await (db.select(
+              db.bookTags,
+            )..where((t) => t.bookId.equals(bookId))).get())
+              link.tagId,
+          }
+        : <int>{};
+    for (final name in item.tags) {
+      final tagId = tagIds[name.toLowerCase()] ??= await db
+          .into(db.tags)
+          .insert(TagsCompanion.insert(name: name));
+      if (!linkedTags.add(tagId)) continue;
+      await db
+          .into(db.bookTags)
+          .insert(BookTagsCompanion.insert(bookId: bookId, tagId: tagId));
+      added = true;
+    }
+
+    final knownNotes = merging
+        ? {
+            for (final n in await (db.select(
+              db.bookNotes,
+            )..where((t) => t.bookId.equals(bookId))).get())
+              n.content.trim(),
+          }
+        : <String>{};
+    for (final note in item.notes) {
+      if (!knownNotes.add(note.content.trim())) continue;
+      await db
+          .into(db.bookNotes)
+          .insert(
+            BookNotesCompanion.insert(
+              bookId: bookId,
+              kind: note.kind,
+              content: note.content,
+              pageNumber: Value(note.pageNumber),
+              createdAt: note.createdAt == null
+                  ? const Value.absent()
+                  : Value(note.createdAt!),
+              updatedAt: note.createdAt == null
+                  ? const Value.absent()
+                  : Value(note.createdAt!),
+            ),
+          );
+      added = true;
+    }
+
+    final knownSessions = merging
+        ? {
+            for (final s in await (db.select(
+              db.readingSessions,
+            )..where((t) => t.bookId.equals(bookId))).get())
+              (
+                s.startedAt.millisecondsSinceEpoch ~/ 1000,
+                s.endedAt?.millisecondsSinceEpoch == null
+                    ? null
+                    : s.endedAt!.millisecondsSinceEpoch ~/ 1000,
+              ),
+          }
+        : <(int, int?)>{};
+    for (final reading in item.readings) {
+      final startedAt =
+          reading.startedAt ?? reading.finishedAt ?? DateTime.now();
+      // A session always ends: an open one would show up as the book's
+      // running timer.
+      final endedAt = reading.finishedAt ?? startedAt;
+      final key = (
+        startedAt.millisecondsSinceEpoch ~/ 1000,
+        endedAt.millisecondsSinceEpoch ~/ 1000,
+      );
+      if (!knownSessions.add(key)) continue;
+      await db
+          .into(db.readingSessions)
+          .insert(
+            ReadingSessionsCompanion.insert(
+              bookId: bookId,
+              startedAt: startedAt,
+              endedAt: Value(endedAt),
+              durationSeconds: Value(reading.duration?.inSeconds ?? 0),
+            ),
+          );
+      added = true;
+    }
+
+    return added;
   }
 
   Future<int> delete(int id) =>

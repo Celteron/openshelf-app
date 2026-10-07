@@ -106,6 +106,22 @@
     }
   },
   "skippedCount": "Übersprungen: {count}",
+  "updatedCount": "Aktualisiert: {count}",
+  "@updatedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "duplicatesSkippedCount": "Davon bereits vorhandene Duplikate: {count}",
+  "@duplicatesSkippedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "@skippedCount": {
     "placeholders": {
       "count": {

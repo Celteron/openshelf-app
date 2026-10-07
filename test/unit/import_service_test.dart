@@ -54,8 +54,15 @@ void main() {
     );
 
     expect(result.imported, 1);
-    expect(result.skipped, 3);
-    expect(result.errors, hasLength(3));
+    expect(result.duplicates, 2, reason: 'identical duplicates are skipped');
+    expect(result.updated, 0);
+    expect(result.skipped, 3, reason: '2 duplicates + 1 invalid row');
+    expect(
+      result.errors,
+      hasLength(1),
+      reason: 'only the invalid row is an error',
+    );
+    expect(await db.select(db.books).get(), hasLength(2));
   });
 
   test('rolls back the current batch on a critical failure', () async {
@@ -88,7 +95,7 @@ class _ThrowingRepository implements BookRepository {
   }
 
   @override
-  Future<int> insertImported(List<ImportedBook> books) async {
+  Future<ImportBatchOutcome> importBatch(List<ImportedBook> books) async {
     throw Exception('constraint failed');
   }
 

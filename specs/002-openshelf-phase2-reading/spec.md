@@ -96,3 +96,14 @@ the committed dump and the migration tests were regenerated.
 - **FR-P2-16** Library: sort by title, author (surname first), rating, date added, reading progress with a
   direction toggle, and a favourites filter.
 - **FR-P2-17** Yearly goal: optional page goal next to the book goal. The licence is shown as GPL-3.0.
+- **FR-P2-18** Re-import is duplicate-safe. A row matches an existing book by ISBN-13, then ISBN-10, then identical
+  title + authors (case-insensitive; the title match only when one side has no ISBN-13, because two ISBN-13s are two
+  editions). A match is merged, never copied: **only gaps are filled** (empty fields, unrated, unread status, missing
+  finish date), new tags/notes/sessions are added, and nothing the user entered is overwritten. The result reports
+  *imported*, *updated* (match gained data), *skipped* and *duplicates* (match with nothing new; counted in *skipped*,
+  not an error). Duplicates inside one file collapse the same way.
+- **FR-P2-19** The licence is **GPL-3.0**: root `LICENSE` is the official GPL-3.0 text and the Settings screen shows
+  GPL-3.0. **Open issue:** upstream Openreads declares "GNU General Public Licence v2.0" without an "or later" grant
+  (`settings_screen.dart` at `74b613b0`), and Constitution Art. VII.1 / `001/plan.md` still say GPLv2. Relicensing
+  derived code needs the copyright holders' consent or an amendment of the constitution; neither is done here.
+- **Legacy parity**: see `legacy-parity-audit.md` — OpenShelf is *not* yet a 100 % superset; the audit lists the gaps.

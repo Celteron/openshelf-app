@@ -64,6 +64,22 @@
   "rowsProcessed": "{count} rows processed",
   "importedCount": "Imported: {count}",
   "skippedCount": "Skipped: {count}",
+  "updatedCount": "Updated: {count}",
+  "@updatedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "duplicatesSkippedCount": "Of those, already-present duplicates: {count}",
+  "@duplicatesSkippedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "rowError": "Row {row}: {reason}",
   "navStats": "Statistics",
   "statisticsTitle": "Statistics",

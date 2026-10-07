@@ -8,6 +8,12 @@ import 'package:openreads/domain/repositories/book_repository.dart';
 /// Persists a parsed import stream in chunked transactions, collects per-row
 /// errors, and rolls back the current transaction on a critical failure
 /// (Constitution Article III/IV, spec FR-012).
+///
+/// Re-importing is safe: a row that matches an existing book (ISBN-13, ISBN-10
+/// or identical title and authors) never creates a copy. If the row has data
+/// the book lacks (fields, tags, notes, reading sessions) the book is
+/// *updated*; if not, the row is a skipped *duplicate*. Existing data is never
+/// overwritten.
 class ImportService {
   static const _batchSize = 500;
 
@@ -16,90 +22,54 @@ class ImportService {
   ImportService(this._repository);
 
   Future<ImportResult> import(Stream<ImportRow> rows) async {
-    var imported = 0;
-    var skipped = 0;
-    final errors = <RowError>[];
-    final seenIsbns = <String>{};
+    final tally = _Tally();
     final pending = <ImportedBook>[];
 
     await for (final row in rows) {
       if (row.error != null) {
-        skipped++;
-        errors.add(RowError(rowNumber: row.rowNumber, reason: row.error!));
+        tally.skipped++;
+        tally.errors.add(
+          RowError(rowNumber: row.rowNumber, reason: row.error!),
+        );
         continue;
       }
 
       final book = row.book!;
       if (book.title == null || book.title!.trim().isEmpty) {
-        skipped++;
-        errors.add(RowError(rowNumber: row.rowNumber, reason: 'Missing title'));
+        tally.skipped++;
+        tally.errors.add(
+          RowError(rowNumber: row.rowNumber, reason: 'Missing title'),
+        );
         continue;
-      }
-
-      final isbn13 = book.isbn13;
-      if (isbn13 != null) {
-        if (!seenIsbns.add(isbn13)) {
-          skipped++;
-          errors.add(
-            RowError(
-              rowNumber: row.rowNumber,
-              reason: 'Duplicate ISBN $isbn13',
-            ),
-          );
-          continue;
-        }
-        if (await _repository.isbnExists(isbn13)) {
-          skipped++;
-          errors.add(
-            RowError(
-              rowNumber: row.rowNumber,
-              reason: 'Already in library: $isbn13',
-            ),
-          );
-          continue;
-        }
       }
 
       pending.add(_toImported(book));
 
       if (pending.length >= _batchSize) {
-        final result = await _flush(pending, imported, skipped, errors);
-        imported = result.imported;
-        skipped = result.skipped;
-        if (result.failed) {
-          return ImportResult(
-            imported: imported,
-            skipped: skipped,
-            errors: errors,
-          );
-        }
+        final ok = await _flush(pending, tally);
+        if (!ok) return tally.result();
         pending.clear();
       }
     }
 
-    if (pending.isNotEmpty) {
-      final result = await _flush(pending, imported, skipped, errors);
-      imported = result.imported;
-      skipped = result.skipped;
-    }
-
-    return ImportResult(imported: imported, skipped: skipped, errors: errors);
+    if (pending.isNotEmpty) await _flush(pending, tally);
+    return tally.result();
   }
 
-  Future<_FlushResult> _flush(
-    List<ImportedBook> batch,
-    int imported,
-    int skipped,
-    List<RowError> errors,
-  ) async {
+  /// Returns `false` when the batch failed (and was rolled back).
+  Future<bool> _flush(List<ImportedBook> batch, _Tally tally) async {
     try {
-      final count = await _repository.insertImported(batch);
-      return _FlushResult(imported + count, skipped, failed: false);
+      final outcome = await _repository.importBatch(batch);
+      tally.imported += outcome.inserted;
+      tally.updated += outcome.updated;
+      tally.duplicates += outcome.unchanged;
+      tally.skipped += outcome.unchanged;
+      return true;
     } catch (e) {
       // The transaction has rolled back; no partial books from this batch.
-      skipped += batch.length;
-      errors.add(RowError(rowNumber: 0, reason: 'Critical failure: $e'));
-      return _FlushResult(imported, skipped, failed: true);
+      tally.skipped += batch.length;
+      tally.errors.add(RowError(rowNumber: 0, reason: 'Critical failure: $e'));
+      return false;
     }
   }
 
@@ -163,10 +133,18 @@ class ImportService {
   }
 }
 
-class _FlushResult {
-  final int imported;
-  final int skipped;
-  final bool failed;
+class _Tally {
+  int imported = 0;
+  int updated = 0;
+  int skipped = 0;
+  int duplicates = 0;
+  final errors = <RowError>[];
 
-  _FlushResult(this.imported, this.skipped, {required this.failed});
+  ImportResult result() => ImportResult(
+    imported: imported,
+    skipped: skipped,
+    errors: errors,
+    updated: updated,
+    duplicates: duplicates,
+  );
 }
