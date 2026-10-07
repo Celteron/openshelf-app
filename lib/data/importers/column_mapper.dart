@@ -19,6 +19,14 @@ class ColumnMapper {
   static const fieldStatus = 'status';
   static const fieldSeriesName = 'seriesName';
   static const fieldSeriesVolume = 'seriesVolume';
+  static const fieldFavorite = 'favorite';
+  static const fieldReview = 'review';
+  static const fieldNotes = 'notes';
+  static const fieldTags = 'tags';
+  static const fieldStartDate = 'startDate';
+  static const fieldFinishDate = 'finishDate';
+  static const fieldReadings = 'readings';
+  static const fieldDateAdded = 'dateAdded';
 
   /// Source header (lowercased and trimmed) → canonical field.
   final Map<String, String> headerToField;

@@ -4,6 +4,7 @@ import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/data/database/daos/books_dao.dart';
 import 'package:openreads/domain/models/book_draft.dart';
 import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/import.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 
 class BookRepositoryImpl implements BookRepository {
@@ -38,8 +39,21 @@ class BookRepositoryImpl implements BookRepository {
       _dao.update(id, BooksCompanion(rating: Value(rating)));
 
   @override
-  Future<void> updateStatus(int id, BookStatus status) =>
-      _dao.update(id, BooksCompanion(status: Value(status)));
+  Future<void> updateStatus(int id, BookStatus status) async {
+    // Phase 2 (FR-P2-04): record when a book transitions into `read`.
+    final current = await _dao.getById(id);
+    final becameRead =
+        status == BookStatus.read && current?.status != BookStatus.read;
+    await _dao.update(
+      id,
+      BooksCompanion(
+        status: Value(status),
+        finishedAt: becameRead
+            ? Value(DateTime.now())
+            : const Value<DateTime?>.absent(),
+      ),
+    );
+  }
 
   BooksCompanion _draftToCompanion(BookDraft draft) {
     // Normalize ISBNs so the canonical 13-digit form is always stored.
@@ -70,6 +84,26 @@ class BookRepositoryImpl implements BookRepository {
 
   @override
   Future<int> insertAll(List<BooksCompanion> books) => _dao.insertAll(books);
+
+  @override
+  Future<int> insertImported(List<ImportedBook> books) =>
+      _dao.insertImported(books);
+
+  @override
+  Future<void> deleteBook(int id) => _dao.delete(id);
+
+  @override
+  Future<void> updateFavorite(int id, bool isFavorite) =>
+      _dao.update(id, BooksCompanion(isFavorite: Value(isFavorite)));
+
+  @override
+  Future<void> updateReview(int id, String? review) {
+    final text = review?.trim();
+    return _dao.update(
+      id,
+      BooksCompanion(review: Value(text == null || text.isEmpty ? null : text)),
+    );
+  }
 
   @override
   Future<void> updateBook(int id, BooksCompanion book) => _dao.update(id, book);

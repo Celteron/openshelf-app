@@ -524,6 +524,42 @@ abstract class AppLocalizations {
   /// **'Top Autoren'**
   String get topAuthors;
 
+  /// No description provided for @statusUnread.
+  ///
+  /// In de, this message translates to:
+  /// **'Ungelesen'**
+  String get statusUnread;
+
+  /// No description provided for @statusReading.
+  ///
+  /// In de, this message translates to:
+  /// **'Am Lesen'**
+  String get statusReading;
+
+  /// No description provided for @statusRead.
+  ///
+  /// In de, this message translates to:
+  /// **'Gelesen'**
+  String get statusRead;
+
+  /// No description provided for @statusDnf.
+  ///
+  /// In de, this message translates to:
+  /// **'Abgebrochen'**
+  String get statusDnf;
+
+  /// No description provided for @statusWishlist.
+  ///
+  /// In de, this message translates to:
+  /// **'Wunschliste'**
+  String get statusWishlist;
+
+  /// No description provided for @statusReReading.
+  ///
+  /// In de, this message translates to:
+  /// **'Wiederlesen'**
+  String get statusReReading;
+
   /// No description provided for @settingsTitle.
   ///
   /// In de, this message translates to:
@@ -625,6 +661,522 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Flutter, Drift, BLoC'**
   String get creditsText;
+
+  /// No description provided for @delete.
+  ///
+  /// In de, this message translates to:
+  /// **'Löschen'**
+  String get delete;
+
+  /// No description provided for @copy.
+  ///
+  /// In de, this message translates to:
+  /// **'Kopieren'**
+  String get copy;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In de, this message translates to:
+  /// **'In die Zwischenablage kopiert'**
+  String get copiedToClipboard;
+
+  /// No description provided for @enterPositiveNumber.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte eine Zahl größer 0 eingeben'**
+  String get enterPositiveNumber;
+
+  /// No description provided for @clearFilters.
+  ///
+  /// In de, this message translates to:
+  /// **'Filter zurücksetzen'**
+  String get clearFilters;
+
+  /// No description provided for @readingTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesefortschritt'**
+  String get readingTitle;
+
+  /// No description provided for @readingStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesen starten'**
+  String get readingStart;
+
+  /// No description provided for @readingStop.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesen beenden'**
+  String get readingStop;
+
+  /// No description provided for @currentPageLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Aktuelle Seite'**
+  String get currentPageLabel;
+
+  /// No description provided for @savePage.
+  ///
+  /// In de, this message translates to:
+  /// **'Seite speichern'**
+  String get savePage;
+
+  /// No description provided for @pageOfTotal.
+  ///
+  /// In de, this message translates to:
+  /// **'Seite {page} von {total}'**
+  String pageOfTotal(int page, int total);
+
+  /// No description provided for @pageOnly.
+  ///
+  /// In de, this message translates to:
+  /// **'Seite {page}'**
+  String pageOnly(int page);
+
+  /// No description provided for @readingSpeed.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesegeschwindigkeit'**
+  String get readingSpeed;
+
+  /// No description provided for @pagesPerHourValue.
+  ///
+  /// In de, this message translates to:
+  /// **'{value} Seiten/Std.'**
+  String pagesPerHourValue(String value);
+
+  /// No description provided for @notEnoughData.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch nicht genug Daten'**
+  String get notEnoughData;
+
+  /// No description provided for @totalReadingTime.
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamte Lesezeit'**
+  String get totalReadingTime;
+
+  /// No description provided for @readingSessionsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesesitzungen'**
+  String get readingSessionsTitle;
+
+  /// No description provided for @noSessionsYet.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Lesesitzungen'**
+  String get noSessionsYet;
+
+  /// No description provided for @sessionPagesLine.
+  ///
+  /// In de, this message translates to:
+  /// **'{pages} Seiten · {duration}'**
+  String sessionPagesLine(int pages, String duration);
+
+  /// No description provided for @logSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzung nachtragen'**
+  String get logSession;
+
+  /// No description provided for @sessionDurationMinutes.
+  ///
+  /// In de, this message translates to:
+  /// **'Dauer (Minuten)'**
+  String get sessionDurationMinutes;
+
+  /// No description provided for @sessionStartPage.
+  ///
+  /// In de, this message translates to:
+  /// **'Von Seite'**
+  String get sessionStartPage;
+
+  /// No description provided for @sessionEndPage.
+  ///
+  /// In de, this message translates to:
+  /// **'Bis Seite'**
+  String get sessionEndPage;
+
+  /// No description provided for @sessionDate.
+  ///
+  /// In de, this message translates to:
+  /// **'Datum'**
+  String get sessionDate;
+
+  /// No description provided for @deleteSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzung löschen'**
+  String get deleteSession;
+
+  /// No description provided for @durationHm.
+  ///
+  /// In de, this message translates to:
+  /// **'{hours} Std. {minutes} Min.'**
+  String durationHm(int hours, int minutes);
+
+  /// No description provided for @durationMin.
+  ///
+  /// In de, this message translates to:
+  /// **'{minutes} Min.'**
+  String durationMin(int minutes);
+
+  /// No description provided for @readingSessionsCount.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =0{Keine Sitzungen} =1{1 Sitzung} other{{count} Sitzungen}}'**
+  String readingSessionsCount(int count);
+
+  /// No description provided for @notesTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Notizen & Zitate'**
+  String get notesTitle;
+
+  /// No description provided for @noteKindNote.
+  ///
+  /// In de, this message translates to:
+  /// **'Notiz'**
+  String get noteKindNote;
+
+  /// No description provided for @noteKindQuote.
+  ///
+  /// In de, this message translates to:
+  /// **'Zitat'**
+  String get noteKindQuote;
+
+  /// No description provided for @notesTabNotes.
+  ///
+  /// In de, this message translates to:
+  /// **'Notizen'**
+  String get notesTabNotes;
+
+  /// No description provided for @notesTabQuotes.
+  ///
+  /// In de, this message translates to:
+  /// **'Zitate'**
+  String get notesTabQuotes;
+
+  /// No description provided for @addNote.
+  ///
+  /// In de, this message translates to:
+  /// **'Eintrag hinzufügen'**
+  String get addNote;
+
+  /// No description provided for @editNote.
+  ///
+  /// In de, this message translates to:
+  /// **'Eintrag bearbeiten'**
+  String get editNote;
+
+  /// No description provided for @noteContentLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Text'**
+  String get noteContentLabel;
+
+  /// No description provided for @notePageLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Seite (optional)'**
+  String get notePageLabel;
+
+  /// No description provided for @notePage.
+  ///
+  /// In de, this message translates to:
+  /// **'S. {page}'**
+  String notePage(int page);
+
+  /// No description provided for @noNotesYet.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Einträge'**
+  String get noNotesYet;
+
+  /// No description provided for @notesCount.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =0{Keine Einträge} =1{1 Eintrag} other{{count} Einträge}}'**
+  String notesCount(int count);
+
+  /// No description provided for @tagsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Tags'**
+  String get tagsTitle;
+
+  /// No description provided for @manageTags.
+  ///
+  /// In de, this message translates to:
+  /// **'Tags verwalten'**
+  String get manageTags;
+
+  /// No description provided for @editTags.
+  ///
+  /// In de, this message translates to:
+  /// **'Tags bearbeiten'**
+  String get editTags;
+
+  /// No description provided for @addTag.
+  ///
+  /// In de, this message translates to:
+  /// **'Tag hinzufügen'**
+  String get addTag;
+
+  /// No description provided for @newTagHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Neuer Tag'**
+  String get newTagHint;
+
+  /// No description provided for @renameTag.
+  ///
+  /// In de, this message translates to:
+  /// **'Tag umbenennen'**
+  String get renameTag;
+
+  /// No description provided for @deleteTagTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Tag „{name}“ löschen?'**
+  String deleteTagTitle(String name);
+
+  /// No description provided for @deleteTagBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Bücher bleiben erhalten.'**
+  String get deleteTagBody;
+
+  /// No description provided for @tagNameTaken.
+  ///
+  /// In de, this message translates to:
+  /// **'Ein Tag mit diesem Namen existiert bereits'**
+  String get tagNameTaken;
+
+  /// No description provided for @noTagsYet.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Tags'**
+  String get noTagsYet;
+
+  /// No description provided for @tagBookCount.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Buch} other{{count} Bücher}}'**
+  String tagBookCount(int count);
+
+  /// No description provided for @goalTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Leseziel {year}'**
+  String goalTitle(int year);
+
+  /// No description provided for @setGoal.
+  ///
+  /// In de, this message translates to:
+  /// **'Ziel festlegen'**
+  String get setGoal;
+
+  /// No description provided for @editGoal.
+  ///
+  /// In de, this message translates to:
+  /// **'Ziel ändern'**
+  String get editGoal;
+
+  /// No description provided for @clearGoal.
+  ///
+  /// In de, this message translates to:
+  /// **'Ziel entfernen'**
+  String get clearGoal;
+
+  /// No description provided for @goalBooksLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Anzahl Bücher'**
+  String get goalBooksLabel;
+
+  /// No description provided for @noGoalYet.
+  ///
+  /// In de, this message translates to:
+  /// **'Für {year} ist noch kein Ziel gesetzt'**
+  String noGoalYet(int year);
+
+  /// No description provided for @goalProgress.
+  ///
+  /// In de, this message translates to:
+  /// **'{completed} von {target} Büchern'**
+  String goalProgress(int completed, int target);
+
+  /// No description provided for @goalRemaining.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch {count, plural, =1{1 Buch} other{{count} Bücher}}'**
+  String goalRemaining(int count);
+
+  /// No description provided for @goalReached.
+  ///
+  /// In de, this message translates to:
+  /// **'Ziel erreicht!'**
+  String get goalReached;
+
+  /// No description provided for @goalOnTrack.
+  ///
+  /// In de, this message translates to:
+  /// **'Genau im Plan'**
+  String get goalOnTrack;
+
+  /// No description provided for @goalAhead.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Buch} other{{count} Bücher}} vor dem Plan'**
+  String goalAhead(int count);
+
+  /// No description provided for @goalBehind.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Buch} other{{count} Bücher}} hinter dem Plan'**
+  String goalBehind(int count);
+
+  /// No description provided for @moveToLibrary.
+  ///
+  /// In de, this message translates to:
+  /// **'In Bestand übernehmen'**
+  String get moveToLibrary;
+
+  /// No description provided for @movedToLibrary.
+  ///
+  /// In de, this message translates to:
+  /// **'Zum Bestand hinzugefügt'**
+  String get movedToLibrary;
+
+  /// No description provided for @deleteBook.
+  ///
+  /// In de, this message translates to:
+  /// **'Buch löschen'**
+  String get deleteBook;
+
+  /// No description provided for @deleteBookTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'„{title}“ löschen?'**
+  String deleteBookTitle(String title);
+
+  /// No description provided for @deleteBookBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Buch wird samt Notizen, Tags und Lesesitzungen endgültig gelöscht.'**
+  String get deleteBookBody;
+
+  /// No description provided for @bookDeleted.
+  ///
+  /// In de, this message translates to:
+  /// **'Buch gelöscht'**
+  String get bookDeleted;
+
+  /// No description provided for @addFavorite.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu Favoriten hinzufügen'**
+  String get addFavorite;
+
+  /// No description provided for @removeFavorite.
+  ///
+  /// In de, this message translates to:
+  /// **'Aus Favoriten entfernen'**
+  String get removeFavorite;
+
+  /// No description provided for @favoritesFilter.
+  ///
+  /// In de, this message translates to:
+  /// **'Favoriten'**
+  String get favoritesFilter;
+
+  /// No description provided for @sortBy.
+  ///
+  /// In de, this message translates to:
+  /// **'Sortieren'**
+  String get sortBy;
+
+  /// No description provided for @sortTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Titel'**
+  String get sortTitle;
+
+  /// No description provided for @sortAuthor.
+  ///
+  /// In de, this message translates to:
+  /// **'Autor'**
+  String get sortAuthor;
+
+  /// No description provided for @sortRating.
+  ///
+  /// In de, this message translates to:
+  /// **'Bewertung'**
+  String get sortRating;
+
+  /// No description provided for @sortAdded.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinzugefügt am'**
+  String get sortAdded;
+
+  /// No description provided for @sortProgress.
+  ///
+  /// In de, this message translates to:
+  /// **'Lese-Fortschritt'**
+  String get sortProgress;
+
+  /// No description provided for @sortAscending.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufsteigend'**
+  String get sortAscending;
+
+  /// No description provided for @sortDescending.
+  ///
+  /// In de, this message translates to:
+  /// **'Absteigend'**
+  String get sortDescending;
+
+  /// No description provided for @reviewTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Rezension'**
+  String get reviewTitle;
+
+  /// No description provided for @noReviewYet.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Rezension'**
+  String get noReviewYet;
+
+  /// No description provided for @editReview.
+  ///
+  /// In de, this message translates to:
+  /// **'Rezension bearbeiten'**
+  String get editReview;
+
+  /// No description provided for @reviewHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Deine Meinung zum Buch'**
+  String get reviewHint;
+
+  /// No description provided for @goalPagesLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Seitenziel (optional)'**
+  String get goalPagesLabel;
+
+  /// No description provided for @goalPagesProgress.
+  ///
+  /// In de, this message translates to:
+  /// **'{read} von {target} Seiten'**
+  String goalPagesProgress(int read, int target);
 }
 
 class _AppLocalizationsDelegate

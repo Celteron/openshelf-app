@@ -28,6 +28,7 @@ import 'package:openreads/features/scanner/scanner_cubit.dart';
 import 'package:openreads/features/scanner/scanner_screen.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/statistics/statistics_cubit.dart';
+import 'package:openreads/features/tags/tags_cubit.dart';
 import 'package:openreads/features/statistics/statistics_screen.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
@@ -97,10 +98,21 @@ class OpenShelfApp extends StatelessWidget {
         RepositoryProvider.value(value: deps.lendingRepository),
         RepositoryProvider.value(value: deps.settingsRepository),
         RepositoryProvider.value(value: deps.exportService),
+        RepositoryProvider.value(value: deps.readingRepository),
+        RepositoryProvider.value(value: deps.notesRepository),
+        RepositoryProvider.value(value: deps.tagRepository),
+        RepositoryProvider.value(value: deps.goalRepository),
+        RepositoryProvider.value(value: deps.readingTracker),
       ],
       child: MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) => LibraryCubit(deps.bookRepository)),
+          BlocProvider(
+            create: (_) => LibraryCubit(
+              deps.bookRepository,
+              tagRepository: deps.tagRepository,
+            ),
+          ),
+          BlocProvider(create: (_) => TagsCubit(deps.tagRepository)..load()),
           BlocProvider(
             create: (_) => LocationTreeCubit(deps.locationRepository),
           ),
@@ -111,8 +123,12 @@ class OpenShelfApp extends StatelessWidget {
           ),
           BlocProvider(create: (_) => ImporterCubit(importService, importers)),
           BlocProvider(
-            create: (_) =>
-                StatisticsCubit(deps.bookRepository, deps.locationRepository),
+            create: (_) => StatisticsCubit(
+              deps.bookRepository,
+              deps.locationRepository,
+              goalRepository: deps.goalRepository,
+              readingRepository: deps.readingRepository,
+            ),
           ),
           BlocProvider.value(value: settingsCubit),
         ],

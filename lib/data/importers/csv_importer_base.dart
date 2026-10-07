@@ -68,7 +68,10 @@ abstract class CsvImporter implements BookImporter {
           yield ImportRow(rowNumber: r + 1, book: book);
         }
       } catch (e) {
-        yield ImportRow(rowNumber: r + 1, error: e.toString());
+        yield ImportRow(
+          rowNumber: r + 1,
+          error: e is FormatException ? e.message : e.toString(),
+        );
       }
     }
   }

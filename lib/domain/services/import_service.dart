@@ -20,7 +20,7 @@ class ImportService {
     var skipped = 0;
     final errors = <RowError>[];
     final seenIsbns = <String>{};
-    final pending = <BooksCompanion>[];
+    final pending = <ImportedBook>[];
 
     await for (final row in rows) {
       if (row.error != null) {
@@ -60,7 +60,7 @@ class ImportService {
         }
       }
 
-      pending.add(_toCompanion(book));
+      pending.add(_toImported(book));
 
       if (pending.length >= _batchSize) {
         final result = await _flush(pending, imported, skipped, errors);
@@ -87,13 +87,13 @@ class ImportService {
   }
 
   Future<_FlushResult> _flush(
-    List<BooksCompanion> batch,
+    List<ImportedBook> batch,
     int imported,
     int skipped,
     List<RowError> errors,
   ) async {
     try {
-      final count = await _repository.insertAll(batch);
+      final count = await _repository.insertImported(batch);
       return _FlushResult(imported + count, skipped, failed: false);
     } catch (e) {
       // The transaction has rolled back; no partial books from this batch.
@@ -103,8 +103,21 @@ class ImportService {
     }
   }
 
-  BooksCompanion _toCompanion(BookImport book) {
-    return BooksCompanion.insert(
+  /// Maps a parsed row to a persistable book plus its Schema v2 satellites.
+  ///
+  /// Reading progress is derived, never invented: a book imported as `read`
+  /// is marked as fully read (`currentPage` = page count) and gets the latest
+  /// recorded finish date as `finishedAt`, so the yearly goal counts it in the
+  /// right year. Imported sessions carry no page range.
+  ImportedBook _toImported(BookImport book) {
+    final status = book.status ?? BookStatus.unread;
+    final pages = book.pageCount;
+    final finishDates = book.readings
+        .map((r) => r.finishedAt)
+        .whereType<DateTime>();
+    final isRead = status == BookStatus.read;
+
+    final companion = BooksCompanion.insert(
       title: book.title!.trim(),
       authors: book.authors,
       editedFields: const [],
@@ -119,8 +132,34 @@ class ImportService {
       description: Value(book.description),
       coverUrl: Value(book.coverUrl),
       rating: Value(normalizeRating(book.rating)),
-      status: Value(book.status ?? BookStatus.unread),
+      status: Value(status),
+      isFavorite: Value(book.isFavorite),
+      review: Value(_blankToNull(book.review)),
+      currentPage: Value(isRead && pages != null && pages > 0 ? pages : 0),
+      finishedAt: Value(
+        isRead && finishDates.isNotEmpty
+            ? finishDates.reduce((a, b) => a.isAfter(b) ? a : b)
+            : null,
+      ),
+      createdAt: book.addedAt == null
+          ? const Value.absent()
+          : Value(book.addedAt!),
+      updatedAt: book.addedAt == null
+          ? const Value.absent()
+          : Value(book.addedAt!),
     );
+
+    return ImportedBook(
+      book: companion,
+      tags: book.tags,
+      notes: book.notes,
+      readings: book.readings.where((r) => !r.isEmpty).toList(),
+    );
+  }
+
+  String? _blankToNull(String? text) {
+    final trimmed = text?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
   }
 }
 

@@ -12,8 +12,14 @@ class StoryGraphCsvImporter extends CsvImporter {
     'isbn/uid': ColumnMapper.fieldIsbn,
     'isbn': ColumnMapper.fieldIsbn,
     'rating': ColumnMapper.fieldRating,
+    'star rating': ColumnMapper.fieldRating,
     'number of pages': ColumnMapper.fieldPageCount,
     'format': ColumnMapper.fieldFormat,
+    'read status': ColumnMapper.fieldStatus,
+    'review': ColumnMapper.fieldReview,
+    'tags': ColumnMapper.fieldTags,
+    'last date read': ColumnMapper.fieldFinishDate,
+    'date added': ColumnMapper.fieldDateAdded,
   });
 
   @override
@@ -36,6 +42,14 @@ class StoryGraphCsvImporter extends CsvImporter {
       pageCount: parseInt(fields[ColumnMapper.fieldPageCount]),
       rating: parseRating(fields[ColumnMapper.fieldRating]),
       format: parseFormat(fields[ColumnMapper.fieldFormat]),
+      status: parseStatus(fields[ColumnMapper.fieldStatus]),
+      review: fields[ColumnMapper.fieldReview],
+      tags: parseTags(fields[ColumnMapper.fieldTags]),
+      readings: singleReading(
+        null,
+        parseDate(fields[ColumnMapper.fieldFinishDate]),
+      ),
+      addedAt: parseDate(fields[ColumnMapper.fieldDateAdded]),
     );
   }
 }

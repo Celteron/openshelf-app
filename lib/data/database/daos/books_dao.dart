@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/import.dart';
 
 class BooksDao {
   final AppDatabase db;
@@ -61,6 +62,77 @@ class BooksDao {
     });
     return books.length;
   }
+
+  /// Persists imported books together with their tags, notes and reading
+  /// sessions (schema v2) in ONE transaction: any failure rolls the whole batch
+  /// back, so no book is left half-imported.
+  Future<int> insertImported(List<ImportedBook> batch) {
+    return db.transaction(() async {
+      // Tag names are matched case-insensitively in Dart: SQLite's lower()
+      // only folds ASCII, so `Übernatürliches` would never match itself.
+      final tagIds = <String, int>{
+        for (final tag in await db.select(db.tags).get())
+          tag.name.toLowerCase(): tag.id,
+      };
+
+      for (final item in batch) {
+        final bookId = await db.into(db.books).insert(item.book);
+
+        for (final name in item.tags) {
+          final key = name.toLowerCase();
+          final tagId = tagIds[key] ??= await db
+              .into(db.tags)
+              .insert(TagsCompanion.insert(name: name));
+          await db
+              .into(db.bookTags)
+              .insert(
+                BookTagsCompanion.insert(bookId: bookId, tagId: tagId),
+                mode: InsertMode.insertOrIgnore,
+              );
+        }
+
+        for (final note in item.notes) {
+          await db
+              .into(db.bookNotes)
+              .insert(
+                BookNotesCompanion.insert(
+                  bookId: bookId,
+                  kind: note.kind,
+                  content: note.content,
+                  pageNumber: Value(note.pageNumber),
+                  createdAt: note.createdAt == null
+                      ? const Value.absent()
+                      : Value(note.createdAt!),
+                  updatedAt: note.createdAt == null
+                      ? const Value.absent()
+                      : Value(note.createdAt!),
+                ),
+              );
+        }
+
+        for (final reading in item.readings) {
+          final startedAt =
+              reading.startedAt ?? reading.finishedAt ?? DateTime.now();
+          await db
+              .into(db.readingSessions)
+              .insert(
+                ReadingSessionsCompanion.insert(
+                  bookId: bookId,
+                  startedAt: startedAt,
+                  // A session always ends: an open one would show up as the
+                  // book's running timer.
+                  endedAt: Value(reading.finishedAt ?? startedAt),
+                  durationSeconds: Value(reading.duration?.inSeconds ?? 0),
+                ),
+              );
+        }
+      }
+      return batch.length;
+    });
+  }
+
+  Future<int> delete(int id) =>
+      (db.delete(db.books)..where((t) => t.id.equals(id))).go();
 
   Future<int> update(int id, BooksCompanion book) =>
       (db.update(db.books)..where((t) => t.id.equals(id))).write(book);

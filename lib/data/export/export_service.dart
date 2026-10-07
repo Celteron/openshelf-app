@@ -14,14 +14,34 @@ class ExportService {
     final locations = await _db.select(_db.locations).get();
     final series = await _db.select(_db.seriesTable).get();
     final lending = await _db.select(_db.lending).get();
+    final sessions = await _db.select(_db.readingSessions).get();
+    final notes = await _db.select(_db.bookNotes).get();
+    final tags = await _db.select(_db.tags).get();
+    final bookTags = await _db.select(_db.bookTags).get();
+    final goals = await _db.select(_db.readingGoals).get();
 
     return jsonEncode({
-      'version': 1,
+      'version': 2,
       'exportedAt': DateTime.now().toIso8601String(),
       'books': books.map(_book).toList(),
       'locations': locations.map(_location).toList(),
       'series': series.map(_series).toList(),
       'lending': lending.map(_lending).toList(),
+      'readingSessions': sessions.map(_session).toList(),
+      'notes': notes.map(_note).toList(),
+      'tags': tags.map((t) => {'id': t.id, 'name': t.name}).toList(),
+      'bookTags': bookTags
+          .map((t) => {'bookId': t.bookId, 'tagId': t.tagId})
+          .toList(),
+      'readingGoals': goals
+          .map(
+            (g) => {
+              'year': g.year,
+              'targetBooks': g.targetBooks,
+              'targetPages': g.targetPages,
+            },
+          )
+          .toList(),
     });
   }
 
@@ -74,6 +94,10 @@ class ExportService {
     'coverLocalPath': b.coverLocalPath,
     'metadataSource': b.metadataSource?.name,
     'editedFields': b.editedFields,
+    'currentPage': b.currentPage,
+    'finishedAt': b.finishedAt?.toIso8601String(),
+    'isFavorite': b.isFavorite,
+    'review': b.review,
     'createdAt': b.createdAt.toIso8601String(),
     'updatedAt': b.updatedAt.toIso8601String(),
   };
@@ -99,5 +123,25 @@ class ExportService {
     'lentAt': l.lentAt.toIso8601String(),
     'expectedReturn': l.expectedReturn?.toIso8601String(),
     'returnedAt': l.returnedAt?.toIso8601String(),
+  };
+
+  Map<String, dynamic> _session(ReadingSession s) => {
+    'id': s.id,
+    'bookId': s.bookId,
+    'startedAt': s.startedAt.toIso8601String(),
+    'endedAt': s.endedAt?.toIso8601String(),
+    'durationSeconds': s.durationSeconds,
+    'startPage': s.startPage,
+    'endPage': s.endPage,
+  };
+
+  Map<String, dynamic> _note(BookNote n) => {
+    'id': n.id,
+    'bookId': n.bookId,
+    'kind': n.kind.name,
+    'content': n.content,
+    'pageNumber': n.pageNumber,
+    'createdAt': n.createdAt.toIso8601String(),
+    'updatedAt': n.updatedAt.toIso8601String(),
   };
 }

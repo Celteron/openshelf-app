@@ -69,8 +69,8 @@ void main() {
     expect(find.text('Bücher gesamt'), findsOneWidget);
     expect(find.text('Gelesene Seiten'), findsOneWidget);
     expect(find.text('300'), findsOneWidget);
-    expect(find.text('read'), findsOneWidget);
-    expect(find.text('unread'), findsOneWidget);
+    expect(find.text('Gelesen'), findsOneWidget);
+    expect(find.text('Ungelesen'), findsOneWidget);
 
     await cubit.close();
   });

@@ -14,7 +14,23 @@ class GoodreadsCsvImporter extends CsvImporter {
     'my rating': ColumnMapper.fieldRating,
     'exclusive shelf': ColumnMapper.fieldStatus,
     'number of pages': ColumnMapper.fieldPageCount,
+    'publisher': ColumnMapper.fieldPublisher,
+    'binding': ColumnMapper.fieldFormat,
+    'year published': ColumnMapper.fieldPublishedYear,
+    'my review': ColumnMapper.fieldReview,
+    'private notes': ColumnMapper.fieldNotes,
+    'bookshelves': ColumnMapper.fieldTags,
+    'date read': ColumnMapper.fieldFinishDate,
+    'date added': ColumnMapper.fieldDateAdded,
   });
+
+  /// Shelves that encode the reading status rather than a user category.
+  static const _statusShelves = {
+    'read',
+    'to-read',
+    'currently-reading',
+    'did-not-finish',
+  };
 
   @override
   String get formatName => 'Goodreads CSV';
@@ -28,14 +44,26 @@ class GoodreadsCsvImporter extends CsvImporter {
   @override
   BookImport? buildBook(Map<String, String> fields) {
     final (isbn13, isbn10) = _parseIsbn(fields);
+    final addedAt = parseDate(fields[ColumnMapper.fieldDateAdded]);
     return BookImport(
       title: fields[ColumnMapper.fieldTitle],
       authors: _goodreadsAuthors(fields[ColumnMapper.fieldAuthors]),
       isbn13: isbn13,
       isbn10: isbn10,
+      publisher: fields[ColumnMapper.fieldPublisher],
+      publishedYear: parseInt(fields[ColumnMapper.fieldPublishedYear]),
       pageCount: parseInt(fields[ColumnMapper.fieldPageCount]),
+      format: parseFormat(fields[ColumnMapper.fieldFormat]),
       rating: parseRating(fields[ColumnMapper.fieldRating]),
       status: parseStatus(fields[ColumnMapper.fieldStatus]),
+      review: fields[ColumnMapper.fieldReview],
+      tags: parseTags(fields[ColumnMapper.fieldTags], ignore: _statusShelves),
+      notes: noteList(fields[ColumnMapper.fieldNotes], createdAt: addedAt),
+      readings: singleReading(
+        null,
+        parseDate(fields[ColumnMapper.fieldFinishDate]),
+      ),
+      addedAt: addedAt,
     );
   }
 

@@ -1,5 +1,7 @@
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/goal_progress.dart';
+import 'package:openreads/domain/models/reading_stats.dart';
 
 /// Aggregated collection metrics shown on the statistics dashboard.
 ///
@@ -14,17 +16,31 @@ class BookStatistics {
   final List<NameCount> topLocations;
   final List<NameCount> topAuthors;
 
+  /// Progress of the current year's goal; `null` when no goal is set
+  /// (Phase 2).
+  final GoalProgress? goal;
+
+  /// Reading speed and totals over completed sessions (Phase 2).
+  final ReadingStats reading;
+
   const BookStatistics({
     required this.totalBooks,
     required this.statusCounts,
     required this.pagesRead,
     required this.topLocations,
     required this.topAuthors,
+    this.goal,
+    this.reading = const ReadingStats.empty(),
   });
 
   static const _maxEntries = 5;
 
-  factory BookStatistics.compute(List<Book> books, List<Location> locations) {
+  factory BookStatistics.compute(
+    List<Book> books,
+    List<Location> locations, {
+    GoalProgress? goal,
+    ReadingStats reading = const ReadingStats.empty(),
+  }) {
     final statusCounts = <BookStatus, int>{
       for (final status in BookStatus.values) status: 0,
     };
@@ -67,6 +83,8 @@ class BookStatistics {
       pagesRead: pagesRead,
       topLocations: topLocations,
       topAuthors: topAuthors,
+      goal: goal,
+      reading: reading,
     );
   }
 

@@ -71,6 +71,12 @@
   "pagesRead": "Pages read",
   "topLocations": "Top locations",
   "topAuthors": "Top authors",
+  "statusUnread": "Unread",
+  "statusReading": "Reading",
+  "statusRead": "Read",
+  "statusDnf": "Abandoned",
+  "statusWishlist": "Wishlist",
+  "statusReReading": "Re-reading",
   "settingsTitle": "Settings",
   "themeLabel": "Theme",
   "themeSystem": "System",
@@ -87,5 +93,239 @@
   "licenseLabel": "License",
   "licenseText": "GPL-3.0",
   "openSourceCreditsLabel": "Open source credits",
-  "creditsText": "Flutter, Drift, BLoC"
+  "creditsText": "Flutter, Drift, BLoC",
+  "delete": "Delete",
+  "copy": "Copy",
+  "copiedToClipboard": "Copied to clipboard",
+  "enterPositiveNumber": "Enter a number greater than 0",
+  "clearFilters": "Clear filters",
+  "readingTitle": "Reading progress",
+  "readingStart": "Start reading",
+  "readingStop": "Stop reading",
+  "currentPageLabel": "Current page",
+  "savePage": "Save page",
+  "pageOfTotal": "Page {page} of {total}",
+  "@pageOfTotal": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pageOnly": "Page {page}",
+  "@pageOnly": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "readingSpeed": "Reading speed",
+  "pagesPerHourValue": "{value} pages/h",
+  "@pagesPerHourValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "notEnoughData": "Not enough data yet",
+  "totalReadingTime": "Total reading time",
+  "readingSessionsTitle": "Reading sessions",
+  "noSessionsYet": "No reading sessions yet",
+  "sessionPagesLine": "{pages} pages · {duration}",
+  "@sessionPagesLine": {
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "logSession": "Log a session",
+  "sessionDurationMinutes": "Duration (minutes)",
+  "sessionStartPage": "From page",
+  "sessionEndPage": "To page",
+  "sessionDate": "Date",
+  "deleteSession": "Delete session",
+  "durationHm": "{hours} h {minutes} min",
+  "@durationHm": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationMin": "{minutes} min",
+  "@durationMin": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "readingSessionsCount": "{count, plural, =0{No sessions} =1{1 session} other{{count} sessions}}",
+  "@readingSessionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notesTitle": "Notes & quotes",
+  "noteKindNote": "Note",
+  "noteKindQuote": "Quote",
+  "notesTabNotes": "Notes",
+  "notesTabQuotes": "Quotes",
+  "addNote": "Add entry",
+  "editNote": "Edit entry",
+  "noteContentLabel": "Text",
+  "notePageLabel": "Page (optional)",
+  "notePage": "p. {page}",
+  "@notePage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "noNotesYet": "No entries yet",
+  "notesCount": "{count, plural, =0{No entries} =1{1 entry} other{{count} entries}}",
+  "@notesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tagsTitle": "Tags",
+  "manageTags": "Manage tags",
+  "editTags": "Edit tags",
+  "addTag": "Add tag",
+  "newTagHint": "New tag",
+  "renameTag": "Rename tag",
+  "deleteTagTitle": "Delete tag “{name}”?",
+  "@deleteTagTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTagBody": "The books are kept.",
+  "tagNameTaken": "A tag with this name already exists",
+  "noTagsYet": "No tags yet",
+  "tagBookCount": "{count, plural, =1{1 book} other{{count} books}}",
+  "@tagBookCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalTitle": "Reading goal {year}",
+  "@goalTitle": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "setGoal": "Set goal",
+  "editGoal": "Change goal",
+  "clearGoal": "Remove goal",
+  "goalBooksLabel": "Number of books",
+  "noGoalYet": "No goal set for {year} yet",
+  "@noGoalYet": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "goalProgress": "{completed} of {target} books",
+  "@goalProgress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "goalRemaining": "{count, plural, =1{1 book} other{{count} books}} to go",
+  "@goalRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalReached": "Goal reached!",
+  "goalOnTrack": "Right on track",
+  "goalAhead": "{count, plural, =1{1 book} other{{count} books}} ahead of schedule",
+  "@goalAhead": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalBehind": "{count, plural, =1{1 book} other{{count} books}} behind schedule",
+  "@goalBehind": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moveToLibrary": "Add to library",
+  "movedToLibrary": "Added to library",
+  "deleteBook": "Delete book",
+  "deleteBookTitle": "Delete “{title}”?",
+  "@deleteBookTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteBookBody": "The book will be permanently deleted together with its notes, tags and reading sessions.",
+  "bookDeleted": "Book deleted",
+  "addFavorite": "Add to favorites",
+  "removeFavorite": "Remove from favorites",
+  "favoritesFilter": "Favorites",
+  "sortBy": "Sort",
+  "sortTitle": "Title",
+  "sortAuthor": "Author",
+  "sortRating": "Rating",
+  "sortAdded": "Date added",
+  "sortProgress": "Reading progress",
+  "sortAscending": "Ascending",
+  "sortDescending": "Descending",
+  "reviewTitle": "Review",
+  "noReviewYet": "No review yet",
+  "editReview": "Edit review",
+  "reviewHint": "Your thoughts on the book",
+  "goalPagesLabel": "Page goal (optional)",
+  "goalPagesProgress": "{read} of {target} pages",
+  "@goalPagesProgress": {
+    "placeholders": {
+      "read": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  }
 }

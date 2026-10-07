@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/library_sort.dart';
 import 'package:openreads/domain/repositories/location_repository.dart';
 import 'package:openreads/features/library/add_book_screen.dart';
 import 'package:openreads/features/library/book_detail_screen.dart';
+import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/features/library/library_cubit.dart';
+import 'package:openreads/features/tags/tags_cubit.dart';
 import 'package:openreads/features/settings/settings_screen.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
@@ -62,6 +65,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               )
             : null,
         actions: [
+          const _SortMenu(),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => Navigator.of(
@@ -93,6 +97,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       : BookDetailScreen(
                           key: ValueKey(_selectedBookId),
                           bookId: _selectedBookId!,
+                          onDeleted: () =>
+                              setState(() => _selectedBookId = null),
                         ),
                 ),
               ],
@@ -191,6 +197,7 @@ class _ListPane extends StatelessWidget {
           ),
         ),
         const _StatusFilterBar(),
+        const _TagFilterBar(),
         Expanded(
           child: BlocBuilder<LibraryCubit, LibraryState>(
             builder: (context, state) {
@@ -209,6 +216,16 @@ class _ListPane extends StatelessWidget {
                       leading: _Cover(book),
                       title: Text(book.title),
                       subtitle: Text(book.authors.join(', ')),
+                      trailing: book.status == BookStatus.wishlist
+                          ? _MoveToLibraryButton(bookId: book.id)
+                          : book.isFavorite
+                          ? Icon(
+                              Icons.favorite,
+                              size: 18,
+                              color: Colors.redAccent,
+                              semanticLabel: l10n.favoritesFilter,
+                            )
+                          : null,
                       selected: selectedIds.contains(book.id),
                       onLongPress: () => onLongPressBook(book.id),
                       onTap: () => onTapBook(book.id),
@@ -221,6 +238,61 @@ class _ListPane extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// App-bar sort menu: pick a field; picking the active one flips direction.
+class _SortMenu extends StatelessWidget {
+  const _SortMenu();
+
+  static String _label(AppLocalizations l10n, LibrarySortField field) =>
+      switch (field) {
+        LibrarySortField.title => l10n.sortTitle,
+        LibrarySortField.author => l10n.sortAuthor,
+        LibrarySortField.rating => l10n.sortRating,
+        LibrarySortField.added => l10n.sortAdded,
+        LibrarySortField.progress => l10n.sortProgress,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return BlocBuilder<LibraryCubit, LibraryState>(
+      builder: (context, state) {
+        final sort = state is LibraryLoaded ? state.sort : const LibrarySort();
+        return PopupMenuButton<LibrarySortField>(
+          key: const ValueKey('sort-menu'),
+          icon: const Icon(Icons.sort),
+          tooltip: l10n.sortBy,
+          onSelected: context.read<LibraryCubit>().selectSort,
+          itemBuilder: (_) => [
+            for (final field in LibrarySortField.values)
+              PopupMenuItem(
+                value: field,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 28,
+                      child: field == sort.field
+                          ? Icon(
+                              sort.ascending
+                                  ? Icons.arrow_upward
+                                  : Icons.arrow_downward,
+                              size: 18,
+                              semanticLabel: sort.ascending
+                                  ? l10n.sortAscending
+                                  : l10n.sortDescending,
+                            )
+                          : null,
+                    ),
+                    Text(_label(l10n, field)),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -327,18 +399,31 @@ class _StatusFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocBuilder<LibraryCubit, LibraryState>(
       builder: (context, state) {
         final current = state is LibraryLoaded ? state.statusFilter : null;
+        final favoritesOnly = state is LibraryLoaded && state.favoritesOnly;
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: FilterChip(
+                  key: const ValueKey('favorites-filter'),
+                  avatar: const Icon(Icons.favorite_border, size: 16),
+                  label: Text(l10n.favoritesFilter),
+                  selected: favoritesOnly,
+                  onSelected: (_) =>
+                      context.read<LibraryCubit>().toggleFavoritesOnly(),
+                ),
+              ),
               for (final status in BookStatus.values)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: FilterChip(
-                    label: Text(status.name),
+                    label: Text(statusLabel(l10n, status)),
                     selected: current == status,
                     onSelected: (_) => context
                         .read<LibraryCubit>()
@@ -371,6 +456,76 @@ class _Cover extends StatelessWidget {
         ),
         child: const Icon(Icons.book),
       ),
+    );
+  }
+}
+
+/// Wishlist → owned in one tap, without a confirmation dialog
+/// (Constitution V.2).
+class _MoveToLibraryButton extends StatelessWidget {
+  final int bookId;
+  const _MoveToLibraryButton({required this.bookId});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return IconButton(
+      icon: const Icon(Icons.library_add),
+      tooltip: l10n.moveToLibrary,
+      onPressed: () async {
+        final messenger = ScaffoldMessenger.of(context);
+        await context.read<LibraryCubit>().moveToLibrary(bookId);
+        messenger.showSnackBar(SnackBar(content: Text(l10n.movedToLibrary)));
+      },
+    );
+  }
+}
+
+/// Horizontal tag chips; selecting several narrows the list (AND).
+class _TagFilterBar extends StatelessWidget {
+  const _TagFilterBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<TagsCubit, TagsState>(
+      listener: (context, tagsState) {
+        if (tagsState is TagsLoaded) {
+          context.read<LibraryCubit>().retainTags({
+            for (final entry in tagsState.tags) entry.tag.id,
+          });
+        }
+      },
+      builder: (context, tagsState) {
+        if (tagsState is! TagsLoaded || tagsState.tags.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return BlocBuilder<LibraryCubit, LibraryState>(
+          builder: (context, state) {
+            final selected = state is LibraryLoaded
+                ? state.tagIds
+                : const <int>{};
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final entry in tagsState.tags)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: FilterChip(
+                        avatar: const Icon(Icons.sell_outlined, size: 16),
+                        label: Text(entry.tag.name),
+                        selected: selected.contains(entry.tag.id),
+                        onSelected: (_) => context
+                            .read<LibraryCubit>()
+                            .toggleTag(entry.tag.id),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

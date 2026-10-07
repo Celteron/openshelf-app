@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/data/export/export_service.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
+import 'package:openreads/features/tags/tags_screen.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -83,6 +84,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
+              ),
+              const Divider(),
+              _section(l10n.tagsTitle),
+              ListTile(
+                leading: const Icon(Icons.sell_outlined),
+                title: Text(l10n.manageTags),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const TagsScreen())),
               ),
               const Divider(),
               _section(l10n.exportLabel),

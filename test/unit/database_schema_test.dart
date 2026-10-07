@@ -22,11 +22,24 @@ void main() {
         )
         .get();
     final names = rows.map((r) => r.read<String>('name')).toSet();
-    expect(names, containsAll(['books', 'locations', 'series', 'lending']));
+    expect(
+      names,
+      containsAll([
+        'books',
+        'locations',
+        'series',
+        'lending',
+        'reading_sessions',
+        'book_notes',
+        'tags',
+        'book_tags',
+        'reading_goals',
+      ]),
+    );
   });
 
-  test('schema version is 1', () {
-    expect(db.schemaVersion, 1);
+  test('schema version is 2', () {
+    expect(db.schemaVersion, 2);
   });
 
   test('inserts and reads a book with 0.5-step rating', () async {

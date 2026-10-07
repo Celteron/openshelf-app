@@ -88,6 +88,20 @@ class _ThrowingRepository implements BookRepository {
   }
 
   @override
+  Future<int> insertImported(List<ImportedBook> books) async {
+    throw Exception('constraint failed');
+  }
+
+  @override
+  Future<void> deleteBook(int id) async {}
+
+  @override
+  Future<void> updateFavorite(int id, bool isFavorite) async {}
+
+  @override
+  Future<void> updateReview(int id, String? review) async {}
+
+  @override
   Future<void> bulkAssignLocation(List<int> bookIds, int? locationId) async {}
 
   @override

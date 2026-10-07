@@ -74,6 +74,9 @@ class BookstatsJsonImporter implements BookImporter {
     final author = _pick(map, const ['autor', 'autoren', 'author', 'authors']);
     final isbn = _pick(map, const ['isbn', 'isbn13', 'isbn10']);
     final (isbn13, isbn10) = parseIsbnPair(isbn);
+    final addedAt = parseDate(
+      _pick(map, const ['erhalten am', 'hinzugefuegt']),
+    );
 
     double? rating;
     final rawRating = map['bewertung'] ?? map['rating'];
@@ -89,7 +92,26 @@ class BookstatsJsonImporter implements BookImporter {
       pageCount: _pickInt(map, const ['seiten', 'seitenzahl', 'pages']),
       language: _pick(map, const ['sprache', 'language']),
       rating: rating,
-      status: parseStatus(_pick(map, const ['status'])),
+      status: parseStatus(_pick(map, const ['lesestatus', 'status'])),
+      format: parseFormat(_pick(map, const ['buchart', 'format'])),
+      isFavorite: map['favorit'] == true || map['favorite'] == true,
+      review: _pick(map, const ['rezension', 'review']),
+      tags: parseTags(
+        [
+          _pick(map, const ['genre']),
+          _pick(map, const ['kategorie', 'tags']),
+        ].whereType<String>().join(';'),
+        separator: ';',
+      ),
+      notes: noteList(
+        _pick(map, const ['notizen', 'notes']),
+        createdAt: addedAt,
+      ),
+      readings: singleReading(
+        parseDate(_pick(map, const ['lesebeginn', 'startdatum'])),
+        parseDate(_pick(map, const ['leseende', 'enddatum'])),
+      ),
+      addedAt: addedAt,
     );
   }
 

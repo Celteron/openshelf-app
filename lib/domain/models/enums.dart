@@ -12,3 +12,5 @@ enum BookFormat { hardcover, paperback, ebook, audiobook }
 enum LocationType { room, shelf, compartment }
 
 enum MetadataSource { dnb, googleBooks, openLibrary, manual }
+
+enum NoteKind { note, quote }

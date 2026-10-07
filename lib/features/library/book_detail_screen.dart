@@ -5,7 +5,13 @@ import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/features/lending/lending_cubit.dart';
+import 'package:openreads/domain/repositories/notes_repository.dart';
+import 'package:openreads/domain/repositories/tag_repository.dart';
+import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/features/library/add_book_screen.dart';
+import 'package:openreads/features/notes/notes_screen.dart';
+import 'package:openreads/features/reading/reading_screen.dart';
+import 'package:openreads/features/tags/tags_screen.dart';
 import 'package:openreads/features/library/library_cubit.dart';
 import 'package:openreads/features/library/widgets/rating_control.dart';
 import 'package:openreads/features/library/widgets/verification_badge.dart';
@@ -15,7 +21,13 @@ import 'package:openreads/l10n/app_localizations.dart';
 /// badge, and lending actions (spec §6.3).
 class BookDetailScreen extends StatefulWidget {
   final int bookId;
-  const BookDetailScreen({super.key, required this.bookId});
+
+  /// Called after the book was deleted. When `null` the screen pops itself,
+  /// which is right for a pushed route; the embedded master-detail pane
+  /// passes a callback instead so the library list stays on screen.
+  final VoidCallback? onDeleted;
+
+  const BookDetailScreen({super.key, required this.bookId, this.onDeleted});
 
   @override
   State<BookDetailScreen> createState() => _BookDetailScreenState();
@@ -43,6 +55,58 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     await _load();
   }
 
+  Future<void> _toggleFavorite(Book book) async {
+    await context.read<LibraryCubit>().setFavorite(book.id, !book.isFavorite);
+    await _load();
+  }
+
+  Future<void> _confirmDelete(Book book) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.deleteBookTitle(book.title)),
+        content: Text(l10n.deleteBookBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+              foregroundColor: Theme.of(dialogContext).colorScheme.onError,
+            ),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final cubit = context.read<LibraryCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    await cubit.deleteBook(book.id);
+    messenger.showSnackBar(SnackBar(content: Text(l10n.bookDeleted)));
+    if (widget.onDeleted != null) {
+      widget.onDeleted!();
+    } else {
+      navigator.pop();
+    }
+  }
+
+  Future<void> _editReview(Book book) async {
+    final review = await showDialog<String>(
+      context: context,
+      builder: (_) => _ReviewDialog(initial: book.review),
+    );
+    if (review == null || !mounted) return;
+    await context.read<LibraryCubit>().setReview(book.id, review);
+    await _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     final book = _book;
@@ -56,9 +120,24 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         title: Text(book.title),
         actions: [
           IconButton(
+            key: const ValueKey('favorite-toggle'),
+            onPressed: () => _toggleFavorite(book),
+            icon: Icon(
+              book.isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: book.isFavorite ? Colors.redAccent : null,
+            ),
+            tooltip: book.isFavorite ? l10n.removeFavorite : l10n.addFavorite,
+          ),
+          IconButton(
             onPressed: () => _openEdit(context, book),
             icon: const Icon(Icons.edit),
             tooltip: l10n.editBookTitle,
+          ),
+          IconButton(
+            key: const ValueKey('delete-book'),
+            onPressed: () => _confirmDelete(book),
+            icon: const Icon(Icons.delete_outline),
+            tooltip: l10n.deleteBook,
           ),
         ],
       ),
@@ -80,21 +159,24 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           Text(l10n.ratingLabel, style: Theme.of(context).textTheme.titleSmall),
           RatingControl(
             value: book.rating,
+            // Tapping the star that is already selected clears the rating.
             onChanged: (v) async {
               await context.read<LibraryCubit>().setRating(
                 book.id,
-                normalizeRating(v),
+                normalizeRating(v == book.rating ? 0 : v),
               );
               await _load();
             },
           ),
+          const SizedBox(height: 8),
+          _ReviewTile(review: book.review, onEdit: () => _editReview(book)),
           const SizedBox(height: 24),
           Text(l10n.statusLabel, style: Theme.of(context).textTheme.titleSmall),
           DropdownButton<BookStatus>(
             value: book.status,
             items: [
               for (final s in BookStatus.values)
-                DropdownMenuItem(value: s, child: Text(s.name)),
+                DropdownMenuItem(value: s, child: Text(statusLabel(l10n, s))),
             ],
             onChanged: (s) async {
               if (s == null) return;
@@ -102,10 +184,203 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               await _load();
             },
           ),
+          if (book.status == BookStatus.wishlist) ...[
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: () async {
+                await context.read<LibraryCubit>().moveToLibrary(book.id);
+                await _load();
+              },
+              icon: const Icon(Icons.library_add),
+              label: Text(l10n.moveToLibrary),
+            ),
+          ],
+          const SizedBox(height: 24),
+          _ReadingTile(book: book, onReturn: _load),
+          const SizedBox(height: 8),
+          _TagsSection(bookId: book.id),
+          const SizedBox(height: 8),
+          _NotesTile(bookId: book.id),
           const SizedBox(height: 24),
           _LendingSection(bookId: book.id),
         ],
       ),
+    );
+  }
+}
+
+/// The reader's own review text with an edit action.
+class _ReviewTile extends StatelessWidget {
+  final String? review;
+  final VoidCallback onEdit;
+  const _ReviewTile({required this.review, required this.onEdit});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final text = review;
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.rate_review_outlined),
+        title: Text(l10n.reviewTitle),
+        subtitle: Text(text == null || text.isEmpty ? l10n.noReviewYet : text),
+        trailing: IconButton(
+          key: const ValueKey('edit-review'),
+          icon: const Icon(Icons.edit_outlined),
+          tooltip: l10n.editReview,
+          onPressed: onEdit,
+        ),
+        onTap: onEdit,
+      ),
+    );
+  }
+}
+
+class _ReviewDialog extends StatefulWidget {
+  final String? initial;
+  const _ReviewDialog({required this.initial});
+
+  @override
+  State<_ReviewDialog> createState() => _ReviewDialogState();
+}
+
+class _ReviewDialogState extends State<_ReviewDialog> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.initial ?? '',
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.editReview),
+      content: TextField(
+        key: const ValueKey('review-field'),
+        controller: _controller,
+        autofocus: true,
+        minLines: 4,
+        maxLines: 10,
+        keyboardType: TextInputType.multiline,
+        decoration: InputDecoration(hintText: l10n.reviewHint),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _controller.text),
+          child: Text(l10n.save),
+        ),
+      ],
+    );
+  }
+}
+
+/// Entry point to the reading-progress screen with a one-line summary.
+class _ReadingTile extends StatelessWidget {
+  final Book book;
+  final Future<void> Function() onReturn;
+  const _ReadingTile({required this.book, required this.onReturn});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final total = book.pageCount;
+    final hasTotal = total != null && total > 0;
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.auto_stories),
+        title: Text(l10n.readingTitle),
+        subtitle: Text(
+          hasTotal
+              ? l10n.pageOfTotal(book.currentPage, total)
+              : l10n.pageOnly(book.currentPage),
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () async {
+          await Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => ReadingScreen(bookId: book.id)),
+          );
+          await onReturn();
+        },
+      ),
+    );
+  }
+}
+
+class _TagsSection extends StatelessWidget {
+  final int bookId;
+  const _TagsSection({required this.bookId});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return StreamBuilder<List<Tag>>(
+      stream: context.read<TagRepository>().watchTagsForBook(bookId),
+      builder: (context, snapshot) {
+        final tags = snapshot.data ?? const <Tag>[];
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+            child: Row(
+              children: [
+                const Icon(Icons.sell_outlined),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: tags.isEmpty
+                      ? Text(l10n.noTagsYet)
+                      : Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            for (final tag in tags) Chip(label: Text(tag.name)),
+                          ],
+                        ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: l10n.editTags,
+                  onPressed: () => BookTagPickerSheet.show(context, bookId),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _NotesTile extends StatelessWidget {
+  final int bookId;
+  const _NotesTile({required this.bookId});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return StreamBuilder<List<BookNote>>(
+      stream: context.read<NotesRepository>().watchNotes(bookId),
+      builder: (context, snapshot) {
+        final count = snapshot.data?.length ?? 0;
+        return Card(
+          child: ListTile(
+            leading: const Icon(Icons.format_quote),
+            title: Text(l10n.notesTitle),
+            subtitle: Text(l10n.notesCount(count)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => NotesScreen(bookId: bookId)),
+            ),
+          ),
+        );
+      },
     );
   }
 }

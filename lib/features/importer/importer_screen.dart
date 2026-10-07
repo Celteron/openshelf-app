@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:openreads/data/importers/import_decoding.dart';
 import 'package:openreads/domain/models/import.dart';
 import 'package:openreads/features/importer/importer_cubit.dart';
 import 'package:openreads/l10n/app_localizations.dart';
@@ -25,7 +26,7 @@ class _ImporterScreenState extends State<ImporterScreen> {
     final type = file.name.toLowerCase().endsWith('.json')
         ? ImportFileType.json
         : ImportFileType.csv;
-    final content = String.fromCharCodes(bytes);
+    final content = decodeImportBytes(bytes);
 
     if (!mounted) return;
     context.read<ImporterCubit>().selectFile(

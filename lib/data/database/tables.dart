@@ -52,6 +52,18 @@ class Books extends Table {
   TextColumn get coverLocalPath => text().nullable()();
   TextColumn get metadataSource => textEnum<MetadataSource>().nullable()();
   TextColumn get editedFields => text().map(const StringListConverter())();
+
+  /// Last page the reader reached (Phase 2, schema v2).
+  IntColumn get currentPage => integer().withDefault(const Constant(0))();
+
+  /// When the book last transitioned into `read` (Phase 2, schema v2).
+  DateTimeColumn get finishedAt => dateTime().nullable()();
+
+  /// Favourite flag (Openreads `favourite`, Phase 2 schema v2).
+  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+
+  /// The reader's own review text (Openreads `my_review`, schema v2).
+  TextColumn get review => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
@@ -83,4 +95,58 @@ class Lending extends Table {
   DateTimeColumn get lentAt => dateTime()();
   DateTimeColumn get expectedReturn => dateTime().nullable()();
   DateTimeColumn get returnedAt => dateTime().nullable()();
+}
+
+/// A reading session (Phase 2). A row with a null [endedAt] is the book's
+/// currently running timer, so an active session survives app restarts.
+@TableIndex(name: 'idx_reading_sessions_book', columns: {#bookId})
+class ReadingSessions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get bookId =>
+      integer().references(Books, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get startedAt => dateTime()();
+  DateTimeColumn get endedAt => dateTime().nullable()();
+  IntColumn get durationSeconds => integer().withDefault(const Constant(0))();
+  IntColumn get startPage => integer().withDefault(const Constant(0))();
+  IntColumn get endPage => integer().nullable()();
+}
+
+/// A note or a quote attached to a book (Phase 2).
+@TableIndex(name: 'idx_book_notes_book', columns: {#bookId})
+class BookNotes extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get bookId =>
+      integer().references(Books, #id, onDelete: KeyAction.cascade)();
+  TextColumn get kind => textEnum<NoteKind>()();
+  TextColumn get content => text()();
+  IntColumn get pageNumber => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+class Tags extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().unique()();
+}
+
+class BookTags extends Table {
+  IntColumn get bookId =>
+      integer().references(Books, #id, onDelete: KeyAction.cascade)();
+  IntColumn get tagId =>
+      integer().references(Tags, #id, onDelete: KeyAction.cascade)();
+
+  @override
+  Set<Column> get primaryKey => {bookId, tagId};
+}
+
+/// One reading goal per calendar year (Phase 2).
+class ReadingGoals extends Table {
+  IntColumn get year => integer()();
+  IntColumn get targetBooks => integer()();
+
+  /// Optional page goal (Openreads `YearlyChallenge.pages`).
+  IntColumn get targetPages => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {year};
 }

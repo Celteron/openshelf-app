@@ -130,6 +130,12 @@
   "pagesRead": "Gelesene Seiten",
   "topLocations": "Top Standorte",
   "topAuthors": "Top Autoren",
+  "statusUnread": "Ungelesen",
+  "statusReading": "Am Lesen",
+  "statusRead": "Gelesen",
+  "statusDnf": "Abgebrochen",
+  "statusWishlist": "Wunschliste",
+  "statusReReading": "Wiederlesen",
   "settingsTitle": "Einstellungen",
   "themeLabel": "Darstellung",
   "themeSystem": "System",
@@ -146,5 +152,239 @@
   "licenseLabel": "Lizenz",
   "licenseText": "GPL-3.0",
   "openSourceCreditsLabel": "Open-Source-Danksagungen",
-  "creditsText": "Flutter, Drift, BLoC"
+  "creditsText": "Flutter, Drift, BLoC",
+  "delete": "Löschen",
+  "copy": "Kopieren",
+  "copiedToClipboard": "In die Zwischenablage kopiert",
+  "enterPositiveNumber": "Bitte eine Zahl größer 0 eingeben",
+  "clearFilters": "Filter zurücksetzen",
+  "readingTitle": "Lesefortschritt",
+  "readingStart": "Lesen starten",
+  "readingStop": "Lesen beenden",
+  "currentPageLabel": "Aktuelle Seite",
+  "savePage": "Seite speichern",
+  "pageOfTotal": "Seite {page} von {total}",
+  "@pageOfTotal": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pageOnly": "Seite {page}",
+  "@pageOnly": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "readingSpeed": "Lesegeschwindigkeit",
+  "pagesPerHourValue": "{value} Seiten/Std.",
+  "@pagesPerHourValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "notEnoughData": "Noch nicht genug Daten",
+  "totalReadingTime": "Gesamte Lesezeit",
+  "readingSessionsTitle": "Lesesitzungen",
+  "noSessionsYet": "Noch keine Lesesitzungen",
+  "sessionPagesLine": "{pages} Seiten · {duration}",
+  "@sessionPagesLine": {
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "logSession": "Sitzung nachtragen",
+  "sessionDurationMinutes": "Dauer (Minuten)",
+  "sessionStartPage": "Von Seite",
+  "sessionEndPage": "Bis Seite",
+  "sessionDate": "Datum",
+  "deleteSession": "Sitzung löschen",
+  "durationHm": "{hours} Std. {minutes} Min.",
+  "@durationHm": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationMin": "{minutes} Min.",
+  "@durationMin": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "readingSessionsCount": "{count, plural, =0{Keine Sitzungen} =1{1 Sitzung} other{{count} Sitzungen}}",
+  "@readingSessionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notesTitle": "Notizen & Zitate",
+  "noteKindNote": "Notiz",
+  "noteKindQuote": "Zitat",
+  "notesTabNotes": "Notizen",
+  "notesTabQuotes": "Zitate",
+  "addNote": "Eintrag hinzufügen",
+  "editNote": "Eintrag bearbeiten",
+  "noteContentLabel": "Text",
+  "notePageLabel": "Seite (optional)",
+  "notePage": "S. {page}",
+  "@notePage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "noNotesYet": "Noch keine Einträge",
+  "notesCount": "{count, plural, =0{Keine Einträge} =1{1 Eintrag} other{{count} Einträge}}",
+  "@notesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tagsTitle": "Tags",
+  "manageTags": "Tags verwalten",
+  "editTags": "Tags bearbeiten",
+  "addTag": "Tag hinzufügen",
+  "newTagHint": "Neuer Tag",
+  "renameTag": "Tag umbenennen",
+  "deleteTagTitle": "Tag „{name}“ löschen?",
+  "@deleteTagTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTagBody": "Die Bücher bleiben erhalten.",
+  "tagNameTaken": "Ein Tag mit diesem Namen existiert bereits",
+  "noTagsYet": "Noch keine Tags",
+  "tagBookCount": "{count, plural, =1{1 Buch} other{{count} Bücher}}",
+  "@tagBookCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalTitle": "Leseziel {year}",
+  "@goalTitle": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "setGoal": "Ziel festlegen",
+  "editGoal": "Ziel ändern",
+  "clearGoal": "Ziel entfernen",
+  "goalBooksLabel": "Anzahl Bücher",
+  "noGoalYet": "Für {year} ist noch kein Ziel gesetzt",
+  "@noGoalYet": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "goalProgress": "{completed} von {target} Büchern",
+  "@goalProgress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "goalRemaining": "Noch {count, plural, =1{1 Buch} other{{count} Bücher}}",
+  "@goalRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalReached": "Ziel erreicht!",
+  "goalOnTrack": "Genau im Plan",
+  "goalAhead": "{count, plural, =1{1 Buch} other{{count} Bücher}} vor dem Plan",
+  "@goalAhead": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalBehind": "{count, plural, =1{1 Buch} other{{count} Bücher}} hinter dem Plan",
+  "@goalBehind": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moveToLibrary": "In Bestand übernehmen",
+  "movedToLibrary": "Zum Bestand hinzugefügt",
+  "deleteBook": "Buch löschen",
+  "deleteBookTitle": "„{title}“ löschen?",
+  "@deleteBookTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteBookBody": "Das Buch wird samt Notizen, Tags und Lesesitzungen endgültig gelöscht.",
+  "bookDeleted": "Buch gelöscht",
+  "addFavorite": "Zu Favoriten hinzufügen",
+  "removeFavorite": "Aus Favoriten entfernen",
+  "favoritesFilter": "Favoriten",
+  "sortBy": "Sortieren",
+  "sortTitle": "Titel",
+  "sortAuthor": "Autor",
+  "sortRating": "Bewertung",
+  "sortAdded": "Hinzugefügt am",
+  "sortProgress": "Lese-Fortschritt",
+  "sortAscending": "Aufsteigend",
+  "sortDescending": "Absteigend",
+  "reviewTitle": "Rezension",
+  "noReviewYet": "Noch keine Rezension",
+  "editReview": "Rezension bearbeiten",
+  "reviewHint": "Deine Meinung zum Buch",
+  "goalPagesLabel": "Seitenziel (optional)",
+  "goalPagesProgress": "{read} von {target} Seiten",
+  "@goalPagesProgress": {
+    "placeholders": {
+      "read": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  }
 }

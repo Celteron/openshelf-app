@@ -239,6 +239,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get topAuthors => 'Top authors';
 
   @override
+  String get statusUnread => 'Unread';
+
+  @override
+  String get statusReading => 'Reading';
+
+  @override
+  String get statusRead => 'Read';
+
+  @override
+  String get statusDnf => 'Abandoned';
+
+  @override
+  String get statusWishlist => 'Wishlist';
+
+  @override
+  String get statusReReading => 'Re-reading';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -288,4 +306,339 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get creditsText => 'Flutter, Drift, BLoC';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get copy => 'Copy';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get enterPositiveNumber => 'Enter a number greater than 0';
+
+  @override
+  String get clearFilters => 'Clear filters';
+
+  @override
+  String get readingTitle => 'Reading progress';
+
+  @override
+  String get readingStart => 'Start reading';
+
+  @override
+  String get readingStop => 'Stop reading';
+
+  @override
+  String get currentPageLabel => 'Current page';
+
+  @override
+  String get savePage => 'Save page';
+
+  @override
+  String pageOfTotal(int page, int total) {
+    return 'Page $page of $total';
+  }
+
+  @override
+  String pageOnly(int page) {
+    return 'Page $page';
+  }
+
+  @override
+  String get readingSpeed => 'Reading speed';
+
+  @override
+  String pagesPerHourValue(String value) {
+    return '$value pages/h';
+  }
+
+  @override
+  String get notEnoughData => 'Not enough data yet';
+
+  @override
+  String get totalReadingTime => 'Total reading time';
+
+  @override
+  String get readingSessionsTitle => 'Reading sessions';
+
+  @override
+  String get noSessionsYet => 'No reading sessions yet';
+
+  @override
+  String sessionPagesLine(int pages, String duration) {
+    return '$pages pages · $duration';
+  }
+
+  @override
+  String get logSession => 'Log a session';
+
+  @override
+  String get sessionDurationMinutes => 'Duration (minutes)';
+
+  @override
+  String get sessionStartPage => 'From page';
+
+  @override
+  String get sessionEndPage => 'To page';
+
+  @override
+  String get sessionDate => 'Date';
+
+  @override
+  String get deleteSession => 'Delete session';
+
+  @override
+  String durationHm(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String durationMin(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String readingSessionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sessions',
+      one: '1 session',
+      zero: 'No sessions',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notesTitle => 'Notes & quotes';
+
+  @override
+  String get noteKindNote => 'Note';
+
+  @override
+  String get noteKindQuote => 'Quote';
+
+  @override
+  String get notesTabNotes => 'Notes';
+
+  @override
+  String get notesTabQuotes => 'Quotes';
+
+  @override
+  String get addNote => 'Add entry';
+
+  @override
+  String get editNote => 'Edit entry';
+
+  @override
+  String get noteContentLabel => 'Text';
+
+  @override
+  String get notePageLabel => 'Page (optional)';
+
+  @override
+  String notePage(int page) {
+    return 'p. $page';
+  }
+
+  @override
+  String get noNotesYet => 'No entries yet';
+
+  @override
+  String notesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries',
+      one: '1 entry',
+      zero: 'No entries',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagsTitle => 'Tags';
+
+  @override
+  String get manageTags => 'Manage tags';
+
+  @override
+  String get editTags => 'Edit tags';
+
+  @override
+  String get addTag => 'Add tag';
+
+  @override
+  String get newTagHint => 'New tag';
+
+  @override
+  String get renameTag => 'Rename tag';
+
+  @override
+  String deleteTagTitle(String name) {
+    return 'Delete tag “$name”?';
+  }
+
+  @override
+  String get deleteTagBody => 'The books are kept.';
+
+  @override
+  String get tagNameTaken => 'A tag with this name already exists';
+
+  @override
+  String get noTagsYet => 'No tags yet';
+
+  @override
+  String tagBookCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count books',
+      one: '1 book',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String goalTitle(int year) {
+    return 'Reading goal $year';
+  }
+
+  @override
+  String get setGoal => 'Set goal';
+
+  @override
+  String get editGoal => 'Change goal';
+
+  @override
+  String get clearGoal => 'Remove goal';
+
+  @override
+  String get goalBooksLabel => 'Number of books';
+
+  @override
+  String noGoalYet(int year) {
+    return 'No goal set for $year yet';
+  }
+
+  @override
+  String goalProgress(int completed, int target) {
+    return '$completed of $target books';
+  }
+
+  @override
+  String goalRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count books',
+      one: '1 book',
+    );
+    return '$_temp0 to go';
+  }
+
+  @override
+  String get goalReached => 'Goal reached!';
+
+  @override
+  String get goalOnTrack => 'Right on track';
+
+  @override
+  String goalAhead(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count books',
+      one: '1 book',
+    );
+    return '$_temp0 ahead of schedule';
+  }
+
+  @override
+  String goalBehind(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count books',
+      one: '1 book',
+    );
+    return '$_temp0 behind schedule';
+  }
+
+  @override
+  String get moveToLibrary => 'Add to library';
+
+  @override
+  String get movedToLibrary => 'Added to library';
+
+  @override
+  String get deleteBook => 'Delete book';
+
+  @override
+  String deleteBookTitle(String title) {
+    return 'Delete “$title”?';
+  }
+
+  @override
+  String get deleteBookBody =>
+      'The book will be permanently deleted together with its notes, tags and reading sessions.';
+
+  @override
+  String get bookDeleted => 'Book deleted';
+
+  @override
+  String get addFavorite => 'Add to favorites';
+
+  @override
+  String get removeFavorite => 'Remove from favorites';
+
+  @override
+  String get favoritesFilter => 'Favorites';
+
+  @override
+  String get sortBy => 'Sort';
+
+  @override
+  String get sortTitle => 'Title';
+
+  @override
+  String get sortAuthor => 'Author';
+
+  @override
+  String get sortRating => 'Rating';
+
+  @override
+  String get sortAdded => 'Date added';
+
+  @override
+  String get sortProgress => 'Reading progress';
+
+  @override
+  String get sortAscending => 'Ascending';
+
+  @override
+  String get sortDescending => 'Descending';
+
+  @override
+  String get reviewTitle => 'Review';
+
+  @override
+  String get noReviewYet => 'No review yet';
+
+  @override
+  String get editReview => 'Edit review';
+
+  @override
+  String get reviewHint => 'Your thoughts on the book';
+
+  @override
+  String get goalPagesLabel => 'Page goal (optional)';
+
+  @override
+  String goalPagesProgress(int read, int target) {
+    return '$read of $target pages';
+  }
 }
