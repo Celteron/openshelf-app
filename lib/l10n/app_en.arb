@@ -306,8 +306,8 @@
   },
   "moveToLibrary": "Add to library",
   "movedToLibrary": "Added to library",
-  "deleteBook": "Delete book",
-  "deleteBookTitle": "Delete “{title}”?",
+  "deleteBook": "Move to trash",
+  "deleteBookTitle": "Move “{title}” to the trash?",
   "@deleteBookTitle": {
     "placeholders": {
       "title": {
@@ -315,8 +315,8 @@
       }
     }
   },
-  "deleteBookBody": "The book will be permanently deleted together with its notes, tags and reading sessions.",
-  "bookDeleted": "Book deleted",
+  "deleteBookBody": "You can restore the book from the trash or delete it permanently.",
+  "bookDeleted": "Book moved to the trash",
   "addFavorite": "Add to favorites",
   "removeFavorite": "Remove from favorites",
   "favoritesFilter": "Favorites",
@@ -340,6 +340,152 @@
         "type": "int"
       },
       "target": {
+        "type": "int"
+      }
+    }
+  },
+  "fieldDescription": "Description",
+  "coverFromGallery": "From gallery",
+  "coverFromCamera": "Camera",
+  "coverRemove": "Remove cover",
+  "sortModified": "Date modified",
+  "sortPages": "Page count",
+  "sortPublicationYear": "Publication year",
+  "sortStatus": "Status",
+  "sortLastRead": "Last read",
+  "sortStartDate": "Start date",
+  "sortFinishDate": "Finish date",
+  "showAsGrid": "Grid view",
+  "showAsList": "List view",
+  "yearFilter": "Year",
+  "allYears": "All years",
+  "bulkSetFormat": "Change format",
+  "bulkSetAuthor": "Change author",
+  "bulkDeleteTitle": "Move {count} books to the trash?",
+  "@bulkDeleteTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moveToTrash": "Move to trash",
+  "moveToTrashBody": "You can restore the books from the trash.",
+  "movedToTrash": "{count, plural, =1{1 book} other{{count} books}} moved to the trash",
+  "@movedToTrash": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionEndDate": "Finish date (optional)",
+  "sessionEndDateHint": "Same day – pick an end date for multi-day readings",
+  "undo": "Undo",
+  "skip": "Skip",
+  "quickRatingTitle": "How did you like the book?",
+  "olidLabel": "Open Library ID",
+  "dateAddedLabel": "Added",
+  "dateModifiedLabel": "Modified",
+  "trashTitle": "Trash",
+  "trashEmpty": "The trash is empty",
+  "restore": "Restore",
+  "deleteForever": "Delete permanently",
+  "deleteForeverTitle": "Delete “{title}” permanently?",
+  "@deleteForeverTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteForeverBody": "The book will be deleted irrevocably together with its notes, tags and reading sessions.",
+  "emptyTrash": "Empty trash",
+  "emptyTrashTitle": "Empty the trash?",
+  "appearanceSection": "Appearance",
+  "materialYou": "Material You",
+  "materialYouHint": "Use system (wallpaper) colours where available",
+  "accentColor": "Accent colour",
+  "accentColorDisabledHint": "Not available with Material You",
+  "resetToDefault": "Reset",
+  "amoledDark": "AMOLED dark mode",
+  "amoledDarkHint": "Pure black in the dark theme",
+  "fontLabel": "Font",
+  "ratingStyleLabel": "Show rating as",
+  "ratingAsBar": "Stars",
+  "ratingAsNumber": "Number",
+  "listLayoutLabel": "Library layout",
+  "displayList": "List",
+  "displayCompactList": "Compact list",
+  "displayGrid": "Grid",
+  "displayDetailedGrid": "Detailed grid",
+  "booksSection": "Books",
+  "defaultFormat": "Default format",
+  "defaultStatus": "Default status",
+  "defaultTags": "Default tags",
+  "defaultTagsHint": "{count, plural, =0{No tags} =1{1 tag} other{{count} tags}} for new books",
+  "@defaultTagsHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadMissingCovers": "Download missing covers",
+  "downloadMissingCoversHint": "Fetches covers that are only known by link",
+  "coversDownloading": "Downloading covers …",
+  "coversNoneMissing": "No covers are missing",
+  "coversDownloaded": "{ok} covers downloaded, {failed} unavailable",
+  "@coversDownloaded": {
+    "placeholders": {
+      "ok": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "exportJsonHint": "Full backup – can be restored",
+  "exportCsvHint": "All fields, compatible with the Openreads CSV import",
+  "restoreBackup": "Restore backup / import",
+  "restoreBackupHint": "OpenShelf backup, Openreads, Goodreads, StoryGraph, Bookwyrm …",
+  "sourceCode": "Source code",
+  "reportIssue": "Report an issue",
+  "standardColors": "Standard",
+  "customColor": "Custom colour",
+  "finishedBooksByMonth": "Books finished per month",
+  "finishedPagesByMonth": "Pages finished per month",
+  "averagesTitle": "Averages & records",
+  "averageRating": "Average rating",
+  "averagePages": "Average pages",
+  "averageReadingTime": "Average reading time",
+  "longestBook": "Longest book",
+  "shortestBook": "Shortest book",
+  "fastestBook": "Read fastest",
+  "slowestBook": "Read slowest",
+  "pagesValue": "{count} pages",
+  "@pagesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "openLibrarySearch": "Open Library search",
+  "olSearchHint": "Title, author, ISBN or OLID",
+  "olTypeGeneral": "General",
+  "olTypeTitle": "Title",
+  "olTypeAuthor": "Author",
+  "olTypeIsbn": "ISBN",
+  "olTypeOlid": "OLID",
+  "olNoResults": "No results",
+  "olEditions": "Editions",
+  "search": "Search",
+  "lendingHistory": "Past lendings ({count})",
+  "@lendingHistory": {
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }

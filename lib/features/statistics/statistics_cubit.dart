@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/goal_progress.dart';
 import 'package:openreads/domain/models/reading_stats.dart';
 import 'package:openreads/domain/models/statistics.dart';
@@ -41,6 +42,9 @@ class StatisticsCubit extends Cubit<StatisticsState> {
   final DateTime Function() _now;
   StreamSubscription<StatisticsState>? _subscription;
 
+  /// The selected year (`null` = all years).
+  final _year = BehaviorSubject<int?>.seeded(null);
+
   StatisticsCubit(
     this._bookRepository,
     this._locationRepository, {
@@ -52,37 +56,63 @@ class StatisticsCubit extends Cubit<StatisticsState> {
        _now = clock ?? DateTime.now,
        super(const StatisticsLoading());
 
-  /// The calendar year the goal card refers to.
-  int get goalYear => _now().year;
+  /// The calendar year the goal card refers to: the selected year, else the
+  /// current one.
+  int get goalYear => _year.value ?? _now().year;
+
+  /// The selected year, or `null` for all years.
+  int? get selectedYear => _year.value;
+
+  /// Shows the statistics of one year (`null` = all years).
+  void selectYear(int? year) => _year.add(year);
 
   void load() {
     _subscription?.cancel();
-    final goals = _goalRepository?.watchGoal(goalYear) ?? Stream.value(null);
     final sessions =
         _readingRepository?.watchAllSessions() ??
         Stream.value(const <ReadingSession>[]);
 
-    _subscription =
-        Rx.combineLatest3<
-              List<Book>,
-              ReadingGoal?,
-              List<ReadingSession>,
-              (List<Book>, ReadingGoal?, List<ReadingSession>)
-            >(
-              _bookRepository.watchBooks(),
-              goals,
-              sessions,
-              (books, goal, sessions) => (books, goal, sessions),
-            )
-            .asyncMap(_compute)
-            .listen(emit, onError: (_) => emit(const StatisticsError()));
+    _subscription = _year
+        .distinct()
+        .switchMap(
+          (year) =>
+              Rx.combineLatest3<
+                List<Book>,
+                ReadingGoal?,
+                List<ReadingSession>,
+                (int?, List<Book>, ReadingGoal?, List<ReadingSession>)
+              >(
+                _bookRepository.watchBooks(),
+                _goalRepository?.watchGoal(year ?? _now().year) ??
+                    Stream.value(null),
+                sessions,
+                (books, goal, sessions) => (year, books, goal, sessions),
+              ),
+        )
+        .asyncMap(_compute)
+        .listen(emit, onError: (_) => emit(const StatisticsError()));
   }
 
   Future<StatisticsState> _compute(
-    (List<Book>, ReadingGoal?, List<ReadingSession>) input,
+    (int?, List<Book>, ReadingGoal?, List<ReadingSession>) input,
   ) async {
     try {
-      final (books, goal, sessions) = input;
+      final (year, books, goal, allSessions) = input;
+      // Sessions of the books in scope only (all books, or the year's).
+      final scopeIds = year == null
+          ? null
+          : {
+              for (final b in books)
+                if (b.status == BookStatus.read &&
+                    BookStatistics.finishedOn(b).year == year)
+                  b.id,
+            };
+      final sessions = scopeIds == null
+          ? allSessions
+          : [
+              for (final s in allSessions)
+                if (scopeIds.contains(s.bookId)) s,
+            ];
       final locations = await _locationRepository.getLocations();
       return StatisticsLoaded(
         BookStatistics.compute(
@@ -98,6 +128,8 @@ class StatisticsCubit extends Cubit<StatisticsState> {
                   now: _now(),
                 ),
           reading: ReadingStats.compute(sessions),
+          year: year,
+          sessions: sessions,
         ),
       );
     } catch (_) {
@@ -119,6 +151,7 @@ class StatisticsCubit extends Cubit<StatisticsState> {
   @override
   Future<void> close() async {
     await _subscription?.cancel();
+    await _year.close();
     return super.close();
   }
 }

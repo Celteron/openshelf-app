@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:openreads/features/scanner/scanner_cubit.dart';
+import 'package:openreads/features/common/widgets/book_cover.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
 /// Continuous batch barcode scanner with a staging shelf and "save all" CTA
@@ -18,6 +19,10 @@ class ScannerScreen extends StatefulWidget {
 class _ScannerScreenState extends State<ScannerScreen> {
   MobileScannerController? _controller;
 
+  /// Kept for dispose(): looking up the cubit through a deactivated context
+  /// is unsafe.
+  late final ScannerCubit _cubit;
+
   static bool get _supportsCamera =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
@@ -32,13 +37,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
         detectionSpeed: DetectionSpeed.noDuplicates,
       );
     }
-    context.read<ScannerCubit>().start();
+    _cubit = context.read<ScannerCubit>()..start();
   }
 
   @override
   void dispose() {
     _controller?.dispose();
-    context.read<ScannerCubit>().stop();
+    _cubit.stop();
     super.dispose();
   }
 
@@ -111,7 +116,14 @@ class _StagingShelf extends StatelessWidget {
                         dense: true,
                         leading: book.duplicate
                             ? const Icon(Icons.warning, color: Colors.orange)
-                            : const Icon(Icons.book),
+                            : UrlCover(
+                                key: ValueKey('staged-cover:${book.isbn13}'),
+                                cacheKey: book.isbn13,
+                                url: book.metadata?.coverUrl,
+                                width: 32,
+                                height: 46,
+                                borderRadius: BorderRadius.circular(3),
+                              ),
                         title: Text(book.metadata?.title ?? book.isbn13),
                         subtitle: book.duplicate
                             ? Text(l10n.alreadyInLibrary)

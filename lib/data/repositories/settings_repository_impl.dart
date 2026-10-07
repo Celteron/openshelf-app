@@ -28,4 +28,20 @@ class SettingsRepositoryImpl implements SettingsRepository {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_localeKey, code);
   }
+
+  @override
+  Future<String?> getValue(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('settings.$key');
+  }
+
+  @override
+  Future<void> setValue(String key, String? value) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (value == null) {
+      await prefs.remove('settings.$key');
+    } else {
+      await prefs.setString('settings.$key', value);
+    }
+  }
 }

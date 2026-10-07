@@ -27,6 +27,17 @@ class ColumnMapper {
   static const fieldFinishDate = 'finishDate';
   static const fieldReadings = 'readings';
   static const fieldDateAdded = 'dateAdded';
+  static const fieldOlid = 'olid';
+  static const fieldQuotes = 'quotes';
+  static const fieldCurrentPage = 'currentPage';
+  static const fieldFinishedAt = 'finishedAt';
+  static const fieldLocation = 'location';
+  static const fieldBorrower = 'borrower';
+  static const fieldLentAt = 'lentAt';
+  static const fieldExpectedReturn = 'expectedReturn';
+  static const fieldLendingStatus = 'lendingStatus';
+  static const fieldCoverUrl = 'coverUrl';
+  static const fieldDateModified = 'dateModified';
 
   /// Source header (lowercased and trimmed) → canonical field.
   final Map<String, String> headerToField;

@@ -15,6 +15,10 @@ class BookDraft {
   final String? language;
   final String? description;
   final String? coverUrl;
+
+  /// A manually chosen or cached cover file on this device.
+  final String? coverLocalPath;
+  final String? olid;
   final double? seriesVolume;
   final BookStatus status;
   final double rating;
@@ -39,6 +43,8 @@ class BookDraft {
     this.language,
     this.description,
     this.coverUrl,
+    this.coverLocalPath,
+    this.olid,
     this.seriesVolume,
     this.status = BookStatus.unread,
     this.rating = 0.0,

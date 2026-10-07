@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/domain/models/enums.dart';
@@ -44,11 +45,31 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              if (stats.years.isNotEmpty) ...[
+                _YearSelector(stats: stats),
+                const SizedBox(height: 16),
+              ],
               _SummaryCards(stats: stats),
               const SizedBox(height: 16),
               _GoalCard(goal: stats.goal),
               const SizedBox(height: 16),
               _ReadingCard(stats: stats),
+              const SizedBox(height: 16),
+              if (stats.monthly.isNotEmpty) ...[
+                _MonthlyBarChart(
+                  key: const ValueKey('chart-books'),
+                  title: l10n.finishedBooksByMonth,
+                  values: [for (final m in stats.monthly) m.books],
+                ),
+                const SizedBox(height: 16),
+                _MonthlyBarChart(
+                  key: const ValueKey('chart-pages'),
+                  title: l10n.finishedPagesByMonth,
+                  values: [for (final m in stats.monthly) m.pages],
+                ),
+                const SizedBox(height: 16),
+              ],
+              _AveragesCard(stats: stats),
               const SizedBox(height: 16),
               _StatusBreakdown(stats: stats),
               const SizedBox(height: 16),
@@ -290,23 +311,25 @@ class _GoalCard extends StatelessWidget {
                 child: Text(l10n.setGoal),
               ),
             ] else ...[
-              Text(
-                l10n.goalProgress(goal.completed, goal.target),
-                style: theme.textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  key: const ValueKey('goal-progress'),
-                  value: goal.fraction,
-                  minHeight: 8,
+              if (goal.hasBookGoal) ...[
+                Text(
+                  l10n.goalProgress(goal.completed, goal.target),
+                  style: theme.textTheme.headlineSmall,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(_summary(l10n, goal)),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    key: const ValueKey('goal-progress'),
+                    value: goal.fraction,
+                    minHeight: 8,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(_summary(l10n, goal)),
+              ],
               if (goal.hasPageGoal) ...[
-                const SizedBox(height: 16),
+                if (goal.hasBookGoal) const SizedBox(height: 16),
                 Text(
                   l10n.goalPagesProgress(goal.pagesRead, goal.targetPages!),
                   style: theme.textTheme.titleMedium,
@@ -373,7 +396,7 @@ class _GoalDialog extends StatefulWidget {
 
 class _GoalDialogState extends State<_GoalDialog> {
   late final TextEditingController _controller = TextEditingController(
-    text: widget.initialBooks?.toString() ?? '',
+    text: (widget.initialBooks ?? 0) > 0 ? widget.initialBooks.toString() : '',
   );
   late final TextEditingController _pagesController = TextEditingController(
     text: widget.initialPages?.toString() ?? '',
@@ -389,11 +412,14 @@ class _GoalDialogState extends State<_GoalDialog> {
   }
 
   void _submit() {
-    final books = int.tryParse(_controller.text.trim());
+    final booksText = _controller.text.trim();
+    final books = booksText.isEmpty ? 0 : int.tryParse(booksText);
     final pagesText = _pagesController.text.trim();
     final pages = pagesText.isEmpty ? null : int.tryParse(pagesText);
-    final booksInvalid = books == null || books <= 0;
     final pagesInvalid = pagesText.isNotEmpty && (pages == null || pages <= 0);
+    // A book goal, a page goal or both (Openreads); at least one is needed.
+    final booksInvalid =
+        books == null || books < 0 || (books == 0 && pages == null);
     if (booksInvalid || pagesInvalid) {
       setState(() {
         _invalid = booksInvalid;
@@ -475,6 +501,198 @@ class _ReadingCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Year dropdown: "All years" or one of the years with finished books.
+class _YearSelector extends StatelessWidget {
+  final BookStatistics stats;
+  const _YearSelector({required this.stats});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: l10n.yearFilter,
+        prefixIcon: const Icon(Icons.calendar_today),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int?>(
+          key: const ValueKey('stats-year'),
+          value: stats.year,
+          isExpanded: true,
+          items: [
+            DropdownMenuItem<int?>(value: null, child: Text(l10n.allYears)),
+            for (final y in stats.years)
+              DropdownMenuItem<int?>(value: y, child: Text('$y')),
+          ],
+          onChanged: context.read<StatisticsCubit>().selectYear,
+        ),
+      ),
+    );
+  }
+}
+
+/// Twelve bars, January to December.
+class _MonthlyBarChart extends StatelessWidget {
+  final String title;
+  final List<int> values;
+  const _MonthlyBarChart({
+    super.key,
+    required this.title,
+    required this.values,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final max = values.fold<int>(0, (m, v) => v > m ? v : m);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: theme.textTheme.titleMedium),
+            const SizedBox(height: 12),
+            Semantics(
+              label: '$title: ${values.join(', ')}',
+              child: SizedBox(
+                height: 160,
+                child: BarChart(
+                  BarChartData(
+                    maxY: (max == 0 ? 1 : max * 1.15).toDouble(),
+                    gridData: const FlGridData(show: false),
+                    borderData: FlBorderData(show: false),
+                    titlesData: FlTitlesData(
+                      leftTitles: const AxisTitles(),
+                      rightTitles: const AxisTitles(),
+                      topTitles: const AxisTitles(),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 22,
+                          getTitlesWidget: (value, meta) => SideTitleWidget(
+                            meta: meta,
+                            child: Text(
+                              '${value.toInt() + 1}',
+                              style: theme.textTheme.labelSmall,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    barGroups: [
+                      for (var i = 0; i < values.length; i++)
+                        BarChartGroupData(
+                          x: i,
+                          barRods: [
+                            BarChartRodData(
+                              toY: values[i].toDouble(),
+                              width: 12,
+                              color: theme.colorScheme.primary,
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(3),
+                              ),
+                            ),
+                          ],
+                          showingTooltipIndicators: values[i] > 0 ? [0] : [],
+                        ),
+                    ],
+                    barTouchData: BarTouchData(
+                      enabled: false,
+                      touchTooltipData: BarTouchTooltipData(
+                        getTooltipColor: (_) => Colors.transparent,
+                        tooltipPadding: EdgeInsets.zero,
+                        tooltipMargin: 2,
+                        getTooltipItem: (group, _, rod, _) => BarTooltipItem(
+                          '${rod.toY.toInt()}',
+                          theme.textTheme.labelSmall ?? const TextStyle(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Averages (rating, pages, reading time) and the extreme books.
+class _AveragesCard extends StatelessWidget {
+  final BookStatistics stats;
+  const _AveragesCard({required this.stats});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final rows = <(String, String)>[
+      if (stats.averageRating != null)
+        (l10n.averageRating, stats.averageRating!.toStringAsFixed(2)),
+      if (stats.averagePages != null)
+        (l10n.averagePages, l10n.pagesValue(stats.averagePages!)),
+      if (stats.averageReadingTime != null)
+        (
+          l10n.averageReadingTime,
+          formatDurationSeconds(l10n, stats.averageReadingTime!.inSeconds),
+        ),
+      if (stats.longestBook != null)
+        (
+          l10n.longestBook,
+          '${stats.longestBook!.name} · ${l10n.pagesValue(stats.longestBook!.count)}',
+        ),
+      if (stats.shortestBook != null)
+        (
+          l10n.shortestBook,
+          '${stats.shortestBook!.name} · ${l10n.pagesValue(stats.shortestBook!.count)}',
+        ),
+      if (stats.fastestBook != null)
+        (
+          l10n.fastestBook,
+          '${stats.fastestBook!.name} · ${formatDurationSeconds(l10n, stats.fastestBook!.count)}',
+        ),
+      if (stats.slowestBook != null)
+        (
+          l10n.slowestBook,
+          '${stats.slowestBook!.name} · ${formatDurationSeconds(l10n, stats.slowestBook!.count)}',
+        ),
+    ];
+    if (rows.isEmpty) return const SizedBox.shrink();
+    return Card(
+      key: const ValueKey('averages-card'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.averagesTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            for (final (label, value) in rows)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 4, child: Text(label)),
+                    Expanded(
+                      flex: 6,
+                      child: Text(value, textAlign: TextAlign.end),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

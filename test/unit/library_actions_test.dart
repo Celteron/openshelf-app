@@ -4,11 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/data/database/daos/books_dao.dart';
 import 'package:openreads/data/database/daos/lending_dao.dart';
+import 'package:openreads/data/database/daos/locations_dao.dart';
 import 'package:openreads/data/database/daos/notes_dao.dart';
 import 'package:openreads/data/database/daos/reading_dao.dart';
 import 'package:openreads/data/database/daos/tags_dao.dart';
 import 'package:openreads/data/repositories/book_repository_impl.dart';
 import 'package:openreads/data/repositories/lending_repository_impl.dart';
+import 'package:openreads/data/repositories/location_repository_impl.dart';
 import 'package:openreads/data/repositories/notes_repository_impl.dart';
 import 'package:openreads/data/repositories/reading_repository_impl.dart';
 import 'package:openreads/data/repositories/tag_repository_impl.dart';
@@ -57,7 +59,7 @@ void main() {
     return (state as LibraryLoaded).books.map((b) => b.title).toList();
   }
 
-  group('deleteBook', () {
+  group('purgeBook', () {
     test('removes the book together with everything attached to it', () async {
       final id = await addBook('Weg damit');
       final other = await addBook('Bleibt');
@@ -78,7 +80,7 @@ void main() {
         LendingDao(db),
       ).lend(id, borrowerName: 'Anna');
 
-      await books.deleteBook(id);
+      await books.purgeBook(id);
 
       final remaining = await db.select(db.books).get();
       expect(remaining.map((b) => b.id), [other]);
@@ -93,11 +95,194 @@ void main() {
       );
     });
 
-    test('deleting an unknown id is a no-op', () async {
+    test('purging an unknown id is a no-op', () async {
       await addBook('A');
-      await books.deleteBook(9999);
+      await books.purgeBook(9999);
       expect(await db.select(db.books).get(), hasLength(1));
     });
+  });
+
+  group('trash', () {
+    Future<List<String>> library() async => [
+      for (final b in await books.watchBooks().first) b.title,
+    ];
+    Future<List<String>> trash() async => [
+      for (final b in await books.watchTrashedBooks().first) b.title,
+    ];
+
+    test('deleteBook moves the book to the trash and keeps its data', () async {
+      final id = await addBook('Weg');
+      await addBook('Bleibt');
+      await NotesRepositoryImpl(
+        NotesDao(db),
+      ).addNote(id, kind: NoteKind.note, content: 'Notiz');
+
+      await books.deleteBook(id);
+
+      expect(await library(), ['Bleibt']);
+      expect(await trash(), ['Weg']);
+      expect((await books.getBook(id))!.deletedAt, isNotNull);
+      expect(await db.select(db.bookNotes).get(), hasLength(1));
+    });
+
+    test('trashed books are hidden from search and getAll', () async {
+      final id = await addBook('Verstecktes Buch');
+      await addBook('Sichtbares Buch');
+      await books.deleteBook(id);
+
+      expect((await books.searchLocal('Buch')).map((b) => b.title), [
+        'Sichtbares Buch',
+      ]);
+      expect((await books.getAllBooks()).map((b) => b.title), [
+        'Sichtbares Buch',
+      ]);
+    });
+
+    test('restoreBook brings it back', () async {
+      final id = await addBook('Zurück');
+      await books.deleteBook(id);
+      expect(await library(), isEmpty);
+
+      await books.restoreBook(id);
+
+      expect(await library(), ['Zurück']);
+      expect(await trash(), isEmpty);
+      expect((await books.getBook(id))!.deletedAt, isNull);
+    });
+
+    test('deleting twice keeps the first deletion time', () async {
+      final id = await addBook('A');
+      await books.deleteBook(id);
+      final first = (await books.getBook(id))!.deletedAt;
+      await Future<void>.delayed(const Duration(milliseconds: 1100));
+
+      await books.deleteBook(id);
+
+      expect((await books.getBook(id))!.deletedAt, first);
+    });
+
+    test('deleteBooks trashes several at once', () async {
+      final a = await addBook('A');
+      final b = await addBook('B');
+      await addBook('C');
+
+      await books.deleteBooks([a, b]);
+
+      expect(await library(), ['C']);
+      expect((await trash())..sort(), ['A', 'B']);
+    });
+
+    test('the trash lists the most recently deleted first', () async {
+      final a = await addBook('Zuerst');
+      final b = await addBook('Danach');
+      await books.deleteBook(a);
+      await Future<void>.delayed(const Duration(milliseconds: 1100));
+      await books.deleteBook(b);
+
+      expect(await trash(), ['Danach', 'Zuerst']);
+    });
+
+    test('emptyTrash purges only trashed books, with their data', () async {
+      final gone = await addBook('Weg');
+      final keep = await addBook('Bleibt');
+      await NotesRepositoryImpl(
+        NotesDao(db),
+      ).addNote(gone, kind: NoteKind.note, content: 'x');
+      await books.deleteBook(gone);
+
+      final removed = await books.emptyTrash();
+
+      expect(removed, 1);
+      expect((await db.select(db.books).get()).map((b) => b.id), [keep]);
+      expect(await db.select(db.bookNotes).get(), isEmpty);
+    });
+
+    test('an ISBN in the trash still counts as taken', () async {
+      final id = await books.insertBook(
+        BooksCompanion.insert(
+          title: 'Mit ISBN',
+          authors: const ['A'],
+          editedFields: const [],
+          isbn13: const Value('9783000000001'),
+        ),
+      );
+      await books.deleteBook(id);
+
+      // The column is unique, so scanning it again must not try to insert.
+      expect(await books.isbnExists('9783000000001'), isTrue);
+    });
+
+    test('trashed books do not count for a location', () async {
+      final locations = LocationRepositoryImpl(LocationsDao(db));
+      final shelf = await locations.createLocation(
+        name: 'Regal',
+        type: LocationType.shelf,
+      );
+      final id = await books.insertBook(
+        BooksCompanion.insert(
+          title: 'Im Regal',
+          authors: const ['A'],
+          editedFields: const [],
+          locationId: Value(shelf),
+        ),
+      );
+      expect(await LocationsDao(db).countBooksAt(shelf), 1);
+
+      await books.deleteBook(id);
+
+      expect(await LocationsDao(db).countBooksAt(shelf), 0);
+    });
+
+    test(
+      'cubit: the list drops a trashed book and shows it again on restore',
+      () async {
+        final id = await addBook('Flackern');
+        cubit.load();
+        expect(await titles(), ['Flackern']);
+
+        await cubit.deleteBook(id);
+        await cubit.stream.firstWhere(
+          (s) => s is LibraryLoaded && s.books.isEmpty,
+        );
+
+        await cubit.restoreBook(id);
+        final state = await cubit.stream.firstWhere(
+          (s) => s is LibraryLoaded && s.books.isNotEmpty,
+        );
+        expect((state as LibraryLoaded).books.single.title, 'Flackern');
+      },
+    );
+  });
+
+  group('bulk edit', () {
+    test(
+      'bulkSetFormat and bulkSetAuthors change only the selected books',
+      () async {
+        final a = await addBook('A');
+        final b = await addBook('B');
+        final c = await addBook('C');
+
+        await books.bulkSetFormat([a, b], BookFormat.hardcover);
+        await books.bulkSetAuthors([b, c], ['Neu Autor']);
+
+        Future<Book> get(int id) async => (await books.getBook(id))!;
+        expect((await get(a)).format, BookFormat.hardcover);
+        expect((await get(b)).format, BookFormat.hardcover);
+        expect((await get(c)).format, isNull);
+        expect((await get(a)).authors, ['A']);
+        expect((await get(b)).authors, ['Neu Autor']);
+        expect((await get(c)).authors, ['Neu Autor']);
+      },
+    );
+  });
+
+  test('setCoverLocalPath stores and clears the path', () async {
+    final id = await addBook('Cover');
+    await books.setCoverLocalPath(id, '/tmp/covers/x.jpg');
+    expect((await books.getBook(id))!.coverLocalPath, '/tmp/covers/x.jpg');
+
+    await books.setCoverLocalPath(id, null);
+    expect((await books.getBook(id))!.coverLocalPath, isNull);
   });
 
   test('updateFavorite toggles the flag', () async {

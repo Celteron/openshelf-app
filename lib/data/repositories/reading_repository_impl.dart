@@ -44,11 +44,12 @@ class ReadingRepositoryImpl implements ReadingRepository {
     required Duration duration,
     required int startPage,
     required int endPage,
+    DateTime? endedAt,
   }) => _dao.log(
     ReadingSessionsCompanion.insert(
       bookId: bookId,
       startedAt: startedAt,
-      endedAt: Value(startedAt.add(duration)),
+      endedAt: Value(endedAt ?? startedAt.add(duration)),
       durationSeconds: Value(duration.inSeconds),
       startPage: Value(startPage),
       endPage: Value(endPage),

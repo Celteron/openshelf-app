@@ -11,6 +11,21 @@ class LendingDao {
   Future<int> update(int id, LendingCompanion lending) =>
       (db.update(db.lending)..where((t) => t.id.equals(id))).write(lending);
 
+  /// Marks a lending as returned unless it already was.
+  Future<void> markReturned(int id, DateTime at) =>
+      (db.update(db.lending)
+            ..where((t) => t.id.equals(id) & t.returnedAt.isNull()))
+          .write(LendingCompanion(returnedAt: Value(at)));
+
+  Stream<List<LendingData>> watchHistory(int bookId) =>
+      (db.select(db.lending)
+            ..where((t) => t.bookId.equals(bookId))
+            ..orderBy([
+              (t) => OrderingTerm.desc(t.lentAt),
+              (t) => OrderingTerm.desc(t.id),
+            ]))
+          .watch();
+
   Stream<LendingData?> watchActiveLending(int bookId) {
     final query = db.select(db.lending)
       ..where((t) => t.bookId.equals(bookId) & t.returnedAt.isNull())

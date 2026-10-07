@@ -41,6 +41,10 @@ class LendingCubit extends Cubit<LendingState> {
         );
   }
 
+  /// All lendings of the book, newest first.
+  Stream<List<LendingData>> history(int bookId) =>
+      _repository.watchHistory(bookId);
+
   Future<void> lend(
     int bookId, {
     required String borrowerName,

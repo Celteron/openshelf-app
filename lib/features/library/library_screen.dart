@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/domain/models/app_preferences.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/library_sort.dart';
 import 'package:openreads/domain/repositories/location_repository.dart';
@@ -8,6 +9,9 @@ import 'package:openreads/features/library/add_book_screen.dart';
 import 'package:openreads/features/library/book_detail_screen.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/features/library/library_cubit.dart';
+import 'package:openreads/features/library/widgets/book_grid_tile.dart';
+import 'package:openreads/features/library/widgets/book_list_tile.dart';
+import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/tags/tags_cubit.dart';
 import 'package:openreads/features/settings/settings_screen.dart';
 import 'package:openreads/l10n/app_localizations.dart';
@@ -65,6 +69,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               )
             : null,
         actions: [
+          const _ViewToggle(),
           const _SortMenu(),
           IconButton(
             icon: const Icon(Icons.settings),
@@ -119,6 +124,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
               count: _selectedIds.length,
               onClear: _clearSelection,
               onAssign: _assignLocations,
+              onSetFormat: _setFormat,
+              onSetAuthor: _setAuthor,
+              onDelete: _deleteSelected,
             )
           : null,
     );
@@ -150,6 +158,78 @@ class _LibraryScreenState extends State<LibraryScreen> {
       location.id,
     );
     _clearSelection();
+  }
+
+  Future<void> _setFormat() async {
+    final l10n = AppLocalizations.of(context);
+    final format = await showDialog<BookFormat>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: Text(l10n.bulkSetFormat),
+        children: [
+          for (final f in BookFormat.values)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext, f),
+              child: Text(f.name),
+            ),
+        ],
+      ),
+    );
+    if (format == null || !mounted) return;
+    await context.read<LibraryCubit>().bulkSetFormat(
+      _selectedIds.toList(),
+      format,
+    );
+    _clearSelection();
+  }
+
+  Future<void> _setAuthor() async {
+    final text = await showDialog<String>(
+      context: context,
+      builder: (_) => const _BulkAuthorDialog(),
+    );
+    final authors = [
+      for (final a in (text ?? '').split(','))
+        if (a.trim().isNotEmpty) a.trim(),
+    ];
+    if (authors.isEmpty || !mounted) return;
+    await context.read<LibraryCubit>().bulkSetAuthors(
+      _selectedIds.toList(),
+      authors,
+    );
+    _clearSelection();
+  }
+
+  Future<void> _deleteSelected() async {
+    final l10n = AppLocalizations.of(context);
+    final count = _selectedIds.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.bulkDeleteTitle(count)),
+        content: Text(l10n.moveToTrashBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.moveToTrash),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final cubit = context.read<LibraryCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    final ids = _selectedIds.toList();
+    await cubit.deleteBooks(ids);
+    if (_selectedBookId != null && ids.contains(_selectedBookId)) {
+      _selectedBookId = null;
+    }
+    _clearSelection();
+    messenger.showSnackBar(SnackBar(content: Text(l10n.movedToTrash(count))));
   }
 
   void _openDetail(BuildContext context, int id) {
@@ -208,34 +288,66 @@ class _ListPane extends StatelessWidget {
                 if (state.books.isEmpty) {
                   return Center(child: Text(l10n.noBooksYet));
                 }
-                return ListView.builder(
-                  itemCount: state.books.length,
-                  itemBuilder: (context, index) {
-                    final book = state.books[index];
-                    return ListTile(
-                      leading: _Cover(book),
-                      title: Text(book.title),
-                      subtitle: Text(book.authors.join(', ')),
-                      trailing: book.status == BookStatus.wishlist
-                          ? _MoveToLibraryButton(bookId: book.id)
-                          : book.isFavorite
-                          ? Icon(
-                              Icons.favorite,
-                              size: 18,
-                              color: Colors.redAccent,
-                              semanticLabel: l10n.favoritesFilter,
-                            )
-                          : null,
-                      selected: selectedIds.contains(book.id),
-                      onLongPress: () => onLongPressBook(book.id),
-                      onTap: () => onTapBook(book.id),
-                    );
-                  },
+                return BlocBuilder<SettingsCubit, SettingsState>(
+                  buildWhen: (a, b) =>
+                      a.displayType != b.displayType ||
+                      a.ratingDisplay != b.ratingDisplay,
+                  builder: (context, settings) => _BookCollection(
+                    books: state.books,
+                    displayType: settings.displayType,
+                    ratingDisplay: settings.ratingDisplay,
+                    selectedIds: selectedIds,
+                    onTapBook: onTapBook,
+                    onLongPressBook: onLongPressBook,
+                  ),
                 );
               }
               return Center(child: Text(l10n.errorLoadingLibrary));
             },
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Asks for the author(s) to set on all selected books (comma-separated).
+/// Owns its controller so it is disposed together with the dialog.
+class _BulkAuthorDialog extends StatefulWidget {
+  const _BulkAuthorDialog();
+
+  @override
+  State<_BulkAuthorDialog> createState() => _BulkAuthorDialogState();
+}
+
+class _BulkAuthorDialogState extends State<_BulkAuthorDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.bulkSetAuthor),
+      content: TextField(
+        key: const ValueKey('bulk-author-field'),
+        controller: _controller,
+        autofocus: true,
+        decoration: InputDecoration(hintText: l10n.fieldAuthors),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _controller.text),
+          child: Text(l10n.save),
         ),
       ],
     );
@@ -253,6 +365,13 @@ class _SortMenu extends StatelessWidget {
         LibrarySortField.rating => l10n.sortRating,
         LibrarySortField.added => l10n.sortAdded,
         LibrarySortField.progress => l10n.sortProgress,
+        LibrarySortField.modified => l10n.sortModified,
+        LibrarySortField.pages => l10n.sortPages,
+        LibrarySortField.publicationYear => l10n.sortPublicationYear,
+        LibrarySortField.status => l10n.sortStatus,
+        LibrarySortField.lastRead => l10n.sortLastRead,
+        LibrarySortField.startDate => l10n.sortStartDate,
+        LibrarySortField.finishDate => l10n.sortFinishDate,
       };
 
   @override
@@ -301,11 +420,17 @@ class _SelectionBar extends StatelessWidget {
   final int count;
   final VoidCallback onClear;
   final VoidCallback onAssign;
+  final VoidCallback onSetFormat;
+  final VoidCallback onSetAuthor;
+  final VoidCallback onDelete;
 
   const _SelectionBar({
     required this.count,
     required this.onClear,
     required this.onAssign,
+    required this.onSetFormat,
+    required this.onSetAuthor,
+    required this.onDelete,
   });
 
   @override
@@ -318,19 +443,127 @@ class _SelectionBar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              Text(l10n.selectedCount(count)),
-              const Spacer(),
-              TextButton(onPressed: onClear, child: Text(l10n.cancel)),
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                onPressed: onAssign,
+              Expanded(child: Text(l10n.selectedCount(count))),
+              IconButton(
+                key: const ValueKey('bulk-location'),
                 icon: const Icon(Icons.shelves),
-                label: Text(l10n.assignLocation),
+                tooltip: l10n.assignLocation,
+                onPressed: onAssign,
               ),
+              IconButton(
+                key: const ValueKey('bulk-format'),
+                icon: const Icon(Icons.menu_book_outlined),
+                tooltip: l10n.bulkSetFormat,
+                onPressed: onSetFormat,
+              ),
+              IconButton(
+                key: const ValueKey('bulk-author'),
+                icon: const Icon(Icons.person_outline),
+                tooltip: l10n.bulkSetAuthor,
+                onPressed: onSetAuthor,
+              ),
+              IconButton(
+                key: const ValueKey('bulk-delete'),
+                icon: const Icon(Icons.delete_outline),
+                tooltip: l10n.moveToTrash,
+                onPressed: onDelete,
+              ),
+              TextButton(onPressed: onClear, child: Text(l10n.cancel)),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The library as a list, compact list, grid or detailed grid.
+class _BookCollection extends StatelessWidget {
+  final List<Book> books;
+  final LibraryDisplayType displayType;
+  final RatingDisplay ratingDisplay;
+  final Set<int> selectedIds;
+  final void Function(int id) onTapBook;
+  final void Function(int id) onLongPressBook;
+
+  const _BookCollection({
+    required this.books,
+    required this.displayType,
+    required this.ratingDisplay,
+    required this.selectedIds,
+    required this.onTapBook,
+    required this.onLongPressBook,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (displayType.isGrid) {
+      final detailed = displayType == LibraryDisplayType.detailedGrid;
+      return GridView.builder(
+        key: const ValueKey('book-grid'),
+        padding: const EdgeInsets.all(8),
+        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: detailed ? 170 : 140,
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          childAspectRatio: detailed ? 0.5 : 0.68,
+        ),
+        itemCount: books.length,
+        itemBuilder: (context, index) {
+          final book = books[index];
+          return BookGridTile(
+            book: book,
+            detailed: detailed,
+            ratingDisplay: ratingDisplay,
+            selected: selectedIds.contains(book.id),
+            onTap: () => onTapBook(book.id),
+            onLongPress: () => onLongPressBook(book.id),
+          );
+        },
+      );
+    }
+    return ListView.builder(
+      key: const ValueKey('book-list'),
+      itemCount: books.length,
+      itemBuilder: (context, index) {
+        final book = books[index];
+        return BookListTile(
+          book: book,
+          compact: displayType == LibraryDisplayType.compactList,
+          ratingDisplay: ratingDisplay,
+          selected: selectedIds.contains(book.id),
+          trailing: book.status == BookStatus.wishlist
+              ? _MoveToLibraryButton(bookId: book.id)
+              : null,
+          onTap: () => onTapBook(book.id),
+          onLongPress: () => onLongPressBook(book.id),
+        );
+      },
+    );
+  }
+}
+
+/// App-bar button switching between the list and the grid layout. The two
+/// compact/detailed variants are chosen in the settings.
+class _ViewToggle extends StatelessWidget {
+  const _ViewToggle();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return BlocBuilder<SettingsCubit, SettingsState>(
+      buildWhen: (a, b) => a.displayType != b.displayType,
+      builder: (context, settings) {
+        final isGrid = settings.displayType.isGrid;
+        return IconButton(
+          key: const ValueKey('view-toggle'),
+          icon: Icon(isGrid ? Icons.view_list : Icons.grid_view),
+          tooltip: isGrid ? l10n.showAsList : l10n.showAsGrid,
+          onPressed: () => context.read<SettingsCubit>().setDisplayType(
+            isGrid ? LibraryDisplayType.list : LibraryDisplayType.grid,
+          ),
+        );
+      },
     );
   }
 }
@@ -404,6 +637,10 @@ class _StatusFilterBar extends StatelessWidget {
       builder: (context, state) {
         final current = state is LibraryLoaded ? state.statusFilter : null;
         final favoritesOnly = state is LibraryLoaded && state.favoritesOnly;
+        final years = state is LibraryLoaded
+            ? state.availableYears
+            : const <int>[];
+        final yearFilter = state is LibraryLoaded ? state.yearFilter : null;
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -419,6 +656,31 @@ class _StatusFilterBar extends StatelessWidget {
                       context.read<LibraryCubit>().toggleFavoritesOnly(),
                 ),
               ),
+              if (years.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  // PopupMenuButton never reports a `null` selection, so "all
+                  // years" is the sentinel 0.
+                  child: PopupMenuButton<int>(
+                    key: const ValueKey('year-filter'),
+                    tooltip: l10n.yearFilter,
+                    onSelected: (y) => context
+                        .read<LibraryCubit>()
+                        .filterByYear(y == 0 ? null : y),
+                    itemBuilder: (_) => [
+                      PopupMenuItem<int>(value: 0, child: Text(l10n.allYears)),
+                      for (final y in years)
+                        PopupMenuItem<int>(value: y, child: Text('$y')),
+                    ],
+                    child: Chip(
+                      avatar: const Icon(Icons.calendar_today, size: 16),
+                      label: Text(yearFilter?.toString() ?? l10n.yearFilter),
+                      backgroundColor: yearFilter == null
+                          ? null
+                          : Theme.of(context).colorScheme.secondaryContainer,
+                    ),
+                  ),
+                ),
               for (final status in BookStatus.values)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -434,28 +696,6 @@ class _StatusFilterBar extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _Cover extends StatelessWidget {
-  final Book book;
-  const _Cover(this.book);
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: book.title,
-      image: true,
-      child: Container(
-        width: 40,
-        height: 56,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: const Icon(Icons.book),
-      ),
     );
   }
 }

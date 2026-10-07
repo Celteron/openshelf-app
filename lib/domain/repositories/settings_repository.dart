@@ -12,4 +12,11 @@ abstract class SettingsRepository {
   Future<String> getLocaleCode();
 
   Future<void> setLocaleCode(String code);
+
+  /// Generic persisted preference (display type, accent colour, font, …).
+  /// `null` when never set.
+  Future<String?> getValue(String key);
+
+  /// Stores [value] under [key]; `null` removes the entry.
+  Future<void> setValue(String key, String? value);
 }

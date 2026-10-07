@@ -1,27 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:openreads/domain/models/app_preferences.dart';
+import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/settings_repository.dart';
 
 class SettingsState {
   final ThemeMode themeMode;
   final String localeCode;
 
+  /// Library layout: list, compact list, grid, detailed grid.
+  final LibraryDisplayType displayType;
+
+  /// Seed colour as ARGB int; `null` = the app default.
+  final int? accentColor;
+
+  /// Use the system (wallpaper) colours where the platform supports it.
+  final bool materialYou;
+
+  /// Pure-black dark theme.
+  final bool amoled;
+
+  /// Bundled font family; `null` = platform default.
+  final String? fontFamily;
+
+  final RatingDisplay ratingDisplay;
+
+  /// Defaults pre-filled when adding a book.
+  final BookFormat defaultFormat;
+  final BookStatus defaultStatus;
+  final Set<int> defaultTagIds;
+
   const SettingsState({
     this.themeMode = ThemeMode.system,
     this.localeCode = 'de',
+    this.displayType = LibraryDisplayType.list,
+    this.accentColor,
+    this.materialYou = false,
+    this.amoled = false,
+    this.fontFamily,
+    this.ratingDisplay = RatingDisplay.bar,
+    this.defaultFormat = BookFormat.paperback,
+    this.defaultStatus = BookStatus.unread,
+    this.defaultTagIds = const {},
   });
 
-  SettingsState copyWith({ThemeMode? themeMode, String? localeCode}) {
+  SettingsState copyWith({
+    ThemeMode? themeMode,
+    String? localeCode,
+    LibraryDisplayType? displayType,
+    int? accentColor,
+    bool clearAccentColor = false,
+    bool? materialYou,
+    bool? amoled,
+    String? fontFamily,
+    bool clearFontFamily = false,
+    RatingDisplay? ratingDisplay,
+    BookFormat? defaultFormat,
+    BookStatus? defaultStatus,
+    Set<int>? defaultTagIds,
+  }) {
     return SettingsState(
       themeMode: themeMode ?? this.themeMode,
       localeCode: localeCode ?? this.localeCode,
+      displayType: displayType ?? this.displayType,
+      accentColor: clearAccentColor ? null : accentColor ?? this.accentColor,
+      materialYou: materialYou ?? this.materialYou,
+      amoled: amoled ?? this.amoled,
+      fontFamily: clearFontFamily ? null : fontFamily ?? this.fontFamily,
+      ratingDisplay: ratingDisplay ?? this.ratingDisplay,
+      defaultFormat: defaultFormat ?? this.defaultFormat,
+      defaultStatus: defaultStatus ?? this.defaultStatus,
+      defaultTagIds: defaultTagIds ?? this.defaultTagIds,
     );
   }
 }
 
-/// Loads and applies user preferences (theme + language) and drives the
-/// settings screen (spec §6.6).
+/// Loads and applies user preferences and drives the settings screen
+/// (spec §6.6).
 class SettingsCubit extends Cubit<SettingsState> {
+  static const _display = 'displayType';
+  static const _accent = 'accentColor';
+  static const _materialYou = 'materialYou';
+  static const _amoled = 'amoled';
+  static const _font = 'fontFamily';
+  static const _rating = 'ratingDisplay';
+  static const _format = 'defaultFormat';
+  static const _status = 'defaultStatus';
+  static const _tags = 'defaultTags';
+
   final SettingsRepository _repository;
 
   SettingsCubit(this._repository) : super(const SettingsState());
@@ -29,7 +95,40 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> load() async {
     final theme = await _repository.getThemeMode();
     final locale = await _repository.getLocaleCode();
-    emit(SettingsState(themeMode: _toThemeMode(theme), localeCode: locale));
+    final display = await _repository.getValue(_display);
+    final accent = await _repository.getValue(_accent);
+    final materialYou = await _repository.getValue(_materialYou);
+    final amoled = await _repository.getValue(_amoled);
+    final font = await _repository.getValue(_font);
+    final rating = await _repository.getValue(_rating);
+    final format = await _repository.getValue(_format);
+    final status = await _repository.getValue(_status);
+    final tags = await _repository.getValue(_tags);
+
+    emit(
+      SettingsState(
+        themeMode: _toThemeMode(theme),
+        localeCode: locale,
+        displayType: LibraryDisplayType.parse(display),
+        accentColor: accent == null ? null : int.tryParse(accent),
+        materialYou: materialYou == 'true',
+        amoled: amoled == 'true',
+        fontFamily: font,
+        ratingDisplay: RatingDisplay.parse(rating),
+        defaultFormat: BookFormat.values.firstWhere(
+          (f) => f.name == format,
+          orElse: () => BookFormat.paperback,
+        ),
+        defaultStatus: BookStatus.values.firstWhere(
+          (s) => s.name == status,
+          orElse: () => BookStatus.unread,
+        ),
+        defaultTagIds: {
+          for (final part in (tags ?? '').split(','))
+            if (int.tryParse(part) != null) int.parse(part),
+        },
+      ),
+    );
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
@@ -40,6 +139,61 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setLocaleCode(String code) async {
     await _repository.setLocaleCode(code);
     emit(state.copyWith(localeCode: code));
+  }
+
+  Future<void> setDisplayType(LibraryDisplayType type) async {
+    await _repository.setValue(_display, type.name);
+    emit(state.copyWith(displayType: type));
+  }
+
+  /// `null` restores the default colour.
+  Future<void> setAccentColor(int? argb) async {
+    await _repository.setValue(_accent, argb?.toString());
+    emit(
+      argb == null
+          ? state.copyWith(clearAccentColor: true)
+          : state.copyWith(accentColor: argb),
+    );
+  }
+
+  Future<void> setMaterialYou(bool value) async {
+    await _repository.setValue(_materialYou, value.toString());
+    emit(state.copyWith(materialYou: value));
+  }
+
+  Future<void> setAmoled(bool value) async {
+    await _repository.setValue(_amoled, value.toString());
+    emit(state.copyWith(amoled: value));
+  }
+
+  /// `null` restores the platform font.
+  Future<void> setFontFamily(String? family) async {
+    await _repository.setValue(_font, family);
+    emit(
+      family == null
+          ? state.copyWith(clearFontFamily: true)
+          : state.copyWith(fontFamily: family),
+    );
+  }
+
+  Future<void> setRatingDisplay(RatingDisplay value) async {
+    await _repository.setValue(_rating, value.name);
+    emit(state.copyWith(ratingDisplay: value));
+  }
+
+  Future<void> setDefaultFormat(BookFormat value) async {
+    await _repository.setValue(_format, value.name);
+    emit(state.copyWith(defaultFormat: value));
+  }
+
+  Future<void> setDefaultStatus(BookStatus value) async {
+    await _repository.setValue(_status, value.name);
+    emit(state.copyWith(defaultStatus: value));
+  }
+
+  Future<void> setDefaultTagIds(Set<int> ids) async {
+    await _repository.setValue(_tags, ids.isEmpty ? null : ids.join(','));
+    emit(state.copyWith(defaultTagIds: ids));
   }
 
   static ThemeMode _toThemeMode(String name) => switch (name) {

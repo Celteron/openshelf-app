@@ -73,6 +73,8 @@ class BookRepositoryImpl implements BookRepository {
       language: Value(draft.language),
       description: Value(draft.description),
       coverUrl: Value(draft.coverUrl),
+      coverLocalPath: Value(draft.coverLocalPath),
+      olid: Value(draft.olid),
       seriesVolume: Value(draft.seriesVolume),
       status: Value(draft.status),
       rating: Value(draft.rating),
@@ -90,11 +92,43 @@ class BookRepositoryImpl implements BookRepository {
       _dao.importBatch(books);
 
   @override
-  Future<void> deleteBook(int id) => _dao.delete(id);
+  Future<void> importExtras(ImportExtras extras) => _dao.importExtras(extras);
+
+  @override
+  Future<void> deleteBook(int id) => _dao.trash([id], DateTime.now());
+
+  @override
+  Future<void> deleteBooks(List<int> ids) => _dao.trash(ids, DateTime.now());
+
+  @override
+  Stream<List<Book>> watchTrashedBooks() => _dao.watchTrashed();
+
+  @override
+  Future<void> restoreBook(int id) => _dao.restore(id);
+
+  @override
+  Future<void> purgeBook(int id) async {
+    await _dao.purge(id);
+  }
+
+  @override
+  Future<int> emptyTrash() => _dao.emptyTrash();
+
+  @override
+  Future<void> bulkSetFormat(List<int> bookIds, BookFormat format) =>
+      _dao.bulkSetFormat(bookIds, format);
+
+  @override
+  Future<void> bulkSetAuthors(List<int> bookIds, List<String> authors) =>
+      _dao.bulkSetAuthors(bookIds, authors);
 
   @override
   Future<void> updateFavorite(int id, bool isFavorite) =>
       _dao.update(id, BooksCompanion(isFavorite: Value(isFavorite)));
+
+  @override
+  Future<void> setCoverLocalPath(int id, String? path) =>
+      _dao.update(id, BooksCompanion(coverLocalPath: Value(path)));
 
   @override
   Future<void> updateReview(int id, String? review) {

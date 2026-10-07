@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/data/database/daos/import_context.dart';
 import 'package:openreads/data/database/daos/import_merge.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/import.dart';
@@ -13,7 +14,8 @@ class BooksDao {
     BookStatus? status,
     int? locationId,
   }) {
-    final select = db.select(db.books);
+    // Trashed books (schema v3) are not part of the library.
+    final select = db.select(db.books)..where((t) => t.deletedAt.isNull());
     if (status != null) {
       select.where((t) => t.status.equalsValue(status));
     }
@@ -39,11 +41,12 @@ class BooksDao {
     final select = db.select(db.books)
       ..where(
         (t) =>
-            t.title.like('%$q%') |
-            t.subtitle.like('%$q%') |
-            t.authors.like('%$q%') |
-            t.isbn13.like('%$q%') |
-            t.isbn10.like('%$q%'),
+            t.deletedAt.isNull() &
+            (t.title.like('%$q%') |
+                t.subtitle.like('%$q%') |
+                t.authors.like('%$q%') |
+                t.isbn13.like('%$q%') |
+                t.isbn10.like('%$q%')),
       );
     return select.get();
   }
@@ -51,7 +54,15 @@ class BooksDao {
   Future<Book?> getById(int id) =>
       (db.select(db.books)..where((t) => t.id.equals(id))).getSingleOrNull();
 
-  Future<List<Book>> getAll() => db.select(db.books).get();
+  Future<List<Book>> getAll() =>
+      (db.select(db.books)..where((t) => t.deletedAt.isNull())).get();
+
+  /// Books in the trash, most recently deleted first.
+  Stream<List<Book>> watchTrashed() =>
+      (db.select(db.books)
+            ..where((t) => t.deletedAt.isNotNull())
+            ..orderBy([(t) => OrderingTerm.desc(t.deletedAt)]))
+          .watch();
 
   Future<int> insert(BooksCompanion book) => db.into(db.books).insert(book);
 
@@ -74,29 +85,38 @@ class BooksDao {
   Future<ImportBatchOutcome> importBatch(List<ImportedBook> batch) {
     return db.transaction(() async {
       final index = BookMatchIndex(await db.select(db.books).get());
-      // Tag names are matched case-insensitively in Dart: SQLite's lower()
-      // only folds ASCII, so `Übernatürliches` would never match itself.
-      final tagIds = <String, int>{
-        for (final tag in await db.select(db.tags).get())
-          tag.name.toLowerCase(): tag.id,
-      };
+      final context = ImportContext(db);
+      await context.load();
 
       var inserted = 0;
       var updated = 0;
       var unchanged = 0;
 
       for (final item in batch) {
-        final existing = index.find(item.book);
+        // Resolve the lookup tables first so the book row can reference them.
+        final locationId = await context.location(item.locationPath);
+        final seriesId = await context.series(
+          item.seriesName,
+          item.seriesTotalVolumes,
+        );
+        // `copyWith(x: Value.absent())` would overwrite the companion's own
+        // value, so unresolved ids are passed as null (= keep).
+        final incoming = item.book.copyWith(
+          locationId: locationId == null ? null : Value(locationId),
+          seriesId: seriesId == null ? null : Value(seriesId),
+        );
+
+        final existing = index.find(incoming);
         if (existing == null) {
-          final bookId = await db.into(db.books).insert(item.book);
+          final bookId = await db.into(db.books).insert(incoming);
           index.put((await getById(bookId))!);
-          await _addSatellites(bookId, item, tagIds);
+          await _addSatellites(bookId, item, context);
           inserted++;
           continue;
         }
 
         var changed = false;
-        final patch = mergeMissingFields(existing, item.book);
+        final patch = mergeMissingFields(existing, incoming);
         if (patch != null) {
           await update(existing.id, patch);
           index.put((await getById(existing.id))!);
@@ -105,7 +125,7 @@ class BooksDao {
         changed |= await _addSatellites(
           existing.id,
           item,
-          tagIds,
+          context,
           merging: true,
         );
         changed ? updated++ : unchanged++;
@@ -119,13 +139,51 @@ class BooksDao {
     });
   }
 
+  /// Writes the locations, tags and goals that come with a backup independent
+  /// of any book. An existing goal keeps its book target; a missing page target is
+  /// filled in.
+  Future<void> importExtras(ImportExtras extras) {
+    return db.transaction(() async {
+      final context = ImportContext(db);
+      await context.load();
+      for (final path in extras.locationPaths) {
+        await context.location(path);
+      }
+      for (final name in extras.tags) {
+        await context.tag(name);
+      }
+      for (final goal in extras.goals) {
+        final existing = await (db.select(
+          db.readingGoals,
+        )..where((t) => t.year.equals(goal.year))).getSingleOrNull();
+        if (existing == null) {
+          await db
+              .into(db.readingGoals)
+              .insert(
+                ReadingGoalsCompanion.insert(
+                  year: Value(goal.year),
+                  targetBooks: goal.targetBooks,
+                  targetPages: Value(goal.targetPages),
+                ),
+              );
+        } else if (existing.targetPages == null && goal.targetPages != null) {
+          await (db.update(
+            db.readingGoals,
+          )..where((t) => t.year.equals(goal.year))).write(
+            ReadingGoalsCompanion(targetPages: Value(goal.targetPages)),
+          );
+        }
+      }
+    });
+  }
+
   /// Adds the tags, notes and sessions of [item] to [bookId]. When [merging],
   /// entries the book already has are left alone. Returns whether anything
   /// was added.
   Future<bool> _addSatellites(
     int bookId,
     ImportedBook item,
-    Map<String, int> tagIds, {
+    ImportContext context, {
     bool merging = false,
   }) async {
     var added = false;
@@ -139,9 +197,7 @@ class BooksDao {
           }
         : <int>{};
     for (final name in item.tags) {
-      final tagId = tagIds[name.toLowerCase()] ??= await db
-          .into(db.tags)
-          .insert(TagsCompanion.insert(name: name));
+      final tagId = await context.tag(name);
       if (!linkedTags.add(tagId)) continue;
       await db
           .into(db.bookTags)
@@ -170,9 +226,9 @@ class BooksDao {
               createdAt: note.createdAt == null
                   ? const Value.absent()
                   : Value(note.createdAt!),
-              updatedAt: note.createdAt == null
+              updatedAt: (note.updatedAt ?? note.createdAt) == null
                   ? const Value.absent()
-                  : Value(note.createdAt!),
+                  : Value((note.updatedAt ?? note.createdAt)!),
             ),
           );
       added = true;
@@ -194,12 +250,12 @@ class BooksDao {
     for (final reading in item.readings) {
       final startedAt =
           reading.startedAt ?? reading.finishedAt ?? DateTime.now();
-      // A session always ends: an open one would show up as the book's
-      // running timer.
-      final endedAt = reading.finishedAt ?? startedAt;
+      // A session always ends, unless an exact restore says it was running:
+      // an open one shows up as the book's running timer.
+      final endedAt = reading.open ? null : reading.finishedAt ?? startedAt;
       final key = (
         startedAt.millisecondsSinceEpoch ~/ 1000,
-        endedAt.millisecondsSinceEpoch ~/ 1000,
+        endedAt == null ? null : endedAt.millisecondsSinceEpoch ~/ 1000,
       );
       if (!knownSessions.add(key)) continue;
       await db
@@ -210,6 +266,37 @@ class BooksDao {
               startedAt: startedAt,
               endedAt: Value(endedAt),
               durationSeconds: Value(reading.duration?.inSeconds ?? 0),
+              startPage: Value(reading.startPage),
+              endPage: Value(reading.endPage),
+            ),
+          );
+      added = true;
+    }
+
+    final knownLendings = merging
+        ? {
+            for (final l in await (db.select(
+              db.lending,
+            )..where((t) => t.bookId.equals(bookId))).get())
+              (l.borrowerName, l.lentAt.millisecondsSinceEpoch ~/ 1000),
+          }
+        : <(String, int)>{};
+    for (final lending in item.lendings) {
+      if (!knownLendings.add((
+        lending.borrowerName,
+        lending.lentAt.millisecondsSinceEpoch ~/ 1000,
+      ))) {
+        continue;
+      }
+      await db
+          .into(db.lending)
+          .insert(
+            LendingCompanion.insert(
+              bookId: bookId,
+              borrowerName: lending.borrowerName,
+              lentAt: lending.lentAt,
+              expectedReturn: Value(lending.expectedReturn),
+              returnedAt: Value(lending.returnedAt),
             ),
           );
       added = true;
@@ -218,11 +305,37 @@ class BooksDao {
     return added;
   }
 
-  Future<int> delete(int id) =>
+  /// Moves books to the trash. Idempotent: an already trashed book keeps its
+  /// original deletion time.
+  Future<void> trash(List<int> ids, DateTime at) =>
+      (db.update(db.books)..where((t) => t.id.isIn(ids) & t.deletedAt.isNull()))
+          .write(BooksCompanion(deletedAt: Value(at)));
+
+  Future<void> restore(int id) =>
+      (db.update(db.books)..where((t) => t.id.equals(id))).write(
+        const BooksCompanion(deletedAt: Value<DateTime?>(null)),
+      );
+
+  /// Permanently deletes a book; sessions, notes, tag links and lending
+  /// records go with it (foreign-key cascade).
+  Future<int> purge(int id) =>
       (db.delete(db.books)..where((t) => t.id.equals(id))).go();
+
+  /// Permanently deletes everything in the trash and returns how many books.
+  Future<int> emptyTrash() =>
+      (db.delete(db.books)..where((t) => t.deletedAt.isNotNull())).go();
 
   Future<int> update(int id, BooksCompanion book) =>
       (db.update(db.books)..where((t) => t.id.equals(id))).write(book);
+
+  Future<void> bulkSetFormat(List<int> ids, BookFormat? format) => (db.update(
+    db.books,
+  )..where((t) => t.id.isIn(ids))).write(BooksCompanion(format: Value(format)));
+
+  Future<void> bulkSetAuthors(List<int> ids, List<String> authors) =>
+      (db.update(db.books)..where((t) => t.id.isIn(ids))).write(
+        BooksCompanion(authors: Value(authors)),
+      );
 
   Future<void> bulkAssignLocation(List<int> ids, int? locationId) {
     return db.transaction(() async {
@@ -232,6 +345,8 @@ class BooksDao {
     });
   }
 
+  /// Whether a book with this ISBN-13 exists — trashed ones included, because
+  /// the ISBN column is unique.
   Future<bool> isbnExists(String isbn13) async {
     final matches = await (db.select(
       db.books,

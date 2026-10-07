@@ -107,3 +107,6 @@ the committed dump and the migration tests were regenerated.
   (`settings_screen.dart` at `74b613b0`), and Constitution Art. VII.1 / `001/plan.md` still say GPLv2. Relicensing
   derived code needs the copyright holders' consent or an amendment of the constitution; neither is done here.
 - **Legacy parity**: see `legacy-parity-audit.md` — OpenShelf is *not* yet a 100 % superset; the audit lists the gaps.
+
+- **FR-P2-20** Legacy parity pass: schema v3, trash, covers, grid/list, 12 sorts, statistics by year/month, JSON
+  backup restore, full CSV export, legacy ZIP/Bookwyrm import, Open Library search. Exceptions: `legacy-parity-audit.md` §3.

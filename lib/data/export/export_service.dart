@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:csv/csv.dart';
+import 'package:drift/drift.dart' show OrderingTerm;
 import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/domain/models/enums.dart';
 
 /// Serializes the full library (books, locations, series, lending) to portable
 /// JSON/CSV so users can export all their data (Constitution Article I.3).
@@ -45,32 +48,169 @@ class ExportService {
     });
   }
 
+  /// Separates several notes (or quotes) inside one CSV cell.
+  static const noteSeparator = '\n---\n';
+
+  /// Separates tags inside one CSV cell (Openreads convention).
+  static const tagSeparator = '|||||';
+
+  /// The CSV header: the Openreads columns (`doc/csv.md`) first — so the file
+  /// can be imported by Openreads-compatible tools and by OpenShelf itself —
+  /// followed by the OpenShelf additions.
+  static const csvColumns = [
+    'title',
+    'subtitle',
+    'author',
+    'description',
+    'status',
+    'favourite',
+    'deleted',
+    'rating',
+    'pages',
+    'publication_year',
+    'isbn',
+    'olid',
+    'tags',
+    'my_review',
+    'notes',
+    'book_format',
+    'readings',
+    'date_added',
+    'date_modified',
+    // OpenShelf additions
+    'isbn13',
+    'isbn10',
+    'publisher',
+    'language',
+    'current_page',
+    'finished_at',
+    'series',
+    'series_volume',
+    'location',
+    'lending_status',
+    'borrower',
+    'lent_at',
+    'expected_return',
+    'quotes',
+    'cover_url',
+  ];
+
+  /// Every book (trashed ones flagged `deleted=true`) with all of its data:
+  /// tags, notes, quotes, reading dates, location path, series and the current
+  /// lending status. Lossless in full only as JSON; the CSV flattens notes and
+  /// sessions into single cells.
   Future<String> exportBooksCsv() async {
     final books = await _db.select(_db.books).get();
-    final buffer = StringBuffer(
-      'Title,Subtitle,Authors,ISBN13,ISBN10,Publisher,Year,Pages,Status,Rating,Format\n',
-    );
-    for (final b in books) {
-      buffer.writeln(
-        [
-          _csv(b.title),
-          _csv(b.subtitle ?? ''),
-          _csv(b.authors.join(';')),
-          _csv(b.isbn13 ?? ''),
-          _csv(b.isbn10 ?? ''),
-          _csv(b.publisher ?? ''),
-          b.publishedYear?.toString() ?? '',
-          b.pageCount?.toString() ?? '',
-          b.status.name,
-          b.rating.toString(),
-          b.format?.name ?? '',
-        ].join(','),
-      );
+    final locations = {
+      for (final l in await _db.select(_db.locations).get()) l.id: l,
+    };
+    final series = {
+      for (final s in await _db.select(_db.seriesTable).get()) s.id: s.name,
+    };
+    final tagNames = {
+      for (final t in await _db.select(_db.tags).get()) t.id: t.name,
+    };
+
+    final tagsByBook = <int, List<String>>{};
+    for (final link in await _db.select(_db.bookTags).get()) {
+      final name = tagNames[link.tagId];
+      if (name != null) (tagsByBook[link.bookId] ??= []).add(name);
     }
-    return buffer.toString();
+    final notesByBook = <int, List<BookNote>>{};
+    for (final n in await (_db.select(
+      _db.bookNotes,
+    )..orderBy([(t) => OrderingTerm.asc(t.id)])).get()) {
+      (notesByBook[n.bookId] ??= []).add(n);
+    }
+    final sessionsByBook = <int, List<ReadingSession>>{};
+    for (final s in await (_db.select(
+      _db.readingSessions,
+    )..orderBy([(t) => OrderingTerm.asc(t.startedAt)])).get()) {
+      (sessionsByBook[s.bookId] ??= []).add(s);
+    }
+    final lendingByBook = <int, LendingData>{};
+    for (final l in await (_db.select(
+      _db.lending,
+    )..orderBy([(t) => OrderingTerm.asc(t.lentAt)])).get()) {
+      if (l.returnedAt == null) lendingByBook[l.bookId] = l;
+    }
+
+    String locationPath(int? id) {
+      final names = <String>[];
+      var current = id == null ? null : locations[id];
+      var guard = 0;
+      while (current != null && guard++ < 16) {
+        names.insert(0, current.name);
+        final parent = current.parentId;
+        current = parent == null ? null : locations[parent];
+      }
+      return names.join(' > ');
+    }
+
+    final rows = <List<String>>[csvColumns];
+    for (final b in books) {
+      final notes = notesByBook[b.id] ?? const <BookNote>[];
+      final lending = lendingByBook[b.id];
+      rows.add([
+        b.title,
+        b.subtitle ?? '',
+        b.authors.join(', '),
+        b.description ?? '',
+        _status(b.status),
+        b.isFavorite.toString(),
+        (b.deletedAt != null).toString(),
+        b.rating == 0 ? '' : b.rating.toString(),
+        b.pageCount?.toString() ?? '',
+        b.publishedYear?.toString() ?? '',
+        b.isbn13 ?? b.isbn10 ?? '',
+        b.olid ?? '',
+        (tagsByBook[b.id] ?? const <String>[]).join(tagSeparator),
+        b.review ?? '',
+        [
+          for (final n in notes)
+            if (n.kind == NoteKind.note) n.content,
+        ].join(noteSeparator),
+        b.format?.name ?? '',
+        [
+          for (final s in sessionsByBook[b.id] ?? const <ReadingSession>[])
+            '${s.startedAt.toIso8601String()}|'
+                '${s.endedAt?.toIso8601String() ?? ''}|'
+                '${s.durationSeconds > 0 ? s.durationSeconds * 1000 : ''}',
+        ].join(';'),
+        b.createdAt.toIso8601String(),
+        b.updatedAt.toIso8601String(),
+        b.isbn13 ?? '',
+        b.isbn10 ?? '',
+        b.publisher ?? '',
+        b.language ?? '',
+        b.currentPage.toString(),
+        b.finishedAt?.toIso8601String() ?? '',
+        b.seriesId == null ? '' : series[b.seriesId] ?? '',
+        b.seriesVolume?.toString() ?? '',
+        locationPath(b.locationId),
+        lending == null ? 'available' : 'lent',
+        lending?.borrowerName ?? '',
+        lending?.lentAt.toIso8601String() ?? '',
+        lending?.expectedReturn?.toIso8601String() ?? '',
+        [
+          for (final n in notes)
+            if (n.kind == NoteKind.quote) n.content,
+        ].join(noteSeparator),
+        b.coverUrl ?? '',
+      ]);
+    }
+    return const ListToCsvConverter(eol: '\n').convert(rows);
   }
 
-  String _csv(String value) => '"${value.replaceAll('"', '""')}"';
+  /// Openreads status vocabulary where there is an equivalent.
+  static String _status(BookStatus s) => switch (s) {
+    BookStatus.read => 'finished',
+    BookStatus.reading => 'in_progress',
+    BookStatus.wishlist => 'planned',
+    BookStatus.dnf => 'abandoned',
+    BookStatus.unread => 'unread',
+    BookStatus.reReading => 're_reading',
+  };
 
   Map<String, dynamic> _book(Book b) => {
     'id': b.id,
@@ -98,6 +238,8 @@ class ExportService {
     'finishedAt': b.finishedAt?.toIso8601String(),
     'isFavorite': b.isFavorite,
     'review': b.review,
+    'olid': b.olid,
+    'deletedAt': b.deletedAt?.toIso8601String(),
     'createdAt': b.createdAt.toIso8601String(),
     'updatedAt': b.updatedAt.toIso8601String(),
   };

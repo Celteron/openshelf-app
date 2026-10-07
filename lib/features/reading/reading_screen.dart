@@ -176,6 +176,7 @@ class _ReadingViewState extends State<_ReadingView> {
       duration: Duration(minutes: result.minutes),
       startPage: result.startPage,
       endPage: result.endPage,
+      endedAt: result.endDate,
     );
   }
 }
@@ -406,7 +407,16 @@ class _ManualSession {
   final int startPage;
   final int endPage;
 
-  const _ManualSession(this.date, this.minutes, this.startPage, this.endPage);
+  /// Set for a reading that spans several days (legacy start/finish dates).
+  final DateTime? endDate;
+
+  const _ManualSession(
+    this.date,
+    this.minutes,
+    this.startPage,
+    this.endPage, [
+    this.endDate,
+  ]);
 }
 
 class _LogSessionDialog extends StatefulWidget {
@@ -424,6 +434,7 @@ class _LogSessionDialogState extends State<_LogSessionDialog> {
   );
   late final TextEditingController _end = TextEditingController();
   DateTime _date = DateTime.now();
+  DateTime? _endDate;
   bool _invalid = false;
 
   @override
@@ -441,7 +452,22 @@ class _LogSessionDialogState extends State<_LogSessionDialog> {
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
     );
-    if (picked != null) setState(() => _date = picked);
+    if (picked == null) return;
+    setState(() {
+      _date = picked;
+      final end = _endDate;
+      if (end != null && end.isBefore(picked)) _endDate = picked;
+    });
+  }
+
+  Future<void> _pickEndDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _endDate ?? _date,
+      firstDate: _date,
+      lastDate: DateTime.now().isBefore(_date) ? _date : DateTime.now(),
+    );
+    if (picked != null) setState(() => _endDate = picked);
   }
 
   void _submit() {
@@ -453,6 +479,7 @@ class _LogSessionDialogState extends State<_LogSessionDialog> {
       return;
     }
     final now = DateTime.now();
+    final endDate = _endDate;
     Navigator.pop(
       context,
       _ManualSession(
@@ -460,6 +487,15 @@ class _LogSessionDialogState extends State<_LogSessionDialog> {
         minutes,
         start,
         end,
+        endDate == null || DateUtils.isSameDay(endDate, _date)
+            ? null
+            : DateTime(
+                endDate.year,
+                endDate.month,
+                endDate.day,
+                now.hour,
+                now.minute,
+              ),
       ),
     );
   }
@@ -481,6 +517,26 @@ class _LogSessionDialogState extends State<_LogSessionDialog> {
                 MaterialLocalizations.of(context).formatMediumDate(_date),
               ),
               onTap: _pickDate,
+            ),
+            ListTile(
+              key: const ValueKey('session-end-date'),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.event_available),
+              title: Text(l10n.sessionEndDate),
+              subtitle: Text(
+                _endDate == null
+                    ? l10n.sessionEndDateHint
+                    : MaterialLocalizations.of(
+                        context,
+                      ).formatMediumDate(_endDate!),
+              ),
+              trailing: _endDate == null
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => setState(() => _endDate = null),
+                    ),
+              onTap: _pickEndDate,
             ),
             TextField(
               controller: _minutes,

@@ -33,7 +33,7 @@ class LocationsDao {
     final count = db.books.id.count();
     final query = db.selectOnly(db.books)
       ..addColumns([count])
-      ..where(db.books.locationId.equals(id));
+      ..where(db.books.locationId.equals(id) & db.books.deletedAt.isNull());
     final row = await query.getSingle();
     return row.read(count) ?? 0;
   }

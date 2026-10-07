@@ -3,14 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/core/helpers/isbn.dart';
 import 'package:openreads/core/helpers/rating.dart';
+import 'package:openreads/data/cover/cover_cache_service.dart';
+import 'package:openreads/data/cover/cover_picker.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/book_draft.dart';
 import 'package:openreads/domain/models/book_metadata.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/location_repository.dart';
+import 'package:openreads/features/common/widgets/book_cover.dart';
+import 'package:openreads/features/common/status_label.dart';
+import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:openreads/features/library/library_cubit.dart';
+import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/library/widgets/rating_control.dart';
 import 'package:openreads/features/metadata/metadata_cubit.dart';
+import 'package:openreads/features/openlibrary/open_library_search_screen.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
 /// Manual book entry with optional ISBN metadata lookup (US1/US2).
@@ -28,8 +35,12 @@ class AddBookScreen extends StatefulWidget {
 class _AddBookScreenState extends State<AddBookScreen> {
   final _title = TextEditingController();
   final _subtitle = TextEditingController();
+  final _description = TextEditingController();
   final _authors = TextEditingController();
   final _isbn = TextEditingController();
+  String? _coverUrl;
+  String? _coverLocalPath;
+  String? _olid;
   final _publisher = TextEditingController();
   final _year = TextEditingController();
   final _pages = TextEditingController();
@@ -49,6 +60,10 @@ class _AddBookScreenState extends State<AddBookScreen> {
     if (book != null) {
       _title.text = book.title;
       _subtitle.text = book.subtitle ?? '';
+      _description.text = book.description ?? '';
+      _coverUrl = book.coverUrl;
+      _coverLocalPath = book.coverLocalPath;
+      _olid = book.olid;
       _authors.text = book.authors.join(', ');
       _isbn.text = book.isbn13 ?? book.isbn10 ?? '';
       _publisher.text = book.publisher ?? '';
@@ -59,6 +74,21 @@ class _AddBookScreenState extends State<AddBookScreen> {
       _status = book.status;
       _rating = book.rating;
       _locationId = book.locationId;
+    } else {
+      // New book: start from the defaults chosen in the settings.
+      final defaults = _settings;
+      if (defaults != null) {
+        _format = defaults.defaultFormat;
+        _status = defaults.defaultStatus;
+      }
+    }
+  }
+
+  SettingsState? get _settings {
+    try {
+      return context.read<SettingsCubit>().state;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -67,6 +97,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
     for (final c in [
       _title,
       _subtitle,
+      _description,
       _authors,
       _isbn,
       _publisher,
@@ -107,12 +138,138 @@ class _AddBookScreenState extends State<AddBookScreen> {
         _year.text = m.publishedYear?.toString() ?? _year.text;
         _pages.text = m.pageCount?.toString() ?? _pages.text;
         _language.text = m.language ?? _language.text;
+        _description.text = m.description ?? _description.text;
+        if (m.coverUrl != null && m.coverUrl != _coverUrl) {
+          _coverUrl = m.coverUrl;
+          // A freshly looked-up cover replaces an older cached/manual file.
+          _coverLocalPath = null;
+        }
       });
     } else if (state is MetadataError) {
       _showSnack(state.message);
     } else {
       _showSnack(l10n.noMetadataFound);
     }
+  }
+
+  CoverPicker? get _picker {
+    try {
+      return RepositoryProvider.of<CoverPicker>(context, listen: false);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  CoverCacheService? get _coverCache {
+    try {
+      return RepositoryProvider.of<CoverCacheService>(context, listen: false);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _pickCover(CoverPickSource source) async {
+    final picker = _picker;
+    final cache = _coverCache;
+    if (picker == null || cache == null) return;
+    final bytes = await picker.pick(source);
+    if (bytes == null || !mounted) return;
+    final path = await cache.saveCover(
+      'manual-${DateTime.now().microsecondsSinceEpoch}',
+      bytes,
+    );
+    if (!mounted) return;
+    setState(() => _coverLocalPath = path);
+  }
+
+  void _removeCover() => setState(() {
+    _coverLocalPath = null;
+    _coverUrl = null;
+  });
+
+  Widget _coverSection(AppLocalizations l10n) {
+    final cache = _coverCache;
+    final local = _coverLocalPath;
+    final hasLocal = local != null && (cache?.exists(local) ?? false);
+    final hasCover = hasLocal || _coverUrl != null;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 90,
+            height: 130,
+            child: hasLocal
+                ? CoverImage(path: local, iconSize: 32)
+                : _coverUrl != null
+                ? UrlCover(
+                    cacheKey: widget.book == null
+                        ? (normalizeIsbn(_isbn.text) ?? 'draft')
+                        : BookCover.keyFor(widget.book!),
+                    url: _coverUrl,
+                  )
+                : const CoverPlaceholder(iconSize: 32),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Wrap(
+              spacing: 8,
+              children: [
+                if (_picker != null) ...[
+                  OutlinedButton.icon(
+                    key: const ValueKey('cover-gallery'),
+                    onPressed: () => _pickCover(CoverPickSource.gallery),
+                    icon: const Icon(Icons.photo_library_outlined),
+                    label: Text(l10n.coverFromGallery),
+                  ),
+                  OutlinedButton.icon(
+                    key: const ValueKey('cover-camera'),
+                    onPressed: () => _pickCover(CoverPickSource.camera),
+                    icon: const Icon(Icons.photo_camera_outlined),
+                    label: Text(l10n.coverFromCamera),
+                  ),
+                ],
+                if (hasCover)
+                  TextButton.icon(
+                    key: const ValueKey('cover-remove'),
+                    onPressed: _removeCover,
+                    icon: const Icon(Icons.delete_outline),
+                    label: Text(l10n.coverRemove),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Fills the form from an Open Library result or edition.
+  Future<void> _searchOpenLibrary() async {
+    final pick = await Navigator.of(context).push<OlPick>(
+      MaterialPageRoute(
+        builder: (_) => OpenLibrarySearchScreen(initialQuery: _title.text),
+      ),
+    );
+    if (pick == null || !mounted) return;
+    final m = pick.metadata;
+    setState(() {
+      _title.text = m.title ?? _title.text;
+      _subtitle.text = m.subtitle ?? _subtitle.text;
+      if (m.authors.isNotEmpty) _authors.text = m.authors.join(', ');
+      _publisher.text = m.publisher ?? _publisher.text;
+      _year.text = m.publishedYear?.toString() ?? _year.text;
+      _pages.text = m.pageCount?.toString() ?? _pages.text;
+      _language.text = m.language ?? _language.text;
+      final isbn = m.isbn13 ?? m.isbn10;
+      if (isbn != null) _isbn.text = isbn;
+      _olid = pick.olid ?? _olid;
+      if (m.coverUrl != null && m.coverUrl != _coverUrl) {
+        _coverUrl = m.coverUrl;
+        _coverLocalPath = null;
+      }
+    });
   }
 
   void _showSnack(String message) {
@@ -147,8 +304,13 @@ class _AddBookScreenState extends State<AddBookScreen> {
           ? widget.book!.metadataSource
           : MetadataSource.manual,
       locationId: _locationId,
-      coverUrl: widget.book?.coverUrl,
-      description: widget.book?.description,
+      coverUrl: _coverUrl,
+      coverLocalPath: _coverLocalPath,
+      description: _description.text.trim().isEmpty
+          ? null
+          : _description.text.trim(),
+      olid: _olid,
+      seriesId: widget.book?.seriesId,
       seriesVolume: widget.book?.seriesVolume,
       editedFields: _isEditing ? _editedFields() : const {},
     );
@@ -157,7 +319,11 @@ class _AddBookScreenState extends State<AddBookScreen> {
     if (_isEditing) {
       await cubit.updateBook(widget.book!.id, draft);
     } else {
-      await cubit.addBook(draft);
+      final id = await cubit.addBook(draft);
+      final defaultTags = _settings?.defaultTagIds ?? const <int>{};
+      if (defaultTags.isNotEmpty && mounted) {
+        await context.read<TagRepository>().setBookTags(id, defaultTags);
+      }
     }
     if (mounted) Navigator.of(context).pop();
   }
@@ -196,10 +362,19 @@ class _AddBookScreenState extends State<AddBookScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? l10n.editBookTitle : l10n.addBookTitle),
+        actions: [
+          IconButton(
+            key: const ValueKey('open-library-search'),
+            icon: const Icon(Icons.travel_explore),
+            tooltip: l10n.openLibrarySearch,
+            onPressed: _searchOpenLibrary,
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _coverSection(l10n),
           _field(_title, l10n.fieldTitle),
           _field(_subtitle, l10n.fieldSubtitle),
           _field(_authors, l10n.fieldAuthors),
@@ -223,6 +398,16 @@ class _AddBookScreenState extends State<AddBookScreen> {
           _field(_year, l10n.fieldYear),
           _field(_pages, l10n.fieldPages),
           _field(_language, l10n.fieldLanguage),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: TextField(
+              controller: _description,
+              minLines: 3,
+              maxLines: 8,
+              keyboardType: TextInputType.multiline,
+              decoration: InputDecoration(labelText: l10n.fieldDescription),
+            ),
+          ),
           const SizedBox(height: 8),
           _dropdown<BookFormat>(
             label: l10n.fieldFormat,
@@ -234,6 +419,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
             label: l10n.fieldStatus,
             value: _status,
             items: BookStatus.values,
+            labelOf: (s) => statusLabel(l10n, s),
             onChanged: (v) => setState(() => _status = v),
           ),
           _locationDropdown(),
@@ -297,6 +483,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
     required T value,
     required List<T> items,
     required ValueChanged<T> onChanged,
+    String Function(T)? labelOf,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -310,7 +497,9 @@ class _AddBookScreenState extends State<AddBookScreen> {
               for (final item in items)
                 DropdownMenuItem(
                   value: item,
-                  child: Text(item.toString().split('.').last),
+                  child: Text(
+                    labelOf?.call(item) ?? item.toString().split('.').last,
+                  ),
                 ),
             ],
             onChanged: (v) {

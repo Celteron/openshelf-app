@@ -893,6 +893,26 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _olidMeta = const VerificationMeta('olid');
+  @override
+  late final GeneratedColumn<String> olid = GeneratedColumn<String>(
+    'olid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -944,6 +964,8 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     finishedAt,
     isFavorite,
     review,
+    olid,
+    deletedAt,
     createdAt,
     updatedAt,
   ];
@@ -1093,6 +1115,18 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         review.isAcceptableOrUnknown(data['review']!, _reviewMeta),
       );
     }
+    if (data.containsKey('olid')) {
+      context.handle(
+        _olidMeta,
+        olid.isAcceptableOrUnknown(data['olid']!, _olidMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1224,6 +1258,14 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         DriftSqlType.string,
         data['${effectivePrefix}review'],
       ),
+      olid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}olid'],
+      ),
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1294,6 +1336,13 @@ class Book extends DataClass implements Insertable<Book> {
 
   /// The reader's own review text (Openreads `my_review`, schema v2).
   final String? review;
+
+  /// Open Library ID (Openreads `olid`, schema v3).
+  final String? olid;
+
+  /// When the book was moved to the trash; `null` = in the library
+  /// (Openreads soft delete, schema v3).
+  final DateTime? deletedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Book({
@@ -1322,6 +1371,8 @@ class Book extends DataClass implements Insertable<Book> {
     this.finishedAt,
     required this.isFavorite,
     this.review,
+    this.olid,
+    this.deletedAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1403,6 +1454,12 @@ class Book extends DataClass implements Insertable<Book> {
     if (!nullToAbsent || review != null) {
       map['review'] = Variable<String>(review);
     }
+    if (!nullToAbsent || olid != null) {
+      map['olid'] = Variable<String>(olid);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1469,6 +1526,10 @@ class Book extends DataClass implements Insertable<Book> {
       review: review == null && nullToAbsent
           ? const Value.absent()
           : Value(review),
+      olid: olid == null && nullToAbsent ? const Value.absent() : Value(olid),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1511,6 +1572,8 @@ class Book extends DataClass implements Insertable<Book> {
       finishedAt: serializer.fromJson<DateTime?>(json['finishedAt']),
       isFavorite: serializer.fromJson<bool>(json['isFavorite']),
       review: serializer.fromJson<String?>(json['review']),
+      olid: serializer.fromJson<String?>(json['olid']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1550,6 +1613,8 @@ class Book extends DataClass implements Insertable<Book> {
       'finishedAt': serializer.toJson<DateTime?>(finishedAt),
       'isFavorite': serializer.toJson<bool>(isFavorite),
       'review': serializer.toJson<String?>(review),
+      'olid': serializer.toJson<String?>(olid),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1581,6 +1646,8 @@ class Book extends DataClass implements Insertable<Book> {
     Value<DateTime?> finishedAt = const Value.absent(),
     bool? isFavorite,
     Value<String?> review = const Value.absent(),
+    Value<String?> olid = const Value.absent(),
+    Value<DateTime?> deletedAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Book(
@@ -1615,6 +1682,8 @@ class Book extends DataClass implements Insertable<Book> {
     finishedAt: finishedAt.present ? finishedAt.value : this.finishedAt,
     isFavorite: isFavorite ?? this.isFavorite,
     review: review.present ? review.value : this.review,
+    olid: olid.present ? olid.value : this.olid,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1665,6 +1734,8 @@ class Book extends DataClass implements Insertable<Book> {
           ? data.isFavorite.value
           : this.isFavorite,
       review: data.review.present ? data.review.value : this.review,
+      olid: data.olid.present ? data.olid.value : this.olid,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1698,6 +1769,8 @@ class Book extends DataClass implements Insertable<Book> {
           ..write('finishedAt: $finishedAt, ')
           ..write('isFavorite: $isFavorite, ')
           ..write('review: $review, ')
+          ..write('olid: $olid, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1731,6 +1804,8 @@ class Book extends DataClass implements Insertable<Book> {
     finishedAt,
     isFavorite,
     review,
+    olid,
+    deletedAt,
     createdAt,
     updatedAt,
   ]);
@@ -1763,6 +1838,8 @@ class Book extends DataClass implements Insertable<Book> {
           other.finishedAt == this.finishedAt &&
           other.isFavorite == this.isFavorite &&
           other.review == this.review &&
+          other.olid == this.olid &&
+          other.deletedAt == this.deletedAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1793,6 +1870,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
   final Value<DateTime?> finishedAt;
   final Value<bool> isFavorite;
   final Value<String?> review;
+  final Value<String?> olid;
+  final Value<DateTime?> deletedAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const BooksCompanion({
@@ -1821,6 +1900,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.finishedAt = const Value.absent(),
     this.isFavorite = const Value.absent(),
     this.review = const Value.absent(),
+    this.olid = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -1850,6 +1931,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.finishedAt = const Value.absent(),
     this.isFavorite = const Value.absent(),
     this.review = const Value.absent(),
+    this.olid = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : title = Value(title),
@@ -1881,6 +1964,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Expression<DateTime>? finishedAt,
     Expression<bool>? isFavorite,
     Expression<String>? review,
+    Expression<String>? olid,
+    Expression<DateTime>? deletedAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -1910,6 +1995,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
       if (finishedAt != null) 'finished_at': finishedAt,
       if (isFavorite != null) 'is_favorite': isFavorite,
       if (review != null) 'review': review,
+      if (olid != null) 'olid': olid,
+      if (deletedAt != null) 'deleted_at': deletedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -1941,6 +2028,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Value<DateTime?>? finishedAt,
     Value<bool>? isFavorite,
     Value<String?>? review,
+    Value<String?>? olid,
+    Value<DateTime?>? deletedAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
@@ -1970,6 +2059,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
       finishedAt: finishedAt ?? this.finishedAt,
       isFavorite: isFavorite ?? this.isFavorite,
       review: review ?? this.review,
+      olid: olid ?? this.olid,
+      deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -2063,6 +2154,12 @@ class BooksCompanion extends UpdateCompanion<Book> {
     if (review.present) {
       map['review'] = Variable<String>(review.value);
     }
+    if (olid.present) {
+      map['olid'] = Variable<String>(olid.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2100,6 +2197,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
           ..write('finishedAt: $finishedAt, ')
           ..write('isFavorite: $isFavorite, ')
           ..write('review: $review, ')
+          ..write('olid: $olid, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -4886,6 +4985,8 @@ typedef $$BooksTableCreateCompanionBuilder =
       Value<DateTime?> finishedAt,
       Value<bool> isFavorite,
       Value<String?> review,
+      Value<String?> olid,
+      Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -4916,6 +5017,8 @@ typedef $$BooksTableUpdateCompanionBuilder =
       Value<DateTime?> finishedAt,
       Value<bool> isFavorite,
       Value<String?> review,
+      Value<String?> olid,
+      Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -5159,6 +5262,16 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
 
   ColumnFilters<String> get review => $composableBuilder(
     column: $table.review,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get olid => $composableBuilder(
+    column: $table.olid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5443,6 +5556,16 @@ class $$BooksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get olid => $composableBuilder(
+    column: $table.olid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -5597,6 +5720,12 @@ class $$BooksTableAnnotationComposer
 
   GeneratedColumn<String> get review =>
       $composableBuilder(column: $table.review, builder: (column) => column);
+
+  GeneratedColumn<String> get olid =>
+      $composableBuilder(column: $table.olid, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -5811,6 +5940,8 @@ class $$BooksTableTableManager
                 Value<DateTime?> finishedAt = const Value.absent(),
                 Value<bool> isFavorite = const Value.absent(),
                 Value<String?> review = const Value.absent(),
+                Value<String?> olid = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => BooksCompanion(
@@ -5839,6 +5970,8 @@ class $$BooksTableTableManager
                 finishedAt: finishedAt,
                 isFavorite: isFavorite,
                 review: review,
+                olid: olid,
+                deletedAt: deletedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -5869,6 +6002,8 @@ class $$BooksTableTableManager
                 Value<DateTime?> finishedAt = const Value.absent(),
                 Value<bool> isFavorite = const Value.absent(),
                 Value<String?> review = const Value.absent(),
+                Value<String?> olid = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => BooksCompanion.insert(
@@ -5897,6 +6032,8 @@ class $$BooksTableTableManager
                 finishedAt: finishedAt,
                 isFavorite: isFavorite,
                 review: review,
+                olid: olid,
+                deletedAt: deletedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),

@@ -11,16 +11,29 @@ import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:openreads/features/lending/lending_cubit.dart';
 import 'package:openreads/features/library/book_detail_screen.dart';
 import 'package:openreads/features/library/library_cubit.dart';
+import 'package:openreads/features/library/widgets/book_list_tile.dart';
+import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/l10n/app_localizations.dart';
+
+import '../helpers/fake_settings_repository.dart';
 
 class FakeBookRepository implements BookRepository {
   Book? book;
+  Book? trashedBook;
   final deleted = <int>[];
+  final restored = <int>[];
 
   FakeBookRepository(this.book);
 
   @override
-  Future<Book?> getBook(int id) async => book;
+  Future<Book?> getBook(int id) async => book ?? trashedBook;
+
+  @override
+  Stream<List<Book>> watchBooks({
+    String? query,
+    BookStatus? status,
+    int? locationId,
+  }) => Stream.value([?book]);
 
   @override
   Future<void> updateFavorite(int id, bool isFavorite) async =>
@@ -29,6 +42,10 @@ class FakeBookRepository implements BookRepository {
   @override
   Future<void> updateRating(int id, double rating) async =>
       book = book!.copyWith(rating: rating);
+
+  @override
+  Future<void> updateStatus(int id, BookStatus status) async =>
+      book = book!.copyWith(status: status);
 
   @override
   Future<void> updateReview(int id, String? review) async {
@@ -41,7 +58,15 @@ class FakeBookRepository implements BookRepository {
   @override
   Future<void> deleteBook(int id) async {
     deleted.add(id);
+    trashedBook = book;
     book = null;
+  }
+
+  @override
+  Future<void> restoreBook(int id) async {
+    restored.add(id);
+    book = trashedBook;
+    trashedBook = null;
   }
 
   @override
@@ -49,8 +74,15 @@ class FakeBookRepository implements BookRepository {
 }
 
 class FakeTagRepository implements TagRepository {
+  final List<Tag> tags;
+  FakeTagRepository([this.tags = const []]);
+
   @override
-  Stream<List<Tag>> watchTagsForBook(int bookId) => Stream.value(const []);
+  Stream<List<Tag>> watchTagsForBook(int bookId) => Stream.value(tags);
+
+  @override
+  Stream<Set<int>> watchBookIdsWithAllTags(Set<int> tagIds) =>
+      Stream.value({1});
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -65,44 +97,73 @@ class FakeNotesRepository implements NotesRepository {
 }
 
 class FakeLendingRepository implements LendingRepository {
+  final List<LendingData> history;
+  FakeLendingRepository([this.history = const []]);
+
   @override
   Stream<LendingData?> watchActiveLending(int bookId) => Stream.value(null);
+
+  @override
+  Stream<List<LendingData>> watchHistory(int bookId) => Stream.value(history);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-Book sampleBook({double rating = 0, bool favorite = false}) => Book(
+Book sampleBook({
+  double rating = 0,
+  bool favorite = false,
+  BookStatus status = BookStatus.read,
+  String? description,
+  String? olid,
+}) => Book(
   id: 1,
   title: 'Der Vorleser',
   authors: const ['Bernhard Schlink'],
-  status: BookStatus.read,
+  status: status,
   rating: rating,
   pageCount: 200,
   currentPage: 200,
+  description: description,
+  olid: olid,
   editedFields: const [],
   isFavorite: favorite,
-  createdAt: DateTime(2026),
-  updatedAt: DateTime(2026),
+  createdAt: DateTime(2026, 1, 15),
+  updatedAt: DateTime(2026, 2, 20),
 );
 
 Future<FakeBookRepository> pumpDetail(
   WidgetTester tester, {
   Book? book,
   VoidCallback? onDeleted,
+  FakeSettingsRepository? settings,
+  List<Tag> tags = const [],
+  List<LendingData> lendingHistory = const [],
 }) async {
+  // Tall enough that the whole (lazily built) list is on screen.
+  tester.view.physicalSize = const Size(800, 3200);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+
   final repo = FakeBookRepository(book ?? sampleBook());
   await tester.pumpWidget(
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider<BookRepository>.value(value: repo),
-        RepositoryProvider<TagRepository>.value(value: FakeTagRepository()),
+        RepositoryProvider<TagRepository>.value(value: FakeTagRepository(tags)),
         RepositoryProvider<NotesRepository>.value(value: FakeNotesRepository()),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider(create: (_) => LibraryCubit(repo)),
-          BlocProvider(create: (_) => LendingCubit(FakeLendingRepository())),
+          BlocProvider(
+            create: (_) => LendingCubit(FakeLendingRepository(lendingHistory)),
+          ),
+          BlocProvider(
+            lazy: false,
+            create: (_) =>
+                SettingsCubit(settings ?? FakeSettingsRepository())..load(),
+          ),
         ],
         child: MaterialApp(
           locale: const Locale('de'),
@@ -133,7 +194,7 @@ Future<FakeBookRepository> pumpDetail(
 }
 
 void main() {
-  group('delete', () {
+  group('trash', () {
     testWidgets('asks for confirmation and keeps the book on cancel', (
       tester,
     ) async {
@@ -142,8 +203,8 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('delete-book')));
       await tester.pumpAndSettle();
 
-      expect(find.text('„Der Vorleser“ löschen?'), findsOneWidget);
-      expect(find.textContaining('endgültig gelöscht'), findsOneWidget);
+      expect(find.text('„Der Vorleser“ in den Papierkorb?'), findsOneWidget);
+      expect(find.textContaining('wiederhergestellt'), findsOneWidget);
 
       await tester.tap(find.text('Abbrechen'));
       await tester.pumpAndSettle();
@@ -152,20 +213,34 @@ void main() {
       expect(find.byType(BookDetailScreen), findsOneWidget);
     });
 
-    testWidgets('deletes after confirmation and leaves the screen', (
+    testWidgets('moves the book to the trash and leaves the screen', (
       tester,
     ) async {
       final repo = await pumpDetail(tester);
 
       await tester.tap(find.byKey(const ValueKey('delete-book')));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilledButton, 'Löschen'));
+      await tester.tap(find.widgetWithText(FilledButton, 'In den Papierkorb'));
       await tester.pumpAndSettle();
 
       expect(repo.deleted, [1]);
       expect(find.byType(BookDetailScreen), findsNothing);
       expect(find.text('open'), findsOneWidget);
-      expect(find.text('Buch gelöscht'), findsOneWidget);
+      expect(find.text('Buch im Papierkorb'), findsOneWidget);
+    });
+
+    testWidgets('the snackbar offers to undo', (tester) async {
+      final repo = await pumpDetail(tester);
+      await tester.tap(find.byKey(const ValueKey('delete-book')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'In den Papierkorb'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Rückgängig'));
+      await tester.pumpAndSettle();
+
+      expect(repo.restored, [1]);
+      expect(repo.book, isNotNull);
     });
 
     testWidgets('an embedded pane gets onDeleted instead of popping', (
@@ -176,7 +251,7 @@ void main() {
 
       await tester.tap(find.byKey(const ValueKey('delete-book')));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilledButton, 'Löschen'));
+      await tester.tap(find.widgetWithText(FilledButton, 'In den Papierkorb'));
       await tester.pumpAndSettle();
 
       expect(repo.deleted, [1]);
@@ -207,6 +282,85 @@ void main() {
     expect(repo.book!.isFavorite, isFalse);
   });
 
+  group('details', () {
+    testWidgets('shows a placeholder cover when there is none', (tester) async {
+      await pumpDetail(tester);
+      expect(find.byKey(const ValueKey('cover-placeholder')), findsOneWidget);
+    });
+
+    testWidgets('shows description, Open Library id and dates', (tester) async {
+      await pumpDetail(
+        tester,
+        book: sampleBook(description: 'Ein Roman.', olid: 'OL123M'),
+      );
+
+      expect(find.byKey(const ValueKey('book-description')), findsOneWidget);
+      expect(find.text('Ein Roman.'), findsOneWidget);
+      expect(find.text('OL123M'), findsOneWidget);
+      expect(find.text('Open-Library-ID'), findsOneWidget);
+      expect(find.text('Hinzugefügt'), findsOneWidget);
+      expect(find.text('Geändert'), findsOneWidget);
+    });
+
+    testWidgets('no description section for a book without one', (
+      tester,
+    ) async {
+      await pumpDetail(tester);
+      expect(find.byKey(const ValueKey('book-description')), findsNothing);
+    });
+
+    testWidgets('lists returned lendings in a history', (tester) async {
+      final history = [
+        LendingData(
+          id: 1,
+          bookId: 1,
+          borrowerName: 'Anna',
+          lentAt: DateTime(2026, 1, 1),
+          returnedAt: DateTime(2026, 1, 20),
+        ),
+        LendingData(
+          id: 2,
+          bookId: 1,
+          borrowerName: 'Ben',
+          lentAt: DateTime(2026, 2, 1),
+        ),
+      ];
+      await pumpDetail(tester, lendingHistory: history);
+
+      expect(find.text('Frühere Leihen (1)'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('lending-history')));
+      await tester.pumpAndSettle();
+      expect(find.text('Anna'), findsOneWidget);
+      expect(find.text('Ben'), findsNothing, reason: 'still lent, not history');
+    });
+  });
+
+  group('similar books', () {
+    testWidgets('an author chip opens the books by that author', (
+      tester,
+    ) async {
+      await pumpDetail(tester);
+
+      await tester.tap(
+        find.byKey(const ValueKey('author-chip:Bernhard Schlink')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('similar-books')), findsOneWidget);
+      expect(find.byType(BookListTile), findsOneWidget);
+    });
+
+    testWidgets('a tag chip opens the books with that tag', (tester) async {
+      await pumpDetail(tester, tags: const [Tag(id: 1, name: 'Klassiker')]);
+
+      await tester.tap(find.byKey(const ValueKey('tag-chip:1')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('similar-books')), findsOneWidget);
+      expect(find.byType(BookListTile), findsOneWidget);
+    });
+  });
+
   group('rating', () {
     testWidgets('tapping a star sets the rating', (tester) async {
       final repo = await pumpDetail(tester);
@@ -228,6 +382,89 @@ void main() {
 
       expect(repo.book!.rating, 0.0);
     });
+
+    testWidgets('the number style steps in half points', (tester) async {
+      final settings = FakeSettingsRepository()
+        ..values['ratingDisplay'] = 'number';
+      final repo = await pumpDetail(
+        tester,
+        book: sampleBook(rating: 3.5),
+        settings: settings,
+      );
+      expect(find.text('3.5 / 5'), findsOneWidget);
+      expect(find.bySemanticsLabel('4.0 stars'), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('rating-plus')));
+      await tester.pumpAndSettle();
+      expect(repo.book!.rating, 4.0);
+      expect(find.text('4 / 5'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('rating-minus')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('rating-minus')));
+      await tester.pumpAndSettle();
+      expect(repo.book!.rating, 3.0);
+    });
+  });
+
+  group('quick rating on finishing', () {
+    Future<void> chooseRead(WidgetTester tester) async {
+      await tester.tap(find.byType(DropdownButton<BookStatus>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Gelesen').last);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('an unrated book that is marked read asks for a rating', (
+      tester,
+    ) async {
+      final repo = await pumpDetail(
+        tester,
+        book: sampleBook(status: BookStatus.reading),
+      );
+
+      await chooseRead(tester);
+      expect(repo.book!.status, BookStatus.read);
+      expect(find.byKey(const ValueKey('quick-rating')), findsOneWidget);
+      expect(find.text('Wie hat dir das Buch gefallen?'), findsOneWidget);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const ValueKey('quick-rating')),
+          matching: find.bySemanticsLabel('4.5 stars'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Speichern'));
+      await tester.pumpAndSettle();
+
+      expect(repo.book!.rating, 4.5);
+    });
+
+    testWidgets('skipping leaves the book unrated', (tester) async {
+      final repo = await pumpDetail(
+        tester,
+        book: sampleBook(status: BookStatus.reading),
+      );
+
+      await chooseRead(tester);
+      await tester.tap(find.text('Überspringen'));
+      await tester.pumpAndSettle();
+
+      expect(repo.book!.status, BookStatus.read);
+      expect(repo.book!.rating, 0.0);
+    });
+
+    testWidgets('an already rated book is not asked again', (tester) async {
+      await pumpDetail(
+        tester,
+        book: sampleBook(status: BookStatus.reading, rating: 4),
+      );
+
+      await chooseRead(tester);
+
+      expect(find.byKey(const ValueKey('quick-rating')), findsNothing);
+    });
   });
 
   group('review', () {
@@ -237,7 +474,6 @@ void main() {
       final repo = await pumpDetail(tester);
       expect(find.text('Noch keine Rezension'), findsOneWidget);
 
-      await tester.ensureVisible(find.byKey(const ValueKey('edit-review')));
       await tester.tap(find.byKey(const ValueKey('edit-review')));
       await tester.pumpAndSettle();
       await tester.enterText(
@@ -255,7 +491,6 @@ void main() {
     testWidgets('cancelling leaves the review untouched', (tester) async {
       final repo = await pumpDetail(tester);
 
-      await tester.ensureVisible(find.byKey(const ValueKey('edit-review')));
       await tester.tap(find.byKey(const ValueKey('edit-review')));
       await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const ValueKey('review-field')), 'x');

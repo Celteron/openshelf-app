@@ -58,10 +58,14 @@ BookStatus? parseStatus(String? raw) {
   if (s == 'did-not-finish' ||
       s == 'dnf' ||
       s == 'abandoned' ||
+      s == 'stopped-reading' ||
       s == 'abgebrochen') {
     return BookStatus.dnf;
   }
   if (s == 'unread' || s == 'ungelesen') return BookStatus.unread;
+  if (s == 're_reading' || s == 'rereading' || s == 're-reading') {
+    return BookStatus.reReading;
+  }
   return null;
 }
 

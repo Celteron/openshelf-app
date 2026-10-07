@@ -9,9 +9,12 @@ Book book(
   List<String> authors = const ['Anna Autor'],
   double rating = 0,
   DateTime? createdAt,
+  DateTime? updatedAt,
   BookStatus status = BookStatus.unread,
   int? pages,
   int currentPage = 0,
+  int? year,
+  DateTime? finishedAt,
 }) => Book(
   id: id,
   title: title,
@@ -19,11 +22,13 @@ Book book(
   status: status,
   rating: rating,
   pageCount: pages,
+  publishedYear: year,
+  finishedAt: finishedAt,
   currentPage: currentPage,
   editedFields: const [],
   isFavorite: false,
   createdAt: createdAt ?? DateTime(2026),
-  updatedAt: DateTime(2026),
+  updatedAt: updatedAt ?? DateTime(2026),
 );
 
 List<String> sorted(LibrarySort sort, List<Book> books) =>
@@ -61,7 +66,13 @@ void main() {
       book(5, 'E', authors: const []),
     ];
     const sort = LibrarySort(field: LibrarySortField.author, ascending: true);
-    expect(sorted(sort, books), ['E', 'D', 'A', 'C', 'B']);
+    expect(sorted(sort, books), [
+      'D',
+      'A',
+      'C',
+      'B',
+      'E',
+    ], reason: 'books without author sort last');
   });
 
   test('sorts by rating, best first when descending', () {
@@ -127,5 +138,177 @@ void main() {
       ascending: true,
     ).apply(books);
     expect(books.map((b) => b.title), ['b', 'a']);
+  });
+
+  group('all twelve criteria', () {
+    test('there are twelve', () {
+      expect(LibrarySortField.values, hasLength(12));
+    });
+
+    test('pages: unknown page counts always sort last', () {
+      final books = [
+        book(1, 'Kurz', pages: 100),
+        book(2, 'Ohne'),
+        book(3, 'Lang', pages: 900),
+      ];
+      expect(sorted(const LibrarySort(field: LibrarySortField.pages), books), [
+        'Lang',
+        'Kurz',
+        'Ohne',
+      ]);
+      expect(
+        sorted(
+          const LibrarySort(field: LibrarySortField.pages, ascending: true),
+          books,
+        ),
+        ['Kurz', 'Lang', 'Ohne'],
+        reason: 'still last when ascending',
+      );
+    });
+
+    test('publication year', () {
+      final books = [
+        book(1, 'Alt', year: 1950),
+        book(2, 'Neu', year: 2024),
+        book(3, 'Unbekannt'),
+      ];
+      expect(
+        sorted(
+          const LibrarySort(field: LibrarySortField.publicationYear),
+          books,
+        ),
+        ['Neu', 'Alt', 'Unbekannt'],
+      );
+    });
+
+    test('date modified', () {
+      final books = [
+        book(1, 'A', updatedAt: DateTime(2020)),
+        book(2, 'B', updatedAt: DateTime(2026)),
+        book(3, 'C', updatedAt: DateTime(2023)),
+      ];
+      expect(
+        sorted(const LibrarySort(field: LibrarySortField.modified), books),
+        ['B', 'C', 'A'],
+      );
+    });
+
+    test('status: reading first, finished and abandoned last', () {
+      final books = [
+        book(1, 'Fertig', status: BookStatus.read),
+        book(2, 'Läuft', status: BookStatus.reading),
+        book(3, 'Offen', status: BookStatus.unread),
+        book(4, 'Abbruch', status: BookStatus.dnf),
+        book(5, 'Wunsch', status: BookStatus.wishlist),
+        book(6, 'Nochmal', status: BookStatus.reReading),
+      ];
+      expect(
+        sorted(
+          const LibrarySort(field: LibrarySortField.status, ascending: true),
+          books,
+        ),
+        ['Läuft', 'Nochmal', 'Offen', 'Wunsch', 'Fertig', 'Abbruch'],
+      );
+    });
+
+    test('start date, finish date and last read use the sessions', () {
+      final books = [
+        book(1, 'A', status: BookStatus.read, finishedAt: DateTime(2024, 5)),
+        book(2, 'B', status: BookStatus.read),
+        book(3, 'C', status: BookStatus.reading),
+        book(4, 'D'),
+      ];
+      final spans = {
+        1: ReadingSpan(
+          firstStart: DateTime(2024, 4),
+          lastEnd: DateTime(2024, 5),
+        ),
+        2: ReadingSpan(
+          firstStart: DateTime(2025, 1),
+          lastEnd: DateTime(2025, 2),
+        ),
+        3: ReadingSpan(
+          firstStart: DateTime(2026, 3),
+          lastEnd: DateTime(2026, 3),
+        ),
+      };
+
+      List<String> by(LibrarySortField f) => const LibrarySort()
+          .select(f)
+          .apply(books, spans: spans)
+          .map((b) => b.title)
+          .toList();
+      // select() starts numbers/dates high → low.
+      expect(by(LibrarySortField.startDate), ['C', 'B', 'A', 'D']);
+      expect(
+        by(LibrarySortField.finishDate),
+        ['B', 'A', 'C', 'D'],
+        reason:
+            'B has no finishedAt: a read book falls back to its last '
+            'session; C is not finished',
+      );
+      expect(by(LibrarySortField.lastRead), ['C', 'B', 'A', 'D']);
+    });
+
+    test('lastReadAt takes the later of finish date and last session', () {
+      final b = book(1, 'A', finishedAt: DateTime(2024, 6));
+      expect(
+        lastReadAt(b, ReadingSpan(lastEnd: DateTime(2024, 8))),
+        DateTime(2024, 8),
+      );
+      expect(
+        lastReadAt(b, ReadingSpan(lastEnd: DateTime(2024, 1))),
+        DateTime(2024, 6),
+      );
+      expect(lastReadAt(b, null), DateTime(2024, 6));
+      expect(lastReadAt(book(2, 'B'), null), isNull);
+    });
+
+    test('readingSpans groups sessions per book', () {
+      final spans = readingSpans([
+        ReadingSession(
+          id: 1,
+          bookId: 7,
+          startedAt: DateTime(2026, 1, 5),
+          endedAt: DateTime(2026, 1, 6),
+          durationSeconds: 60,
+          startPage: 0,
+        ),
+        ReadingSession(
+          id: 2,
+          bookId: 7,
+          startedAt: DateTime(2026, 1, 1),
+          endedAt: DateTime(2026, 1, 2),
+          durationSeconds: 60,
+          startPage: 0,
+        ),
+        ReadingSession(
+          id: 3,
+          bookId: 8,
+          startedAt: DateTime(2026, 3, 1),
+          durationSeconds: 0,
+          startPage: 0,
+        ),
+      ]);
+      expect(spans[7]!.firstStart, DateTime(2026, 1, 1));
+      expect(spans[7]!.lastEnd, DateTime(2026, 1, 6));
+      expect(spans[8]!.firstStart, DateTime(2026, 3, 1));
+      expect(spans[8]!.lastEnd, DateTime(2026, 3, 1), reason: 'running');
+    });
+
+    test('select(): text fields start A→Z, status too, dates high→low', () {
+      expect(
+        const LibrarySort().select(LibrarySortField.status).ascending,
+        isTrue,
+      );
+      expect(
+        const LibrarySort().select(LibrarySortField.pages).ascending,
+        isFalse,
+      );
+      expect(
+        const LibrarySort().select(LibrarySortField.finishDate).ascending,
+        isFalse,
+      );
+    });
   });
 }

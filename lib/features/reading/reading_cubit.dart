@@ -117,6 +117,7 @@ class ReadingCubit extends Cubit<ReadingState> {
     required Duration duration,
     required int startPage,
     required int endPage,
+    DateTime? endedAt,
   }) => _run(
     () => _tracker.logManual(
       bookId,
@@ -124,6 +125,7 @@ class ReadingCubit extends Cubit<ReadingState> {
       duration: duration,
       startPage: startPage,
       endPage: endPage,
+      endedAt: endedAt,
     ),
   );
 

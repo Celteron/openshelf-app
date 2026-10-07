@@ -586,19 +586,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get movedToLibrary => 'Zum Bestand hinzugefügt';
 
   @override
-  String get deleteBook => 'Buch löschen';
+  String get deleteBook => 'In den Papierkorb';
 
   @override
   String deleteBookTitle(String title) {
-    return '„$title“ löschen?';
+    return '„$title“ in den Papierkorb?';
   }
 
   @override
   String get deleteBookBody =>
-      'Das Buch wird samt Notizen, Tags und Lesesitzungen endgültig gelöscht.';
+      'Das Buch kann im Papierkorb wiederhergestellt oder endgültig gelöscht werden.';
 
   @override
-  String get bookDeleted => 'Buch gelöscht';
+  String get bookDeleted => 'Buch im Papierkorb';
 
   @override
   String get addFavorite => 'Zu Favoriten hinzufügen';
@@ -651,5 +651,322 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String goalPagesProgress(int read, int target) {
     return '$read von $target Seiten';
+  }
+
+  @override
+  String get fieldDescription => 'Beschreibung';
+
+  @override
+  String get coverFromGallery => 'Aus Galerie';
+
+  @override
+  String get coverFromCamera => 'Kamera';
+
+  @override
+  String get coverRemove => 'Cover entfernen';
+
+  @override
+  String get sortModified => 'Geändert am';
+
+  @override
+  String get sortPages => 'Seitenzahl';
+
+  @override
+  String get sortPublicationYear => 'Erscheinungsjahr';
+
+  @override
+  String get sortStatus => 'Status';
+
+  @override
+  String get sortLastRead => 'Zuletzt gelesen';
+
+  @override
+  String get sortStartDate => 'Lesebeginn';
+
+  @override
+  String get sortFinishDate => 'Leseende';
+
+  @override
+  String get showAsGrid => 'Rasteransicht';
+
+  @override
+  String get showAsList => 'Listenansicht';
+
+  @override
+  String get yearFilter => 'Jahr';
+
+  @override
+  String get allYears => 'Alle Jahre';
+
+  @override
+  String get bulkSetFormat => 'Format ändern';
+
+  @override
+  String get bulkSetAuthor => 'Autor ändern';
+
+  @override
+  String bulkDeleteTitle(int count) {
+    return '$count Bücher in den Papierkorb?';
+  }
+
+  @override
+  String get moveToTrash => 'In den Papierkorb';
+
+  @override
+  String get moveToTrashBody =>
+      'Du kannst die Bücher im Papierkorb wiederherstellen.';
+
+  @override
+  String movedToTrash(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Bücher',
+      one: '1 Buch',
+    );
+    return '$_temp0 im Papierkorb';
+  }
+
+  @override
+  String get sessionEndDate => 'Leseende (optional)';
+
+  @override
+  String get sessionEndDateHint =>
+      'Gleicher Tag – für mehrtägiges Lesen ein Enddatum wählen';
+
+  @override
+  String get undo => 'Rückgängig';
+
+  @override
+  String get skip => 'Überspringen';
+
+  @override
+  String get quickRatingTitle => 'Wie hat dir das Buch gefallen?';
+
+  @override
+  String get olidLabel => 'Open-Library-ID';
+
+  @override
+  String get dateAddedLabel => 'Hinzugefügt';
+
+  @override
+  String get dateModifiedLabel => 'Geändert';
+
+  @override
+  String get trashTitle => 'Papierkorb';
+
+  @override
+  String get trashEmpty => 'Der Papierkorb ist leer';
+
+  @override
+  String get restore => 'Wiederherstellen';
+
+  @override
+  String get deleteForever => 'Endgültig löschen';
+
+  @override
+  String deleteForeverTitle(String title) {
+    return '„$title“ endgültig löschen?';
+  }
+
+  @override
+  String get deleteForeverBody =>
+      'Das Buch wird samt Notizen, Tags und Lesesitzungen unwiderruflich gelöscht.';
+
+  @override
+  String get emptyTrash => 'Papierkorb leeren';
+
+  @override
+  String get emptyTrashTitle => 'Papierkorb leeren?';
+
+  @override
+  String get appearanceSection => 'Darstellung';
+
+  @override
+  String get materialYou => 'Material You';
+
+  @override
+  String get materialYouHint =>
+      'Systemfarben (Hintergrundbild) verwenden, wo verfügbar';
+
+  @override
+  String get accentColor => 'Akzentfarbe';
+
+  @override
+  String get accentColorDisabledHint => 'Bei Material You nicht verfügbar';
+
+  @override
+  String get resetToDefault => 'Zurücksetzen';
+
+  @override
+  String get amoledDark => 'AMOLED-Dunkelmodus';
+
+  @override
+  String get amoledDarkHint => 'Reines Schwarz im dunklen Design';
+
+  @override
+  String get fontLabel => 'Schriftart';
+
+  @override
+  String get ratingStyleLabel => 'Bewertung anzeigen als';
+
+  @override
+  String get ratingAsBar => 'Sterne';
+
+  @override
+  String get ratingAsNumber => 'Zahl';
+
+  @override
+  String get listLayoutLabel => 'Ansicht der Bibliothek';
+
+  @override
+  String get displayList => 'Liste';
+
+  @override
+  String get displayCompactList => 'Kompakte Liste';
+
+  @override
+  String get displayGrid => 'Raster';
+
+  @override
+  String get displayDetailedGrid => 'Detailliertes Raster';
+
+  @override
+  String get booksSection => 'Bücher';
+
+  @override
+  String get defaultFormat => 'Standardformat';
+
+  @override
+  String get defaultStatus => 'Standardstatus';
+
+  @override
+  String get defaultTags => 'Standard-Tags';
+
+  @override
+  String defaultTagsHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tags',
+      one: '1 Tag',
+      zero: 'Keine',
+    );
+    return '$_temp0 für neue Bücher';
+  }
+
+  @override
+  String get downloadMissingCovers => 'Fehlende Cover laden';
+
+  @override
+  String get downloadMissingCoversHint =>
+      'Lädt Cover nach, die nur als Link bekannt sind';
+
+  @override
+  String get coversDownloading => 'Cover werden geladen …';
+
+  @override
+  String get coversNoneMissing => 'Es fehlen keine Cover';
+
+  @override
+  String coversDownloaded(int ok, int failed) {
+    return '$ok Cover geladen, $failed nicht verfügbar';
+  }
+
+  @override
+  String get exportJsonHint =>
+      'Vollständiges Backup – lässt sich wiederherstellen';
+
+  @override
+  String get exportCsvHint =>
+      'Alle Felder, kompatibel mit dem Openreads-CSV-Import';
+
+  @override
+  String get restoreBackup => 'Backup wiederherstellen / importieren';
+
+  @override
+  String get restoreBackupHint =>
+      'OpenShelf-Backup, Openreads, Goodreads, StoryGraph, Bookwyrm …';
+
+  @override
+  String get sourceCode => 'Quellcode';
+
+  @override
+  String get reportIssue => 'Fehler melden';
+
+  @override
+  String get standardColors => 'Standard';
+
+  @override
+  String get customColor => 'Eigene Farbe';
+
+  @override
+  String get finishedBooksByMonth => 'Gelesene Bücher pro Monat';
+
+  @override
+  String get finishedPagesByMonth => 'Gelesene Seiten pro Monat';
+
+  @override
+  String get averagesTitle => 'Durchschnitte & Rekorde';
+
+  @override
+  String get averageRating => 'Ø Bewertung';
+
+  @override
+  String get averagePages => 'Ø Seitenzahl';
+
+  @override
+  String get averageReadingTime => 'Ø Lesezeit';
+
+  @override
+  String get longestBook => 'Längstes Buch';
+
+  @override
+  String get shortestBook => 'Kürzestes Buch';
+
+  @override
+  String get fastestBook => 'Am schnellsten gelesen';
+
+  @override
+  String get slowestBook => 'Am langsamsten gelesen';
+
+  @override
+  String pagesValue(int count) {
+    return '$count Seiten';
+  }
+
+  @override
+  String get openLibrarySearch => 'Open-Library-Suche';
+
+  @override
+  String get olSearchHint => 'Titel, Autor, ISBN oder OLID';
+
+  @override
+  String get olTypeGeneral => 'Allgemein';
+
+  @override
+  String get olTypeTitle => 'Titel';
+
+  @override
+  String get olTypeAuthor => 'Autor';
+
+  @override
+  String get olTypeIsbn => 'ISBN';
+
+  @override
+  String get olTypeOlid => 'OLID';
+
+  @override
+  String get olNoResults => 'Keine Treffer';
+
+  @override
+  String get olEditions => 'Ausgaben';
+
+  @override
+  String get search => 'Suchen';
+
+  @override
+  String lendingHistory(int count) {
+    return 'Frühere Leihen ($count)';
   }
 }

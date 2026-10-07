@@ -6,6 +6,19 @@ import 'package:openreads/features/settings/settings_cubit.dart';
 class _FakeSettingsRepository implements SettingsRepository {
   String theme = 'system';
   String locale = 'de';
+  final values = <String, String>{};
+
+  @override
+  Future<String?> getValue(String key) async => values[key];
+
+  @override
+  Future<void> setValue(String key, String? value) async {
+    if (value == null) {
+      values.remove(key);
+    } else {
+      values[key] = value;
+    }
+  }
 
   @override
   Future<String> getThemeMode() async => theme;

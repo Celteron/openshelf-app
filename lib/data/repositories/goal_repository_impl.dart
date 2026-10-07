@@ -12,8 +12,15 @@ class GoalRepositoryImpl implements GoalRepository {
 
   @override
   Future<void> setGoal(int year, int targetBooks, {int? targetPages}) {
-    if (targetBooks <= 0) {
-      throw ArgumentError.value(targetBooks, 'targetBooks', 'must be > 0');
+    // Openreads allowed a books goal, a pages goal or both; a pages-only goal
+    // is stored with `targetBooks == 0`.
+    final pagesOnly = targetBooks == 0 && (targetPages ?? 0) > 0;
+    if (targetBooks <= 0 && !pagesOnly) {
+      throw ArgumentError.value(
+        targetBooks,
+        'targetBooks',
+        'must be > 0 (or 0 together with a page goal)',
+      );
     }
     if (targetPages != null && targetPages <= 0) {
       throw ArgumentError.value(targetPages, 'targetPages', 'must be > 0');

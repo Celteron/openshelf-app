@@ -21,7 +21,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -41,6 +41,11 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(readingGoals);
         await m.createIndex(idxReadingSessionsBook);
         await m.createIndex(idxBookNotesBook);
+      }
+      if (from < 3) {
+        // v3 (legacy parity): Open Library id and soft delete (trash).
+        await m.addColumn(books, books.olid);
+        await m.addColumn(books, books.deletedAt);
       }
     },
     beforeOpen: (details) async {

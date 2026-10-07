@@ -13,18 +13,39 @@ class LendingRepositoryImpl implements LendingRepository {
     int bookId, {
     required String borrowerName,
     DateTime? expectedReturn,
-  }) => _dao.insert(
-    LendingCompanion.insert(
-      bookId: bookId,
-      borrowerName: borrowerName,
-      lentAt: DateTime.now(),
-      expectedReturn: Value(expectedReturn),
-    ),
-  );
+  }) async {
+    final name = borrowerName.trim();
+    if (name.isEmpty) {
+      throw ArgumentError.value(
+        borrowerName,
+        'borrowerName',
+        'must not be blank',
+      );
+    }
+    if (await _dao.activeLending(bookId) != null) {
+      throw StateError('Book $bookId is already lent out');
+    }
+    return _dao.insert(
+      LendingCompanion.insert(
+        bookId: bookId,
+        borrowerName: name,
+        lentAt: DateTime.now(),
+        expectedReturn: Value(expectedReturn),
+      ),
+    );
+  }
 
   @override
   Future<void> markReturned(int lendingId, DateTime returnedAt) =>
-      _dao.update(lendingId, LendingCompanion(returnedAt: Value(returnedAt)));
+      _dao.markReturned(lendingId, returnedAt);
+
+  @override
+  Stream<List<LendingData>> watchHistory(int bookId) =>
+      _dao.watchHistory(bookId);
+
+  @override
+  Future<LendingData?> getActiveLending(int bookId) =>
+      _dao.activeLending(bookId);
 
   @override
   Stream<LendingData?> watchActiveLending(int bookId) =>

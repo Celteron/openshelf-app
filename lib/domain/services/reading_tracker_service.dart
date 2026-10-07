@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
@@ -74,6 +75,7 @@ class ReadingTrackerService {
     required Duration duration,
     required int startPage,
     required int endPage,
+    DateTime? endedAt,
   }) async {
     final book = await _requireBook(bookId);
     final end = _clampPage(endPage, book.pageCount);
@@ -83,8 +85,20 @@ class ReadingTrackerService {
       duration: duration,
       startPage: _clampPage(startPage, book.pageCount),
       endPage: end,
+      endedAt: endedAt,
     );
     if (end > book.currentPage) await _applyPage(book, end);
+
+    // A reading logged after the fact finished on its own end date, not today.
+    if (endedAt != null && book.status != BookStatus.read) {
+      final after = await _books.getBook(bookId);
+      if (after != null && after.status == BookStatus.read) {
+        await _books.updateBook(
+          bookId,
+          BooksCompanion(finishedAt: Value(endedAt)),
+        );
+      }
+    }
     return id;
   }
 

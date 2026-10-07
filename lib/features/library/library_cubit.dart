@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/book_draft.dart';
 import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/goal_progress.dart';
 import 'package:openreads/domain/models/library_sort.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
+import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -35,6 +37,12 @@ class LibraryLoaded extends LibraryState {
 
   final LibrarySort sort;
 
+  /// Only books finished in this year (Openreads year filter chip).
+  final int? yearFilter;
+
+  /// Years that have finished books, newest first; feeds the year filter.
+  final List<int> availableYears;
+
   const LibraryLoaded({
     required this.books,
     this.query = '',
@@ -43,13 +51,16 @@ class LibraryLoaded extends LibraryState {
     this.tagIds = const {},
     this.favoritesOnly = false,
     this.sort = const LibrarySort(),
+    this.yearFilter,
+    this.availableYears = const [],
   });
 
   bool get hasActiveFilters =>
       query.isNotEmpty ||
       statusFilter != null ||
       tagIds.isNotEmpty ||
-      favoritesOnly;
+      favoritesOnly ||
+      yearFilter != null;
 }
 
 class LibraryError extends LibraryState {
@@ -65,7 +76,8 @@ class LibraryError extends LibraryState {
 class LibraryCubit extends Cubit<LibraryState> {
   final BookRepository _repository;
   final TagRepository? _tags;
-  StreamSubscription<List<Book>>? _subscription;
+  final ReadingRepository? _reading;
+  StreamSubscription<Object?>? _subscription;
 
   String _query = '';
   BookStatus? _status;
@@ -73,10 +85,15 @@ class LibraryCubit extends Cubit<LibraryState> {
   Set<int> _tagIds = const {};
   bool _favoritesOnly = false;
   LibrarySort _sort = const LibrarySort();
+  int? _year;
 
-  LibraryCubit(this._repository, {TagRepository? tagRepository})
-    : _tags = tagRepository,
-      super(const LibraryInitial());
+  LibraryCubit(
+    this._repository, {
+    TagRepository? tagRepository,
+    ReadingRepository? readingRepository,
+  }) : _tags = tagRepository,
+       _reading = readingRepository,
+       super(const LibraryInitial());
 
   void load({int? locationId}) {
     _locationId = locationId;
@@ -102,6 +119,12 @@ class LibraryCubit extends Cubit<LibraryState> {
   /// Selecting the active sort field flips its direction.
   void selectSort(LibrarySortField field) {
     _sort = _sort.select(field);
+    _subscribe();
+  }
+
+  /// Filters to books finished in [year]; `null` shows all.
+  void filterByYear(int? year) {
+    _year = year;
     _subscribe();
   }
 
@@ -142,29 +165,52 @@ class LibraryCubit extends Cubit<LibraryState> {
 
     final favoritesOnly = _favoritesOnly;
     final sort = _sort;
-    _subscription = filtered
-        .map(
-          (books) => sort.apply(
-            favoritesOnly ? books.where((b) => b.isFavorite) : books,
-          ),
-        )
-        .listen(
-          (books) => emit(
-            LibraryLoaded(
-              books: books,
-              query: _query,
-              statusFilter: _status,
-              locationId: _locationId,
-              tagIds: _tagIds,
-              favoritesOnly: favoritesOnly,
-              sort: sort,
-            ),
-          ),
-          onError: (_) => emit(const LibraryError('Failed to load books')),
-        );
+    final year = _year;
+    final sessions =
+        _reading?.watchAllSessions().map(readingSpans) ??
+        Stream.value(const <int, ReadingSpan>{});
+
+    _subscription =
+        Rx.combineLatest2<
+              List<Book>,
+              Map<int, ReadingSpan>,
+              (List<Book>, Map<int, ReadingSpan>)
+            >(filtered, sessions, (books, spans) => (books, spans))
+            .listen(
+              (data) {
+                final (books, spans) = data;
+                final years = {
+                  for (final b in books)
+                    if (b.status == BookStatus.read)
+                      (b.finishedAt ?? b.createdAt).year,
+                }.toList()..sort((a, b) => b.compareTo(a));
+                Iterable<Book> visible = books;
+                if (favoritesOnly) visible = visible.where((b) => b.isFavorite);
+                if (year != null) {
+                  visible = visible.where(
+                    (b) => GoalProgress.countsForYear(b, year),
+                  );
+                }
+                emit(
+                  LibraryLoaded(
+                    books: sort.apply(visible, spans: spans),
+                    query: _query,
+                    statusFilter: _status,
+                    locationId: _locationId,
+                    tagIds: _tagIds,
+                    favoritesOnly: favoritesOnly,
+                    sort: sort,
+                    yearFilter: year,
+                    availableYears: years,
+                  ),
+                );
+              },
+              onError: (_) => emit(const LibraryError('Failed to load books')),
+            );
   }
 
-  Future<void> addBook(BookDraft draft) => _repository.addBook(draft);
+  /// Adds a book and returns its id.
+  Future<int> addBook(BookDraft draft) => _repository.addBook(draft);
 
   Future<void> updateBook(int id, BookDraft draft) =>
       _repository.updateBookDraft(id, draft);
@@ -178,7 +224,19 @@ class LibraryCubit extends Cubit<LibraryState> {
   Future<void> setReview(int bookId, String? review) =>
       _repository.updateReview(bookId, review);
 
+  /// Moves a book to the trash (it can be restored from there).
   Future<void> deleteBook(int bookId) => _repository.deleteBook(bookId);
+
+  Future<void> deleteBooks(List<int> bookIds) =>
+      _repository.deleteBooks(bookIds);
+
+  Future<void> restoreBook(int bookId) => _repository.restoreBook(bookId);
+
+  Future<void> bulkSetFormat(List<int> bookIds, BookFormat format) =>
+      _repository.bulkSetFormat(bookIds, format);
+
+  Future<void> bulkSetAuthors(List<int> bookIds, List<String> authors) =>
+      _repository.bulkSetAuthors(bookIds, authors);
 
   Future<void> setStatus(int bookId, BookStatus status) =>
       _repository.updateStatus(bookId, status);

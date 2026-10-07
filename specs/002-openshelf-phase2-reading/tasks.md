@@ -48,3 +48,11 @@ Legend: `[X]` done. Each task traces to FR-P2-xx in `spec.md`.
 - [X] T2-26 Root `LICENSE` → GPL-3.0; licence-text test. Open issue recorded in FR-P2-19. (FR-P2-19)
 - [X] T2-27 `legacy-parity-audit.md`: feature-by-feature audit against upstream `74b613b0` with a gap backlog.
 - [X] T2-28 `dart analyze` = 0, `flutter test` = 100%.
+
+## Sprint 11 — Legacy parity closure
+- [X] T2-29 Schema v3 (`olid`, `deleted_at`) + upgrade tests v1/v2 → v3; trash (soft delete, restore, purge, empty).
+- [X] T2-30 Cover stack (`CoverCacheService`, `BookCover`, `UrlCover`, picker, sync) wired into list, grid, detail, form, scanner staging.
+- [X] T2-31 Library: grid/list toggle, 4 display types, 12 sort criteria, year filter, bulk edit.
+- [X] T2-32 Statistics: year selector, monthly charts, averages/records; pages-only goals.
+- [X] T2-33 `JsonBackupImporter` (round trip), full CSV export, legacy ZIP + Bookwyrm importers, Open Library search, similar books.
+- [X] T2-34 Settings: accent, Material You, AMOLED, fonts, rating style, defaults; lending tests; `dart analyze` = 0, `flutter test` = 100 %.

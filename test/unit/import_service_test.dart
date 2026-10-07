@@ -103,6 +103,33 @@ class _ThrowingRepository implements BookRepository {
   Future<void> deleteBook(int id) async {}
 
   @override
+  Future<void> deleteBooks(List<int> ids) async {}
+
+  @override
+  Stream<List<Book>> watchTrashedBooks() async* {}
+
+  @override
+  Future<void> restoreBook(int id) async {}
+
+  @override
+  Future<void> purgeBook(int id) async {}
+
+  @override
+  Future<int> emptyTrash() async => 0;
+
+  @override
+  Future<void> bulkSetFormat(List<int> bookIds, BookFormat format) async {}
+
+  @override
+  Future<void> bulkSetAuthors(List<int> bookIds, List<String> authors) async {}
+
+  @override
+  Future<void> importExtras(ImportExtras extras) async {}
+
+  @override
+  Future<void> setCoverLocalPath(int id, String? path) async {}
+
+  @override
   Future<void> updateFavorite(int id, bool isFavorite) async {}
 
   @override

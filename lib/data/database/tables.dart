@@ -64,6 +64,13 @@ class Books extends Table {
 
   /// The reader's own review text (Openreads `my_review`, schema v2).
   TextColumn get review => text().nullable()();
+
+  /// Open Library ID (Openreads `olid`, schema v3).
+  TextColumn get olid => text().nullable()();
+
+  /// When the book was moved to the trash; `null` = in the library
+  /// (Openreads soft delete, schema v3).
+  DateTimeColumn get deletedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }

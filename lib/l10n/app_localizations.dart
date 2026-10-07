@@ -1067,25 +1067,25 @@ abstract class AppLocalizations {
   /// No description provided for @deleteBook.
   ///
   /// In de, this message translates to:
-  /// **'Buch löschen'**
+  /// **'In den Papierkorb'**
   String get deleteBook;
 
   /// No description provided for @deleteBookTitle.
   ///
   /// In de, this message translates to:
-  /// **'„{title}“ löschen?'**
+  /// **'„{title}“ in den Papierkorb?'**
   String deleteBookTitle(String title);
 
   /// No description provided for @deleteBookBody.
   ///
   /// In de, this message translates to:
-  /// **'Das Buch wird samt Notizen, Tags und Lesesitzungen endgültig gelöscht.'**
+  /// **'Das Buch kann im Papierkorb wiederhergestellt oder endgültig gelöscht werden.'**
   String get deleteBookBody;
 
   /// No description provided for @bookDeleted.
   ///
   /// In de, this message translates to:
-  /// **'Buch gelöscht'**
+  /// **'Buch im Papierkorb'**
   String get bookDeleted;
 
   /// No description provided for @addFavorite.
@@ -1189,6 +1189,570 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'{read} von {target} Seiten'**
   String goalPagesProgress(int read, int target);
+
+  /// No description provided for @fieldDescription.
+  ///
+  /// In de, this message translates to:
+  /// **'Beschreibung'**
+  String get fieldDescription;
+
+  /// No description provided for @coverFromGallery.
+  ///
+  /// In de, this message translates to:
+  /// **'Aus Galerie'**
+  String get coverFromGallery;
+
+  /// No description provided for @coverFromCamera.
+  ///
+  /// In de, this message translates to:
+  /// **'Kamera'**
+  String get coverFromCamera;
+
+  /// No description provided for @coverRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'Cover entfernen'**
+  String get coverRemove;
+
+  /// No description provided for @sortModified.
+  ///
+  /// In de, this message translates to:
+  /// **'Geändert am'**
+  String get sortModified;
+
+  /// No description provided for @sortPages.
+  ///
+  /// In de, this message translates to:
+  /// **'Seitenzahl'**
+  String get sortPages;
+
+  /// No description provided for @sortPublicationYear.
+  ///
+  /// In de, this message translates to:
+  /// **'Erscheinungsjahr'**
+  String get sortPublicationYear;
+
+  /// No description provided for @sortStatus.
+  ///
+  /// In de, this message translates to:
+  /// **'Status'**
+  String get sortStatus;
+
+  /// No description provided for @sortLastRead.
+  ///
+  /// In de, this message translates to:
+  /// **'Zuletzt gelesen'**
+  String get sortLastRead;
+
+  /// No description provided for @sortStartDate.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesebeginn'**
+  String get sortStartDate;
+
+  /// No description provided for @sortFinishDate.
+  ///
+  /// In de, this message translates to:
+  /// **'Leseende'**
+  String get sortFinishDate;
+
+  /// No description provided for @showAsGrid.
+  ///
+  /// In de, this message translates to:
+  /// **'Rasteransicht'**
+  String get showAsGrid;
+
+  /// No description provided for @showAsList.
+  ///
+  /// In de, this message translates to:
+  /// **'Listenansicht'**
+  String get showAsList;
+
+  /// No description provided for @yearFilter.
+  ///
+  /// In de, this message translates to:
+  /// **'Jahr'**
+  String get yearFilter;
+
+  /// No description provided for @allYears.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Jahre'**
+  String get allYears;
+
+  /// No description provided for @bulkSetFormat.
+  ///
+  /// In de, this message translates to:
+  /// **'Format ändern'**
+  String get bulkSetFormat;
+
+  /// No description provided for @bulkSetAuthor.
+  ///
+  /// In de, this message translates to:
+  /// **'Autor ändern'**
+  String get bulkSetAuthor;
+
+  /// No description provided for @bulkDeleteTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'{count} Bücher in den Papierkorb?'**
+  String bulkDeleteTitle(int count);
+
+  /// No description provided for @moveToTrash.
+  ///
+  /// In de, this message translates to:
+  /// **'In den Papierkorb'**
+  String get moveToTrash;
+
+  /// No description provided for @moveToTrashBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Du kannst die Bücher im Papierkorb wiederherstellen.'**
+  String get moveToTrashBody;
+
+  /// No description provided for @movedToTrash.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Buch} other{{count} Bücher}} im Papierkorb'**
+  String movedToTrash(int count);
+
+  /// No description provided for @sessionEndDate.
+  ///
+  /// In de, this message translates to:
+  /// **'Leseende (optional)'**
+  String get sessionEndDate;
+
+  /// No description provided for @sessionEndDateHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Gleicher Tag – für mehrtägiges Lesen ein Enddatum wählen'**
+  String get sessionEndDateHint;
+
+  /// No description provided for @undo.
+  ///
+  /// In de, this message translates to:
+  /// **'Rückgängig'**
+  String get undo;
+
+  /// No description provided for @skip.
+  ///
+  /// In de, this message translates to:
+  /// **'Überspringen'**
+  String get skip;
+
+  /// No description provided for @quickRatingTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Wie hat dir das Buch gefallen?'**
+  String get quickRatingTitle;
+
+  /// No description provided for @olidLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Open-Library-ID'**
+  String get olidLabel;
+
+  /// No description provided for @dateAddedLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinzugefügt'**
+  String get dateAddedLabel;
+
+  /// No description provided for @dateModifiedLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Geändert'**
+  String get dateModifiedLabel;
+
+  /// No description provided for @trashTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Papierkorb'**
+  String get trashTitle;
+
+  /// No description provided for @trashEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Papierkorb ist leer'**
+  String get trashEmpty;
+
+  /// No description provided for @restore.
+  ///
+  /// In de, this message translates to:
+  /// **'Wiederherstellen'**
+  String get restore;
+
+  /// No description provided for @deleteForever.
+  ///
+  /// In de, this message translates to:
+  /// **'Endgültig löschen'**
+  String get deleteForever;
+
+  /// No description provided for @deleteForeverTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'„{title}“ endgültig löschen?'**
+  String deleteForeverTitle(String title);
+
+  /// No description provided for @deleteForeverBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Buch wird samt Notizen, Tags und Lesesitzungen unwiderruflich gelöscht.'**
+  String get deleteForeverBody;
+
+  /// No description provided for @emptyTrash.
+  ///
+  /// In de, this message translates to:
+  /// **'Papierkorb leeren'**
+  String get emptyTrash;
+
+  /// No description provided for @emptyTrashTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Papierkorb leeren?'**
+  String get emptyTrashTitle;
+
+  /// No description provided for @appearanceSection.
+  ///
+  /// In de, this message translates to:
+  /// **'Darstellung'**
+  String get appearanceSection;
+
+  /// No description provided for @materialYou.
+  ///
+  /// In de, this message translates to:
+  /// **'Material You'**
+  String get materialYou;
+
+  /// No description provided for @materialYouHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Systemfarben (Hintergrundbild) verwenden, wo verfügbar'**
+  String get materialYouHint;
+
+  /// No description provided for @accentColor.
+  ///
+  /// In de, this message translates to:
+  /// **'Akzentfarbe'**
+  String get accentColor;
+
+  /// No description provided for @accentColorDisabledHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Bei Material You nicht verfügbar'**
+  String get accentColorDisabledHint;
+
+  /// No description provided for @resetToDefault.
+  ///
+  /// In de, this message translates to:
+  /// **'Zurücksetzen'**
+  String get resetToDefault;
+
+  /// No description provided for @amoledDark.
+  ///
+  /// In de, this message translates to:
+  /// **'AMOLED-Dunkelmodus'**
+  String get amoledDark;
+
+  /// No description provided for @amoledDarkHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Reines Schwarz im dunklen Design'**
+  String get amoledDarkHint;
+
+  /// No description provided for @fontLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Schriftart'**
+  String get fontLabel;
+
+  /// No description provided for @ratingStyleLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Bewertung anzeigen als'**
+  String get ratingStyleLabel;
+
+  /// No description provided for @ratingAsBar.
+  ///
+  /// In de, this message translates to:
+  /// **'Sterne'**
+  String get ratingAsBar;
+
+  /// No description provided for @ratingAsNumber.
+  ///
+  /// In de, this message translates to:
+  /// **'Zahl'**
+  String get ratingAsNumber;
+
+  /// No description provided for @listLayoutLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Ansicht der Bibliothek'**
+  String get listLayoutLabel;
+
+  /// No description provided for @displayList.
+  ///
+  /// In de, this message translates to:
+  /// **'Liste'**
+  String get displayList;
+
+  /// No description provided for @displayCompactList.
+  ///
+  /// In de, this message translates to:
+  /// **'Kompakte Liste'**
+  String get displayCompactList;
+
+  /// No description provided for @displayGrid.
+  ///
+  /// In de, this message translates to:
+  /// **'Raster'**
+  String get displayGrid;
+
+  /// No description provided for @displayDetailedGrid.
+  ///
+  /// In de, this message translates to:
+  /// **'Detailliertes Raster'**
+  String get displayDetailedGrid;
+
+  /// No description provided for @booksSection.
+  ///
+  /// In de, this message translates to:
+  /// **'Bücher'**
+  String get booksSection;
+
+  /// No description provided for @defaultFormat.
+  ///
+  /// In de, this message translates to:
+  /// **'Standardformat'**
+  String get defaultFormat;
+
+  /// No description provided for @defaultStatus.
+  ///
+  /// In de, this message translates to:
+  /// **'Standardstatus'**
+  String get defaultStatus;
+
+  /// No description provided for @defaultTags.
+  ///
+  /// In de, this message translates to:
+  /// **'Standard-Tags'**
+  String get defaultTags;
+
+  /// No description provided for @defaultTagsHint.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =0{Keine} =1{1 Tag} other{{count} Tags}} für neue Bücher'**
+  String defaultTagsHint(int count);
+
+  /// No description provided for @downloadMissingCovers.
+  ///
+  /// In de, this message translates to:
+  /// **'Fehlende Cover laden'**
+  String get downloadMissingCovers;
+
+  /// No description provided for @downloadMissingCoversHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Lädt Cover nach, die nur als Link bekannt sind'**
+  String get downloadMissingCoversHint;
+
+  /// No description provided for @coversDownloading.
+  ///
+  /// In de, this message translates to:
+  /// **'Cover werden geladen …'**
+  String get coversDownloading;
+
+  /// No description provided for @coversNoneMissing.
+  ///
+  /// In de, this message translates to:
+  /// **'Es fehlen keine Cover'**
+  String get coversNoneMissing;
+
+  /// No description provided for @coversDownloaded.
+  ///
+  /// In de, this message translates to:
+  /// **'{ok} Cover geladen, {failed} nicht verfügbar'**
+  String coversDownloaded(int ok, int failed);
+
+  /// No description provided for @exportJsonHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Vollständiges Backup – lässt sich wiederherstellen'**
+  String get exportJsonHint;
+
+  /// No description provided for @exportCsvHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Felder, kompatibel mit dem Openreads-CSV-Import'**
+  String get exportCsvHint;
+
+  /// No description provided for @restoreBackup.
+  ///
+  /// In de, this message translates to:
+  /// **'Backup wiederherstellen / importieren'**
+  String get restoreBackup;
+
+  /// No description provided for @restoreBackupHint.
+  ///
+  /// In de, this message translates to:
+  /// **'OpenShelf-Backup, Openreads, Goodreads, StoryGraph, Bookwyrm …'**
+  String get restoreBackupHint;
+
+  /// No description provided for @sourceCode.
+  ///
+  /// In de, this message translates to:
+  /// **'Quellcode'**
+  String get sourceCode;
+
+  /// No description provided for @reportIssue.
+  ///
+  /// In de, this message translates to:
+  /// **'Fehler melden'**
+  String get reportIssue;
+
+  /// No description provided for @standardColors.
+  ///
+  /// In de, this message translates to:
+  /// **'Standard'**
+  String get standardColors;
+
+  /// No description provided for @customColor.
+  ///
+  /// In de, this message translates to:
+  /// **'Eigene Farbe'**
+  String get customColor;
+
+  /// No description provided for @finishedBooksByMonth.
+  ///
+  /// In de, this message translates to:
+  /// **'Gelesene Bücher pro Monat'**
+  String get finishedBooksByMonth;
+
+  /// No description provided for @finishedPagesByMonth.
+  ///
+  /// In de, this message translates to:
+  /// **'Gelesene Seiten pro Monat'**
+  String get finishedPagesByMonth;
+
+  /// No description provided for @averagesTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Durchschnitte & Rekorde'**
+  String get averagesTitle;
+
+  /// No description provided for @averageRating.
+  ///
+  /// In de, this message translates to:
+  /// **'Ø Bewertung'**
+  String get averageRating;
+
+  /// No description provided for @averagePages.
+  ///
+  /// In de, this message translates to:
+  /// **'Ø Seitenzahl'**
+  String get averagePages;
+
+  /// No description provided for @averageReadingTime.
+  ///
+  /// In de, this message translates to:
+  /// **'Ø Lesezeit'**
+  String get averageReadingTime;
+
+  /// No description provided for @longestBook.
+  ///
+  /// In de, this message translates to:
+  /// **'Längstes Buch'**
+  String get longestBook;
+
+  /// No description provided for @shortestBook.
+  ///
+  /// In de, this message translates to:
+  /// **'Kürzestes Buch'**
+  String get shortestBook;
+
+  /// No description provided for @fastestBook.
+  ///
+  /// In de, this message translates to:
+  /// **'Am schnellsten gelesen'**
+  String get fastestBook;
+
+  /// No description provided for @slowestBook.
+  ///
+  /// In de, this message translates to:
+  /// **'Am langsamsten gelesen'**
+  String get slowestBook;
+
+  /// No description provided for @pagesValue.
+  ///
+  /// In de, this message translates to:
+  /// **'{count} Seiten'**
+  String pagesValue(int count);
+
+  /// No description provided for @openLibrarySearch.
+  ///
+  /// In de, this message translates to:
+  /// **'Open-Library-Suche'**
+  String get openLibrarySearch;
+
+  /// No description provided for @olSearchHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Titel, Autor, ISBN oder OLID'**
+  String get olSearchHint;
+
+  /// No description provided for @olTypeGeneral.
+  ///
+  /// In de, this message translates to:
+  /// **'Allgemein'**
+  String get olTypeGeneral;
+
+  /// No description provided for @olTypeTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Titel'**
+  String get olTypeTitle;
+
+  /// No description provided for @olTypeAuthor.
+  ///
+  /// In de, this message translates to:
+  /// **'Autor'**
+  String get olTypeAuthor;
+
+  /// No description provided for @olTypeIsbn.
+  ///
+  /// In de, this message translates to:
+  /// **'ISBN'**
+  String get olTypeIsbn;
+
+  /// No description provided for @olTypeOlid.
+  ///
+  /// In de, this message translates to:
+  /// **'OLID'**
+  String get olTypeOlid;
+
+  /// No description provided for @olNoResults.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Treffer'**
+  String get olNoResults;
+
+  /// No description provided for @olEditions.
+  ///
+  /// In de, this message translates to:
+  /// **'Ausgaben'**
+  String get olEditions;
+
+  /// No description provided for @search.
+  ///
+  /// In de, this message translates to:
+  /// **'Suchen'**
+  String get search;
+
+  /// No description provided for @lendingHistory.
+  ///
+  /// In de, this message translates to:
+  /// **'Frühere Leihen ({count})'**
+  String lendingHistory(int count);
 }
 
 class _AppLocalizationsDelegate

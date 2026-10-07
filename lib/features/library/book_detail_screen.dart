@@ -8,12 +8,16 @@ import 'package:openreads/features/lending/lending_cubit.dart';
 import 'package:openreads/domain/repositories/notes_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:openreads/features/common/status_label.dart';
+import 'package:openreads/domain/models/app_preferences.dart';
+import 'package:openreads/features/common/widgets/book_cover.dart';
 import 'package:openreads/features/library/add_book_screen.dart';
+import 'package:openreads/features/library/similar_books_screen.dart';
+import 'package:openreads/features/library/widgets/rating_display.dart';
+import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/notes/notes_screen.dart';
 import 'package:openreads/features/reading/reading_screen.dart';
 import 'package:openreads/features/tags/tags_screen.dart';
 import 'package:openreads/features/library/library_cubit.dart';
-import 'package:openreads/features/library/widgets/rating_control.dart';
 import 'package:openreads/features/library/widgets/verification_badge.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
@@ -78,7 +82,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               backgroundColor: Theme.of(dialogContext).colorScheme.error,
               foregroundColor: Theme.of(dialogContext).colorScheme.onError,
             ),
-            child: Text(l10n.delete),
+            child: Text(l10n.moveToTrash),
           ),
         ],
       ),
@@ -89,12 +93,46 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     await cubit.deleteBook(book.id);
-    messenger.showSnackBar(SnackBar(content: Text(l10n.bookDeleted)));
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.bookDeleted),
+        action: SnackBarAction(
+          label: l10n.undo,
+          onPressed: () => cubit.restoreBook(book.id),
+        ),
+      ),
+    );
     if (widget.onDeleted != null) {
       widget.onDeleted!();
     } else {
       navigator.pop();
     }
+  }
+
+  /// The preferred rating style. With [watch] the screen rebuilds when the
+  /// setting changes; without a settings cubit the star bar is used.
+  RatingDisplay _ratingDisplay(BuildContext context, {bool watch = false}) {
+    try {
+      final settings = watch
+          ? context.watch<SettingsCubit>()
+          : context.read<SettingsCubit>();
+      return settings.state.ratingDisplay;
+    } catch (_) {
+      return RatingDisplay.bar;
+    }
+  }
+
+  Future<void> _quickRate(Book book) async {
+    final rating = await showDialog<double>(
+      context: context,
+      builder: (_) => _QuickRatingDialog(display: _ratingDisplay(context)),
+    );
+    if (rating == null || rating <= 0 || !mounted) return;
+    await context.read<LibraryCubit>().setRating(
+      book.id,
+      normalizeRating(rating),
+    );
+    await _load();
   }
 
   Future<void> _editReview(Book book) async {
@@ -144,6 +182,16 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          Center(
+            child: BookCover(
+              book: book,
+              width: 140,
+              height: 200,
+              iconSize: 48,
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          const SizedBox(height: 12),
           Center(child: VerificationBadge(book: book)),
           const SizedBox(height: 8),
           if (book.subtitle != null)
@@ -152,13 +200,38 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
           const SizedBox(height: 8),
-          Text(book.authors.join(', ')),
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final author in book.authors)
+                ActionChip(
+                  key: ValueKey('author-chip:$author'),
+                  avatar: const Icon(Icons.person_outline, size: 16),
+                  label: Text(author),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => SimilarBooksScreen.byAuthor(author),
+                    ),
+                  ),
+                ),
+            ],
+          ),
           const SizedBox(height: 16),
           _MetadataTable(book: book),
+          if (book.description != null && book.description!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text(
+              l10n.fieldDescription,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 4),
+            Text(book.description!, key: const ValueKey('book-description')),
+          ],
           const SizedBox(height: 24),
           Text(l10n.ratingLabel, style: Theme.of(context).textTheme.titleSmall),
-          RatingControl(
+          RatingEditor(
             value: book.rating,
+            display: _ratingDisplay(context, watch: true),
             // Tapping the star that is already selected clears the rating.
             onChanged: (v) async {
               await context.read<LibraryCubit>().setRating(
@@ -182,6 +255,13 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               if (s == null) return;
               await context.read<LibraryCubit>().setStatus(book.id, s);
               await _load();
+              // Finishing an unrated book offers a quick rating (legacy).
+              if (s == BookStatus.read &&
+                  book.status != BookStatus.read &&
+                  book.rating == 0 &&
+                  mounted) {
+                await _quickRate(book);
+              }
             },
           ),
           if (book.status == BookStatus.wishlist) ...[
@@ -203,8 +283,46 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           _NotesTile(bookId: book.id),
           const SizedBox(height: 24),
           _LendingSection(bookId: book.id),
+          _LendingHistory(bookId: book.id),
         ],
       ),
+    );
+  }
+}
+
+/// Rating prompt shown when an unrated book is marked as read.
+class _QuickRatingDialog extends StatefulWidget {
+  final RatingDisplay display;
+  const _QuickRatingDialog({required this.display});
+
+  @override
+  State<_QuickRatingDialog> createState() => _QuickRatingDialogState();
+}
+
+class _QuickRatingDialogState extends State<_QuickRatingDialog> {
+  double _value = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      key: const ValueKey('quick-rating'),
+      title: Text(l10n.quickRatingTitle),
+      content: RatingEditor(
+        value: _value,
+        display: widget.display,
+        onChanged: (v) => setState(() => _value = v),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.skip),
+        ),
+        FilledButton(
+          onPressed: _value <= 0 ? null : () => Navigator.pop(context, _value),
+          child: Text(l10n.save),
+        ),
+      ],
     );
   }
 }
@@ -340,7 +458,17 @@ class _TagsSection extends StatelessWidget {
                           spacing: 8,
                           runSpacing: 4,
                           children: [
-                            for (final tag in tags) Chip(label: Text(tag.name)),
+                            for (final tag in tags)
+                              ActionChip(
+                                key: ValueKey('tag-chip:${tag.id}'),
+                                label: Text(tag.name),
+                                onPressed: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        SimilarBooksScreen.byTag(tag),
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                 ),
@@ -389,6 +517,9 @@ class _MetadataTable extends StatelessWidget {
   final Book book;
   const _MetadataTable({required this.book});
 
+  static String _date(BuildContext context, DateTime date) =>
+      MaterialLocalizations.of(context).formatMediumDate(date);
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -401,6 +532,9 @@ class _MetadataTable extends StatelessWidget {
       (l10n.languageLabel, book.language),
       (l10n.formatLabel, book.format?.name),
       (l10n.seriesVolumeLabel, book.seriesVolume?.toString()),
+      (l10n.olidLabel, book.olid),
+      (l10n.dateAddedLabel, _date(context, book.createdAt)),
+      (l10n.dateModifiedLabel, _date(context, book.updatedAt)),
     ];
     return Table(
       columnWidths: const {0: FixedColumnWidth(120)},
@@ -450,6 +584,45 @@ class _LendingSection extends StatelessWidget {
           );
         }
         return _LendForm(bookId: bookId);
+      },
+    );
+  }
+}
+
+/// Past lendings of the book (returned ones), collapsed by default.
+class _LendingHistory extends StatelessWidget {
+  final int bookId;
+  const _LendingHistory({required this.bookId});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final dates = MaterialLocalizations.of(context);
+    return StreamBuilder<List<LendingData>>(
+      stream: context.read<LendingCubit>().history(bookId),
+      builder: (context, snapshot) {
+        final returned = [
+          for (final l in snapshot.data ?? const <LendingData>[])
+            if (l.returnedAt != null) l,
+        ];
+        if (returned.isEmpty) return const SizedBox.shrink();
+        return ExpansionTile(
+          key: const ValueKey('lending-history'),
+          tilePadding: EdgeInsets.zero,
+          leading: const Icon(Icons.history),
+          title: Text(l10n.lendingHistory(returned.length)),
+          children: [
+            for (final l in returned)
+              ListTile(
+                dense: true,
+                title: Text(l.borrowerName),
+                subtitle: Text(
+                  '${dates.formatMediumDate(l.lentAt)} – '
+                  '${dates.formatMediumDate(l.returnedAt!)}',
+                ),
+              ),
+          ],
+        );
       },
     );
   }

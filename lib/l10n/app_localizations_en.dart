@@ -585,19 +585,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get movedToLibrary => 'Added to library';
 
   @override
-  String get deleteBook => 'Delete book';
+  String get deleteBook => 'Move to trash';
 
   @override
   String deleteBookTitle(String title) {
-    return 'Delete “$title”?';
+    return 'Move “$title” to the trash?';
   }
 
   @override
   String get deleteBookBody =>
-      'The book will be permanently deleted together with its notes, tags and reading sessions.';
+      'You can restore the book from the trash or delete it permanently.';
 
   @override
-  String get bookDeleted => 'Book deleted';
+  String get bookDeleted => 'Book moved to the trash';
 
   @override
   String get addFavorite => 'Add to favorites';
@@ -650,5 +650,320 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String goalPagesProgress(int read, int target) {
     return '$read of $target pages';
+  }
+
+  @override
+  String get fieldDescription => 'Description';
+
+  @override
+  String get coverFromGallery => 'From gallery';
+
+  @override
+  String get coverFromCamera => 'Camera';
+
+  @override
+  String get coverRemove => 'Remove cover';
+
+  @override
+  String get sortModified => 'Date modified';
+
+  @override
+  String get sortPages => 'Page count';
+
+  @override
+  String get sortPublicationYear => 'Publication year';
+
+  @override
+  String get sortStatus => 'Status';
+
+  @override
+  String get sortLastRead => 'Last read';
+
+  @override
+  String get sortStartDate => 'Start date';
+
+  @override
+  String get sortFinishDate => 'Finish date';
+
+  @override
+  String get showAsGrid => 'Grid view';
+
+  @override
+  String get showAsList => 'List view';
+
+  @override
+  String get yearFilter => 'Year';
+
+  @override
+  String get allYears => 'All years';
+
+  @override
+  String get bulkSetFormat => 'Change format';
+
+  @override
+  String get bulkSetAuthor => 'Change author';
+
+  @override
+  String bulkDeleteTitle(int count) {
+    return 'Move $count books to the trash?';
+  }
+
+  @override
+  String get moveToTrash => 'Move to trash';
+
+  @override
+  String get moveToTrashBody => 'You can restore the books from the trash.';
+
+  @override
+  String movedToTrash(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count books',
+      one: '1 book',
+    );
+    return '$_temp0 moved to the trash';
+  }
+
+  @override
+  String get sessionEndDate => 'Finish date (optional)';
+
+  @override
+  String get sessionEndDateHint =>
+      'Same day – pick an end date for multi-day readings';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get quickRatingTitle => 'How did you like the book?';
+
+  @override
+  String get olidLabel => 'Open Library ID';
+
+  @override
+  String get dateAddedLabel => 'Added';
+
+  @override
+  String get dateModifiedLabel => 'Modified';
+
+  @override
+  String get trashTitle => 'Trash';
+
+  @override
+  String get trashEmpty => 'The trash is empty';
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String get deleteForever => 'Delete permanently';
+
+  @override
+  String deleteForeverTitle(String title) {
+    return 'Delete “$title” permanently?';
+  }
+
+  @override
+  String get deleteForeverBody =>
+      'The book will be deleted irrevocably together with its notes, tags and reading sessions.';
+
+  @override
+  String get emptyTrash => 'Empty trash';
+
+  @override
+  String get emptyTrashTitle => 'Empty the trash?';
+
+  @override
+  String get appearanceSection => 'Appearance';
+
+  @override
+  String get materialYou => 'Material You';
+
+  @override
+  String get materialYouHint =>
+      'Use system (wallpaper) colours where available';
+
+  @override
+  String get accentColor => 'Accent colour';
+
+  @override
+  String get accentColorDisabledHint => 'Not available with Material You';
+
+  @override
+  String get resetToDefault => 'Reset';
+
+  @override
+  String get amoledDark => 'AMOLED dark mode';
+
+  @override
+  String get amoledDarkHint => 'Pure black in the dark theme';
+
+  @override
+  String get fontLabel => 'Font';
+
+  @override
+  String get ratingStyleLabel => 'Show rating as';
+
+  @override
+  String get ratingAsBar => 'Stars';
+
+  @override
+  String get ratingAsNumber => 'Number';
+
+  @override
+  String get listLayoutLabel => 'Library layout';
+
+  @override
+  String get displayList => 'List';
+
+  @override
+  String get displayCompactList => 'Compact list';
+
+  @override
+  String get displayGrid => 'Grid';
+
+  @override
+  String get displayDetailedGrid => 'Detailed grid';
+
+  @override
+  String get booksSection => 'Books';
+
+  @override
+  String get defaultFormat => 'Default format';
+
+  @override
+  String get defaultStatus => 'Default status';
+
+  @override
+  String get defaultTags => 'Default tags';
+
+  @override
+  String defaultTagsHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tags',
+      one: '1 tag',
+      zero: 'No tags',
+    );
+    return '$_temp0 for new books';
+  }
+
+  @override
+  String get downloadMissingCovers => 'Download missing covers';
+
+  @override
+  String get downloadMissingCoversHint =>
+      'Fetches covers that are only known by link';
+
+  @override
+  String get coversDownloading => 'Downloading covers …';
+
+  @override
+  String get coversNoneMissing => 'No covers are missing';
+
+  @override
+  String coversDownloaded(int ok, int failed) {
+    return '$ok covers downloaded, $failed unavailable';
+  }
+
+  @override
+  String get exportJsonHint => 'Full backup – can be restored';
+
+  @override
+  String get exportCsvHint =>
+      'All fields, compatible with the Openreads CSV import';
+
+  @override
+  String get restoreBackup => 'Restore backup / import';
+
+  @override
+  String get restoreBackupHint =>
+      'OpenShelf backup, Openreads, Goodreads, StoryGraph, Bookwyrm …';
+
+  @override
+  String get sourceCode => 'Source code';
+
+  @override
+  String get reportIssue => 'Report an issue';
+
+  @override
+  String get standardColors => 'Standard';
+
+  @override
+  String get customColor => 'Custom colour';
+
+  @override
+  String get finishedBooksByMonth => 'Books finished per month';
+
+  @override
+  String get finishedPagesByMonth => 'Pages finished per month';
+
+  @override
+  String get averagesTitle => 'Averages & records';
+
+  @override
+  String get averageRating => 'Average rating';
+
+  @override
+  String get averagePages => 'Average pages';
+
+  @override
+  String get averageReadingTime => 'Average reading time';
+
+  @override
+  String get longestBook => 'Longest book';
+
+  @override
+  String get shortestBook => 'Shortest book';
+
+  @override
+  String get fastestBook => 'Read fastest';
+
+  @override
+  String get slowestBook => 'Read slowest';
+
+  @override
+  String pagesValue(int count) {
+    return '$count pages';
+  }
+
+  @override
+  String get openLibrarySearch => 'Open Library search';
+
+  @override
+  String get olSearchHint => 'Title, author, ISBN or OLID';
+
+  @override
+  String get olTypeGeneral => 'General';
+
+  @override
+  String get olTypeTitle => 'Title';
+
+  @override
+  String get olTypeAuthor => 'Author';
+
+  @override
+  String get olTypeIsbn => 'ISBN';
+
+  @override
+  String get olTypeOlid => 'OLID';
+
+  @override
+  String get olNoResults => 'No results';
+
+  @override
+  String get olEditions => 'Editions';
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String lendingHistory(int count) {
+    return 'Past lendings ($count)';
   }
 }

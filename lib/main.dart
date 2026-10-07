@@ -1,18 +1,21 @@
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/core/dependency_injection.dart';
+import 'package:openreads/core/themes/app_theme.dart';
+import 'package:openreads/data/cover/cover_cache_service.dart';
+import 'package:openreads/data/cover/cover_picker.dart';
+import 'package:openreads/domain/services/cover_sync_service.dart';
+import 'package:openreads/features/trash/trash_cubit.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/data/importers/book_importer.dart';
-import 'package:openreads/data/importers/bookstats_csv_importer.dart';
-import 'package:openreads/data/importers/bookstats_json_importer.dart';
-import 'package:openreads/data/importers/goodreads_csv_importer.dart';
-import 'package:openreads/data/importers/openreads_csv_importer.dart';
-import 'package:openreads/data/importers/openreads_json_importer.dart';
-import 'package:openreads/data/importers/storygraph_csv_importer.dart';
+import 'package:openreads/data/importers/importers.dart';
 import 'package:openreads/data/metadata/dnb_client.dart';
 import 'package:openreads/data/metadata/google_books_client.dart';
 import 'package:openreads/data/metadata/open_library_client.dart';
+import 'package:openreads/data/metadata/open_library_search_client.dart';
 import 'package:openreads/domain/services/import_service.dart';
 import 'package:openreads/domain/services/metadata_aggregator_service.dart';
 import 'package:openreads/domain/services/metadata_lookup_queue.dart';
@@ -44,16 +47,16 @@ void main() async {
     OpenLibraryClient(),
   ]);
 
-  final importers = [
-    OpenreadsCsvImporter(),
-    OpenreadsJsonImporter(),
-    GoodreadsCsvImporter(),
-    StoryGraphCsvImporter(),
-    BookstatsCsvImporter(),
-    BookstatsJsonImporter(),
-  ];
+  final importers = defaultImporters();
 
-  final importService = ImportService(deps.bookRepository);
+  final coverCache = CoverCacheService(
+    baseDirectory: await getApplicationDocumentsDirectory(),
+  );
+  final coverSync = CoverSyncService(deps.bookRepository, coverCache);
+  final importService = ImportService(
+    deps.bookRepository,
+    coverCache: coverCache,
+  );
   final lookupQueue = MetadataLookupQueue(aggregator);
   final settingsCubit = SettingsCubit(deps.settingsRepository);
   await settingsCubit.load();
@@ -66,6 +69,8 @@ void main() async {
       importService: importService,
       lookupQueue: lookupQueue,
       settingsCubit: settingsCubit,
+      coverCache: coverCache,
+      coverSync: coverSync,
     ),
   );
 }
@@ -77,8 +82,11 @@ class OpenShelfApp extends StatelessWidget {
   final ImportService importService;
   final MetadataLookupQueue lookupQueue;
   final SettingsCubit settingsCubit;
+  final CoverCacheService coverCache;
+  final CoverSyncService coverSync;
+  final CoverPicker coverPicker;
 
-  const OpenShelfApp({
+  OpenShelfApp({
     super.key,
     required this.deps,
     required this.aggregator,
@@ -86,7 +94,10 @@ class OpenShelfApp extends StatelessWidget {
     required this.importService,
     required this.lookupQueue,
     required this.settingsCubit,
-  });
+    required this.coverCache,
+    required this.coverSync,
+    CoverPicker? coverPicker,
+  }) : coverPicker = coverPicker ?? ImagePickerCoverPicker();
 
   @override
   Widget build(BuildContext context) {
@@ -103,6 +114,10 @@ class OpenShelfApp extends StatelessWidget {
         RepositoryProvider.value(value: deps.tagRepository),
         RepositoryProvider.value(value: deps.goalRepository),
         RepositoryProvider.value(value: deps.readingTracker),
+        RepositoryProvider.value(value: coverCache),
+        RepositoryProvider(create: (_) => OpenLibrarySearchClient()),
+        RepositoryProvider.value(value: coverSync),
+        RepositoryProvider<CoverPicker>.value(value: coverPicker),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -110,7 +125,12 @@ class OpenShelfApp extends StatelessWidget {
             create: (_) => LibraryCubit(
               deps.bookRepository,
               tagRepository: deps.tagRepository,
+              readingRepository: deps.readingRepository,
             ),
+          ),
+          BlocProvider(
+            create: (_) =>
+                TrashCubit(deps.bookRepository, coverCache: coverCache),
           ),
           BlocProvider(create: (_) => TagsCubit(deps.tagRepository)..load()),
           BlocProvider(
@@ -134,25 +154,33 @@ class OpenShelfApp extends StatelessWidget {
         ],
         child: BlocBuilder<SettingsCubit, SettingsState>(
           builder: (context, state) {
-            return MaterialApp(
-              onGenerateTitle: (context) =>
-                  AppLocalizations.of(context).appTitle,
-              locale: Locale(state.localeCode),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              themeMode: state.themeMode,
-              theme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-                useMaterial3: true,
-              ),
-              darkTheme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: Colors.teal,
-                  brightness: Brightness.dark,
-                ),
-                useMaterial3: true,
-              ),
-              home: const HomeShell(),
+            // DynamicColorBuilder yields the wallpaper colours on platforms
+            // that have them (Android 12+), otherwise nulls.
+            return DynamicColorBuilder(
+              builder: (lightDynamic, darkDynamic) {
+                ThemeData theme(Brightness brightness) => buildAppTheme(
+                  brightness: brightness,
+                  accentColor: state.accentColor,
+                  materialYou: state.materialYou,
+                  dynamicScheme: brightness == Brightness.light
+                      ? lightDynamic
+                      : darkDynamic,
+                  amoled: state.amoled,
+                  fontFamily: state.fontFamily,
+                );
+                return MaterialApp(
+                  onGenerateTitle: (context) =>
+                      AppLocalizations.of(context).appTitle,
+                  locale: Locale(state.localeCode),
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
+                  supportedLocales: AppLocalizations.supportedLocales,
+                  themeMode: state.themeMode,
+                  theme: theme(Brightness.light),
+                  darkTheme: theme(Brightness.dark),
+                  home: const HomeShell(),
+                );
+              },
             );
           },
         ),

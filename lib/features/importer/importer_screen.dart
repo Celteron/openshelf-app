@@ -23,14 +23,23 @@ class _ImporterScreenState extends State<ImporterScreen> {
     final bytes = file.bytes;
     if (bytes == null) return;
 
-    final type = file.name.toLowerCase().endsWith('.json')
+    // ZIP archives (legacy Openreads backups) start with "PK".
+    final isZip = bytes.length > 3 && bytes[0] == 0x50 && bytes[1] == 0x4B;
+    final lower = file.name.toLowerCase();
+    final type = isZip
+        ? ImportFileType.zip
+        : lower.endsWith('.json')
         ? ImportFileType.json
         : ImportFileType.csv;
-    final content = decodeImportBytes(bytes);
 
     if (!mounted) return;
     context.read<ImporterCubit>().selectFile(
-      ImportFile(name: file.name, content: content, type: type),
+      ImportFile(
+        name: file.name,
+        content: isZip ? '' : decodeImportBytes(bytes),
+        type: type,
+        bytes: isZip ? bytes : null,
+      ),
     );
   }
 

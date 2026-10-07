@@ -365,8 +365,8 @@
   },
   "moveToLibrary": "In Bestand übernehmen",
   "movedToLibrary": "Zum Bestand hinzugefügt",
-  "deleteBook": "Buch löschen",
-  "deleteBookTitle": "„{title}“ löschen?",
+  "deleteBook": "In den Papierkorb",
+  "deleteBookTitle": "„{title}“ in den Papierkorb?",
   "@deleteBookTitle": {
     "placeholders": {
       "title": {
@@ -374,8 +374,8 @@
       }
     }
   },
-  "deleteBookBody": "Das Buch wird samt Notizen, Tags und Lesesitzungen endgültig gelöscht.",
-  "bookDeleted": "Buch gelöscht",
+  "deleteBookBody": "Das Buch kann im Papierkorb wiederhergestellt oder endgültig gelöscht werden.",
+  "bookDeleted": "Buch im Papierkorb",
   "addFavorite": "Zu Favoriten hinzufügen",
   "removeFavorite": "Aus Favoriten entfernen",
   "favoritesFilter": "Favoriten",
@@ -399,6 +399,152 @@
         "type": "int"
       },
       "target": {
+        "type": "int"
+      }
+    }
+  },
+  "fieldDescription": "Beschreibung",
+  "coverFromGallery": "Aus Galerie",
+  "coverFromCamera": "Kamera",
+  "coverRemove": "Cover entfernen",
+  "sortModified": "Geändert am",
+  "sortPages": "Seitenzahl",
+  "sortPublicationYear": "Erscheinungsjahr",
+  "sortStatus": "Status",
+  "sortLastRead": "Zuletzt gelesen",
+  "sortStartDate": "Lesebeginn",
+  "sortFinishDate": "Leseende",
+  "showAsGrid": "Rasteransicht",
+  "showAsList": "Listenansicht",
+  "yearFilter": "Jahr",
+  "allYears": "Alle Jahre",
+  "bulkSetFormat": "Format ändern",
+  "bulkSetAuthor": "Autor ändern",
+  "bulkDeleteTitle": "{count} Bücher in den Papierkorb?",
+  "@bulkDeleteTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moveToTrash": "In den Papierkorb",
+  "moveToTrashBody": "Du kannst die Bücher im Papierkorb wiederherstellen.",
+  "movedToTrash": "{count, plural, =1{1 Buch} other{{count} Bücher}} im Papierkorb",
+  "@movedToTrash": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionEndDate": "Leseende (optional)",
+  "sessionEndDateHint": "Gleicher Tag – für mehrtägiges Lesen ein Enddatum wählen",
+  "undo": "Rückgängig",
+  "skip": "Überspringen",
+  "quickRatingTitle": "Wie hat dir das Buch gefallen?",
+  "olidLabel": "Open-Library-ID",
+  "dateAddedLabel": "Hinzugefügt",
+  "dateModifiedLabel": "Geändert",
+  "trashTitle": "Papierkorb",
+  "trashEmpty": "Der Papierkorb ist leer",
+  "restore": "Wiederherstellen",
+  "deleteForever": "Endgültig löschen",
+  "deleteForeverTitle": "„{title}“ endgültig löschen?",
+  "@deleteForeverTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteForeverBody": "Das Buch wird samt Notizen, Tags und Lesesitzungen unwiderruflich gelöscht.",
+  "emptyTrash": "Papierkorb leeren",
+  "emptyTrashTitle": "Papierkorb leeren?",
+  "appearanceSection": "Darstellung",
+  "materialYou": "Material You",
+  "materialYouHint": "Systemfarben (Hintergrundbild) verwenden, wo verfügbar",
+  "accentColor": "Akzentfarbe",
+  "accentColorDisabledHint": "Bei Material You nicht verfügbar",
+  "resetToDefault": "Zurücksetzen",
+  "amoledDark": "AMOLED-Dunkelmodus",
+  "amoledDarkHint": "Reines Schwarz im dunklen Design",
+  "fontLabel": "Schriftart",
+  "ratingStyleLabel": "Bewertung anzeigen als",
+  "ratingAsBar": "Sterne",
+  "ratingAsNumber": "Zahl",
+  "listLayoutLabel": "Ansicht der Bibliothek",
+  "displayList": "Liste",
+  "displayCompactList": "Kompakte Liste",
+  "displayGrid": "Raster",
+  "displayDetailedGrid": "Detailliertes Raster",
+  "booksSection": "Bücher",
+  "defaultFormat": "Standardformat",
+  "defaultStatus": "Standardstatus",
+  "defaultTags": "Standard-Tags",
+  "defaultTagsHint": "{count, plural, =0{Keine} =1{1 Tag} other{{count} Tags}} für neue Bücher",
+  "@defaultTagsHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadMissingCovers": "Fehlende Cover laden",
+  "downloadMissingCoversHint": "Lädt Cover nach, die nur als Link bekannt sind",
+  "coversDownloading": "Cover werden geladen …",
+  "coversNoneMissing": "Es fehlen keine Cover",
+  "coversDownloaded": "{ok} Cover geladen, {failed} nicht verfügbar",
+  "@coversDownloaded": {
+    "placeholders": {
+      "ok": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "exportJsonHint": "Vollständiges Backup – lässt sich wiederherstellen",
+  "exportCsvHint": "Alle Felder, kompatibel mit dem Openreads-CSV-Import",
+  "restoreBackup": "Backup wiederherstellen / importieren",
+  "restoreBackupHint": "OpenShelf-Backup, Openreads, Goodreads, StoryGraph, Bookwyrm …",
+  "sourceCode": "Quellcode",
+  "reportIssue": "Fehler melden",
+  "standardColors": "Standard",
+  "customColor": "Eigene Farbe",
+  "finishedBooksByMonth": "Gelesene Bücher pro Monat",
+  "finishedPagesByMonth": "Gelesene Seiten pro Monat",
+  "averagesTitle": "Durchschnitte & Rekorde",
+  "averageRating": "Ø Bewertung",
+  "averagePages": "Ø Seitenzahl",
+  "averageReadingTime": "Ø Lesezeit",
+  "longestBook": "Längstes Buch",
+  "shortestBook": "Kürzestes Buch",
+  "fastestBook": "Am schnellsten gelesen",
+  "slowestBook": "Am langsamsten gelesen",
+  "pagesValue": "{count} Seiten",
+  "@pagesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "openLibrarySearch": "Open-Library-Suche",
+  "olSearchHint": "Titel, Autor, ISBN oder OLID",
+  "olTypeGeneral": "Allgemein",
+  "olTypeTitle": "Titel",
+  "olTypeAuthor": "Autor",
+  "olTypeIsbn": "ISBN",
+  "olTypeOlid": "OLID",
+  "olNoResults": "Keine Treffer",
+  "olEditions": "Ausgaben",
+  "search": "Suchen",
+  "lendingHistory": "Frühere Leihen ({count})",
+  "@lendingHistory": {
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }

@@ -1,123 +1,42 @@
-# Legacy Parity Audit — Openreads (Phase 0) vs. OpenShelf (Phase 1 + 2)
+# Legacy Parity Audit — Openreads (Phase 0) vs. OpenShelf
 
-**Date**: 2026-10-07 · **Baseline (Phase 0)**: upstream commit `74b613b0` (`git show 74b613b0:lib/...`)
-**Method**: legacy features were derived from the upstream *source* (enums, screens, `LocaleKeys` used per screen,
-models, backup helpers), not from documentation. Each row was checked against the OpenShelf code at `HEAD`.
+**Baseline**: upstream `74b613b0`. **Status after the parity pass**: every Openreads capability is covered or
+extended, except the documented exceptions in §3. Legend: ✅ covered · ➕ OpenShelf extension · ⛔ exception.
 
-Legend: ✅ covered · 🟡 partial · ❌ missing · ➕ OpenShelf extension
+## 1. Covered (evidence in code and tests)
 
-## Verdict
+| Legacy capability | OpenShelf |
+|---|---|
+| Add/edit book, all fields, 4 formats, description | `add_book_screen` (+ description, cover, Open Library id) ✅ |
+| Statuses (4) | 6 statuses incl. wishlist ➕ |
+| **Trash: soft delete, restore, purge** | `deleted_at` (schema v3), `TrashScreen`, undo snackbar ✅ |
+| Favourite, review, notes, tags, default tags | ✅ (notes + quotes, relational tags) ➕ |
+| Rating bar **or** number | `RatingDisplay` setting ✅ |
+| Quick rating when finishing | dialog on status → read ✅ |
+| Reading dates, several readings, custom time | sessions with optional end date, import of `readings` ✅ |
+| Date added / modified, OLID | shown in detail, stored, exported ✅ |
+| **Covers**: camera/gallery, Open Library, cache, download missing | `CoverCacheService`, `BookCover`, picker, settings action ✅ |
+| Open Library search (general/title/author/ISBN/OLID), editions | `OpenLibrarySearchScreen` ✅ |
+| Similar books (author / tag) | `SimilarBooksScreen` ✅ |
+| **Sorting**: all 9 Openreads + 3 more | 12 criteria with direction ✅ |
+| **Display types**: list, compact, grid, detailed grid | toggle + settings ✅ |
+| Year filter, tag filter, favourites filter | ✅ |
+| Bulk edit: format, author, delete | + location ➕ |
+| **Statistics**: by status, challenge (books + pages), by month, year selector, averages, longest/shortest/fastest/slowest | ✅ (+ reading speed, top locations/authors ➕) |
+| Challenge books **or** pages | pages-only goals ✅ |
+| Theme, accent colour, Material You, AMOLED, 15 fonts | ✅ |
+| Import: Openreads CSV/JSON, Goodreads, Bookwyrm, legacy `.backup` ZIP (v4/v5) | ✅ + StoryGraph, Bookstats ➕ |
+| **Export/backup + restore** | full JSON backup with restore round trip, full CSV (Openreads columns first) ✅ |
 
-**OpenShelf is not yet a 100 % functional superset of Openreads Phase 0.** All *data* of the legacy model is
-representable except the Open Library ID, and the core library, tags, notes, favourites, reviews, yearly challenge
-and import paths are covered or extended. But a number of legacy *UI features* have no counterpart: **cover images,
-Open Library search/editions/covers, display types (grid), trash/restore, backup & restore, statistics charts,
-appearance settings, and most localizations.** These are listed in §9 as a prioritized backlog.
+## 2. OpenShelf extensions (Phase 1 + 2)
 
-Two items on the requested parity list are not Phase 0 features at all: the **reading timer** and **quotes** do not
-exist in upstream (confirmed in `spec.md` §1); they are OpenShelf additions.
+DNB + Google Books + Open Library pipeline, location hierarchy, batch scanner with staging shelf (with covers),
+lending tracker (one active lending, history), reading timer/sessions, duplicate-safe re-import, schema v3 migrations.
 
-## 1. Books (CRUD & data model)
+## 3. Documented exceptions (not at parity)
 
-| Legacy capability (upstream evidence) | OpenShelf | Status |
-|---|---|---|
-| Add / edit book: title, subtitle, author, description, pages, publication year, ISBN, format (`add_book_screen`) | `features/library/add_book_screen.dart` | ✅ |
-| Four formats (paperback/hardcover/ebook/audiobook) | `BookFormat` enum, same four | ✅ |
-| Statuses finished / in progress / for later / unfinished (`BookStatus`) | `BookStatus`: unread, reading, read, dnf, wishlist, reReading (+ wishlist → library flow) | ✅ ➕ |
-| Delete book | Confirmation dialog, hard delete with cascade (`BookRepository.deleteBook`) | ✅ |
-| **Trash: soft delete, restore (`deleted` flag, `trash_screen`)** | none — deletion is permanent | ❌ |
-| Favourite (`like_button`, `favourite`) | heart toggle, favourites filter (`isFavorite`) | ✅ |
-| Rating, 0.5 steps (`rating` ×10) | `RatingControl`, 0.0–5.0 in 0.5 steps, tap-to-clear | ✅ |
-| Rating shown as bar **or** number (`RatingType`) | bar only | ❌ |
-| Review (`my_review`) | `Books.review`, editable in detail | ✅ |
-| Notes (single text) | multiple notes **and quotes** with page numbers + copy | ✅ ➕ |
-| Tags (comma string, filter chips, default tags) | relational tags, management screen, AND filter chips; **default tags setting missing** | ✅ ➕ / ❌ default |
-| Reading dates, multiple readings, custom reading time (`Reading`) | reading sessions (start, end, duration, pages), `finishedAt`; legacy readings import as sessions. **No per-reading start/finish date editor** | 🟡 ➕ |
-| Date added / modified shown on the book page | stored (`createdAt`/`updatedAt`), sortable by *added*, **not displayed** | 🟡 |
-| Open Library ID (`olid`) | no column; not imported | ❌ |
-| **Cover images**: camera/gallery/Open Library cover, crop, blurhash (`cover_view_edit`, `search_covers_screen`) | only `coverUrl` is stored; the list/detail show a placeholder icon; `CoverCacheService` exists but is not wired to any screen | ❌ |
-
-## 2. Lookup & search
-
-| Legacy | OpenShelf | Status |
-|---|---|---|
-| Manual ISBN lookup (Open Library) | ISBN lookup in the add form: DNB → Google Books → Open Library with provenance (`metadata_cubit`, `metadata_aggregator_service`) | ✅ ➕ |
-| Local search (title / author / ISBN) | title, subtitle, authors, ISBN-13/10 | ✅ |
-| **Open Library search by general / title / author / ISBN / OLID**, editions list, similar books | ISBN only | ❌ |
-
-## 3. Library list
-
-| Legacy | OpenShelf | Status |
-|---|---|---|
-| Sort: title, author, rating, pages, start date, finish date, publication year, date added, date modified | title, author (surname), rating, date added, reading progress | 🟡 (missing: pages, start date, finish date, publication year, modified) |
-| Display types: list, compact list, grid, detailed grid | list only | ❌ |
-| One tab per status with its own sort | status filter chips + one sort | 🟡 (different model) |
-| Tag filter chips | ✅ (AND semantics) | ✅ |
-| **Year filter chip** | none | ❌ |
-| Multi-select bulk edit: format, author, delete | bulk **location** assignment only | 🟡 ➕ |
-
-## 4. Reading progress
-
-| Legacy | OpenShelf | Status |
-|---|---|---|
-| Start / finish reading buttons, quick rating on finish | live timer, current page, manual sessions, auto-promotion to *reading*/*read* | ✅ ➕ (no quick-rating dialog) |
-
-## 5. Statistics
-
-| Legacy (`statistics_screen/widgets`) | OpenShelf | Status |
-|---|---|---|
-| Books by status | ✅ | ✅ |
-| Yearly challenge: books **and pages** | ✅ (page goal added in this pass) | ✅ |
-| **Finished books / pages by month (charts)** | none | ❌ |
-| **Year selector** | none (goal is for the current year) | ❌ |
-| Average rating, average pages, average reading time | none | ❌ |
-| Longest / shortest / fastest / slowest book | none | ❌ |
-| — | totals, pages read, top locations, top authors, reading speed (pages/h), total reading time | ➕ |
-
-## 6. Settings
-
-| Legacy | OpenShelf | Status |
-|---|---|---|
-| Theme: system / light / dark | ✅ | ✅ |
-| **Accent colour, Material You, AMOLED/natural dark, font** | none | ❌ |
-| Language selection (40 translation files) | German + English | 🟡 |
-| Default book format / status / tags | none | ❌ |
-| Tab order / list order | n/a (no tabs) | ❌ |
-| Download missing covers | n/a (no covers) | ❌ |
-| About: version, licence, source code, credits | version, licence **GPL-3.0**, credits | ✅ |
-| Welcome / onboarding, rate/support/community links | none | ❌ |
-
-## 7. Import, export & backup
-
-| Legacy | OpenShelf | Status |
-|---|---|---|
-| Import Openreads CSV | ✅ (follows `doc/csv.md`, now incl. favourite/review/notes/tags/readings) | ✅ |
-| Import Goodreads CSV | ✅ | ✅ |
-| **Import Bookwyrm CSV** | none | ❌ |
-| Export CSV (all legacy columns incl. favourite, review, notes, tags, readings) | CSV has only title … format; **JSON export is complete** | 🟡 |
-| **Create backup (local / cloud) and restore** | JSON export exists, but **no restore**: OpenShelf's own export cannot be re-imported | ❌ |
-| Import legacy Openreads `.backup` archive | not supported (JSON/CSV files only) | ❌ |
-| — | StoryGraph and Bookstats import, duplicate merge on re-import | ➕ |
-
-## 8. OpenShelf extensions (Phase 1 + 2) — verified
-
-| Extension | Evidence | Tests |
-|---|---|---|
-| DNB SRU + MARC21 parser, Google Books, Open Library, field provenance, throttled lookup queue | `data/metadata/*`, `domain/services/metadata_aggregator_service.dart`, `metadata_lookup_queue.dart` | `dnb_client_test`, `marc21_parser_test`, `metadata_aggregator_test`, `metadata_lookup_queue_test` |
-| Location hierarchy Room → Shelf → Compartment | `LocationType`, `locations_dao`, `features/locations/*` | `location_repository_test` |
-| Continuous batch scanner with staging shelf, dedupe, bulk location | `features/scanner/*` | `integration/scan_flow_test` |
-| Lending tracker | `lending_dao`, `lending_cubit`, detail screen section | cascade/export/schema tests; **no dedicated lending repository test** |
-| Schema v2 migration | `AppDatabase.onUpgrade`, `drift_schemas/` | `database_v2_migration_test` (SchemaVerifier + data preservation) |
-| Duplicate-safe re-import | `BooksDao.importBatch`, `import_merge.dart` | `test/importers/duplicate_import_test.dart` |
-
-## 9. Gap backlog (to reach a true superset), by priority
-
-1. **Backup & restore round-trip** — importer for OpenShelf's own JSON export; legacy `.backup` archive. *(data-loss risk)*
-2. **Covers** — display `coverUrl`/cache in list and detail, manual cover from camera/gallery. *(most visible gap)*
-3. **Trash** — soft delete + restore, or an explicit decision to keep permanent deletion.
-4. **Display types** (compact list, grid, detailed grid) and the remaining **sort fields** (pages, finish date, publication year, modified).
-5. **Statistics**: per-month charts, year selector, averages, longest/shortest/fastest/slowest.
-6. **CSV export** with all legacy columns; **Bookwyrm** import; `olid` column.
-7. **Open Library search** (title/author/OLID), editions, similar books.
-8. **Settings**: accent/Material You/AMOLED/font, rating display, default format/status/tags, more languages.
-9. Year filter chip, bulk edit (format/author/delete), quick-rating on finish, welcome flow.
+- **Languages**: German and English only (Openreads shipped ~40 community translations).
+- **Welcome / onboarding screen** and store links (rate/support/community): not applicable to this app.
+- **Cover cropping** and the **DuckDuckGo image search**: replaced by gallery, camera and Open Library covers.
+- **Legacy backup v3** (SQLite dump from 2022) is not importable; v4/v5 are.
+- **Cloud backup**: backups are files (JSON/CSV); no cloud integration.

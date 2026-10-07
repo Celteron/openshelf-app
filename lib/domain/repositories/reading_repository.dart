@@ -33,6 +33,10 @@ abstract class ReadingRepository {
     required Duration duration,
     required int startPage,
     required int endPage,
+
+    /// When the reading ended, for a session that spans several days;
+    /// defaults to `startedAt + duration`.
+    DateTime? endedAt,
   });
 
   Future<void> deleteSession(int sessionId);

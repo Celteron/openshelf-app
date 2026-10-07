@@ -26,6 +26,9 @@ class GoalProgress {
     this.pagesRead = 0,
   });
 
+  /// `false` for a pages-only goal (stored with a book target of 0).
+  bool get hasBookGoal => target > 0;
+
   bool get hasPageGoal => targetPages != null && targetPages! > 0;
 
   /// Page-goal completion in `0.0–1.0`.
@@ -38,7 +41,9 @@ class GoalProgress {
 
   int get remaining => target - completed > 0 ? target - completed : 0;
 
-  bool get reached => target > 0 && completed >= target;
+  bool get reached => hasBookGoal
+      ? completed >= target
+      : hasPageGoal && pagesRead >= targetPages!;
 
   /// Positive when ahead of an even pace, negative when behind.
   double get paceDelta => completed - expected;

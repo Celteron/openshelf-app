@@ -29,11 +29,35 @@ abstract class BookRepository {
   /// added, nothing the user entered is overwritten.
   Future<ImportBatchOutcome> importBatch(List<ImportedBook> books);
 
-  /// Deletes the book; its sessions, notes, tag links and lending records go
-  /// with it (foreign-key cascade).
+  /// Writes the standalone locations and goals of a backup.
+  Future<void> importExtras(ImportExtras extras);
+
+  /// Moves the book to the trash (soft delete). It disappears from the library,
+  /// statistics and goals but can be restored.
   Future<void> deleteBook(int id);
 
+  /// Moves several books to the trash.
+  Future<void> deleteBooks(List<int> ids);
+
+  Stream<List<Book>> watchTrashedBooks();
+
+  Future<void> restoreBook(int id);
+
+  /// Permanently deletes a book; its sessions, notes, tag links and lending
+  /// records go with it (foreign-key cascade).
+  Future<void> purgeBook(int id);
+
+  /// Permanently deletes everything in the trash; returns the number of books.
+  Future<int> emptyTrash();
+
+  Future<void> bulkSetFormat(List<int> bookIds, BookFormat format);
+
+  Future<void> bulkSetAuthors(List<int> bookIds, List<String> authors);
+
   Future<void> updateFavorite(int id, bool isFavorite);
+
+  /// Remembers (or clears) the locally cached/manual cover file of a book.
+  Future<void> setCoverLocalPath(int id, String? path);
 
   /// Sets the review text; blank text clears it.
   Future<void> updateReview(int id, String? review);
