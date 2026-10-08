@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openreads/data/database/app_database.dart';
@@ -7,10 +8,12 @@ import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/domain/repositories/lending_repository.dart';
 import 'package:openreads/domain/repositories/notes_repository.dart';
+import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:openreads/features/lending/lending_cubit.dart';
 import 'package:openreads/features/library/book_detail_screen.dart';
 import 'package:openreads/features/library/library_cubit.dart';
+import 'package:openreads/features/library/widgets/verification_badge.dart';
 import 'package:openreads/features/library/widgets/book_list_tile.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/l10n/app_localizations.dart';
@@ -96,6 +99,18 @@ class FakeNotesRepository implements NotesRepository {
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
+class FakeReadingRepository implements ReadingRepository {
+  final List<ReadingSession> sessions;
+  FakeReadingRepository([this.sessions = const []]);
+
+  @override
+  Stream<List<ReadingSession>> watchSessions(int bookId) =>
+      Stream.value(sessions);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
 class FakeLendingRepository implements LendingRepository {
   final List<LendingData> history;
   FakeLendingRepository([this.history = const []]);
@@ -116,6 +131,12 @@ Book sampleBook({
   BookStatus status = BookStatus.read,
   String? description,
   String? olid,
+  String? isbn13,
+  String? isbn10,
+  String? genre,
+  int? priceCents,
+  DateTime? receivedAt,
+  int? readingSeconds,
 }) => Book(
   id: 1,
   title: 'Der Vorleser',
@@ -126,6 +147,12 @@ Book sampleBook({
   currentPage: 200,
   description: description,
   olid: olid,
+  isbn13: isbn13,
+  isbn10: isbn10,
+  genre: genre,
+  priceCents: priceCents,
+  receivedAt: receivedAt,
+  readingSeconds: readingSeconds,
   editedFields: const [],
   isFavorite: favorite,
   createdAt: DateTime(2026, 1, 15),
@@ -139,6 +166,7 @@ Future<FakeBookRepository> pumpDetail(
   FakeSettingsRepository? settings,
   List<Tag> tags = const [],
   List<LendingData> lendingHistory = const [],
+  List<ReadingSession> sessions = const [],
 }) async {
   // Tall enough that the whole (lazily built) list is on screen.
   tester.view.physicalSize = const Size(800, 3200);
@@ -152,6 +180,9 @@ Future<FakeBookRepository> pumpDetail(
         RepositoryProvider<BookRepository>.value(value: repo),
         RepositoryProvider<TagRepository>.value(value: FakeTagRepository(tags)),
         RepositoryProvider<NotesRepository>.value(value: FakeNotesRepository()),
+        RepositoryProvider<ReadingRepository>.value(
+          value: FakeReadingRepository(sessions),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -241,6 +272,21 @@ void main() {
 
       expect(repo.restored, [1]);
       expect(repo.book, isNotNull);
+    });
+
+    testWidgets('the undo snackbar goes away on its own', (tester) async {
+      await pumpDetail(tester);
+      await tester.tap(find.byKey(const ValueKey('delete-book')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'In den Papierkorb'));
+      await tester.pumpAndSettle();
+      expect(find.text('Buch im Papierkorb'), findsOneWidget);
+
+      // A SnackBar with an action persists by default in current Flutter.
+      await tester.pump(const Duration(seconds: 10));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Buch im Papierkorb'), findsNothing);
     });
 
     testWidgets('an embedded pane gets onDeleted instead of popping', (
@@ -498,6 +544,165 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repo.book!.review, isNull);
+    });
+  });
+  group('book data (spec 003)', () {
+    testWidgets('shows genre, price and received date', (tester) async {
+      await pumpDetail(
+        tester,
+        book: sampleBook(
+          genre: 'Krimi',
+          priceCents: 1290,
+          receivedAt: DateTime(2025, 12, 24),
+        ),
+      );
+
+      expect(find.text('Genre'), findsOneWidget);
+      expect(find.text('Krimi'), findsOneWidget);
+      expect(find.text('Preis'), findsOneWidget);
+      expect(find.text('12,90\u00A0€'), findsOneWidget);
+      expect(find.text('Erhalten am'), findsOneWidget);
+    });
+
+    testWidgets('omits rows for fields that are empty', (tester) async {
+      await pumpDetail(tester);
+
+      expect(find.text('Genre'), findsNothing);
+      expect(find.text('Preis'), findsNothing);
+      expect(find.text('Erhalten am'), findsNothing);
+    });
+
+    testWidgets('shows the reading period and the time read separately', (
+      tester,
+    ) async {
+      await pumpDetail(
+        tester,
+        sessions: [
+          ReadingSession(
+            id: 1,
+            bookId: 1,
+            startedAt: DateTime(2026, 3, 1, 20),
+            endedAt: DateTime(2026, 3, 1, 22),
+            durationSeconds: 5400,
+            startPage: 0,
+          ),
+          ReadingSession(
+            id: 2,
+            bookId: 1,
+            startedAt: DateTime(2026, 3, 9, 20),
+            endedAt: DateTime(2026, 3, 10, 21),
+            durationSeconds: 1800,
+            startPage: 0,
+          ),
+        ],
+      );
+
+      expect(find.text('Lesebeginn'), findsOneWidget);
+      expect(find.text('Leseende'), findsOneWidget);
+      expect(find.text('Lesezeitraum'), findsOneWidget);
+      expect(find.text('10 Tage'), findsOneWidget);
+      expect(find.text('Lesezeit'), findsOneWidget);
+      expect(find.text('2 Std. 0 Min.'), findsOneWidget);
+    });
+
+    testWidgets('without a recorded time only the period is shown', (
+      tester,
+    ) async {
+      await pumpDetail(
+        tester,
+        sessions: [
+          ReadingSession(
+            id: 1,
+            bookId: 1,
+            startedAt: DateTime(2026, 3, 1),
+            endedAt: DateTime(2026, 3, 3),
+            durationSeconds: 0,
+            startPage: 0,
+          ),
+        ],
+      );
+
+      expect(find.text('Lesezeitraum'), findsOneWidget);
+      expect(find.text('3 Tage'), findsOneWidget);
+      expect(find.text('Lesezeit'), findsNothing);
+    });
+
+    testWidgets('a manual reading time counts even without sessions', (
+      tester,
+    ) async {
+      await pumpDetail(tester, book: sampleBook(readingSeconds: 19800));
+
+      expect(find.text('Lesezeit'), findsOneWidget);
+      expect(find.text('5 Std. 30 Min.'), findsOneWidget);
+      expect(find.text('Lesezeitraum'), findsNothing);
+    });
+
+    testWidgets('values are selectable and copyable', (tester) async {
+      String? clipboard;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'Clipboard.setData') {
+            clipboard = (call.arguments as Map)['text'] as String?;
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      await pumpDetail(tester, book: sampleBook(isbn13: '9783442719255'));
+
+      expect(
+        find.widgetWithText(SelectableText, '9783442719255'),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('copy:ISBN')));
+      await tester.pump();
+
+      expect(clipboard, '9783442719255');
+      expect(find.text('In die Zwischenablage kopiert'), findsOneWidget);
+    });
+
+    testWidgets('shows one ISBN row: the ISBN-13, else the ISBN-10', (
+      tester,
+    ) async {
+      await pumpDetail(
+        tester,
+        book: sampleBook(isbn13: '9783442719255', isbn10: '3442719259'),
+      );
+      expect(find.text('ISBN'), findsOneWidget);
+      expect(find.text('9783442719255'), findsOneWidget);
+      expect(find.text('3442719259'), findsNothing);
+      expect(find.text('ISBN-13'), findsNothing);
+      expect(find.text('ISBN-10'), findsNothing);
+    });
+
+    testWidgets('falls back to the ISBN-10 when there is no ISBN-13', (
+      tester,
+    ) async {
+      await pumpDetail(tester, book: sampleBook(isbn10: '3442719259'));
+      expect(find.text('ISBN'), findsOneWidget);
+      expect(find.text('3442719259'), findsOneWidget);
+    });
+
+    testWidgets('the verification badge is a label, not an edit button', (
+      tester,
+    ) async {
+      await pumpDetail(tester);
+
+      expect(
+        find.descendant(
+          of: find.byType(VerificationBadge),
+          matching: find.byIcon(Icons.edit),
+        ),
+        findsNothing,
+      );
+      // The one real edit action stays in the app bar.
+      expect(find.byIcon(Icons.edit), findsOneWidget);
     });
   });
 }

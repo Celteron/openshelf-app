@@ -19,4 +19,7 @@ abstract class SettingsRepository {
 
   /// Stores [value] under [key]; `null` removes the entry.
   Future<void> setValue(String key, String? value);
+
+  /// Forgets every stored preference (back to the defaults).
+  Future<void> clearAll();
 }

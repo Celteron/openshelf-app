@@ -50,6 +50,13 @@ abstract class BookRepository {
   /// Permanently deletes everything in the trash; returns the number of books.
   Future<int> emptyTrash();
 
+  /// Moves every active book to the trash; returns how many.
+  Future<int> trashAllBooks();
+
+  /// Permanently deletes every book, trashed ones included, with its sessions,
+  /// notes, tag links and lending records; returns how many.
+  Future<int> deleteAllBooksPermanently();
+
   Future<void> bulkSetFormat(List<int> bookIds, BookFormat format);
 
   Future<void> bulkSetAuthors(List<int> bookIds, List<String> authors);

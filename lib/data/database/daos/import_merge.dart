@@ -34,6 +34,10 @@ BooksCompanion? mergeMissingFields(Book existing, BooksCompanion incoming) {
   final isbn13 = fill(existing.isbn13, incoming.isbn13);
   final isbn10 = fill(existing.isbn10, incoming.isbn10);
   final olid = fillText(existing.olid, incoming.olid);
+  final genre = fillText(existing.genre, incoming.genre);
+  final priceCents = fill(existing.priceCents, incoming.priceCents);
+  final receivedAt = fill(existing.receivedAt, incoming.receivedAt);
+  final readingSeconds = fill(existing.readingSeconds, incoming.readingSeconds);
   final coverLocalPath = existing.coverLocalPath == null
       ? read(incoming.coverLocalPath)
       : null;
@@ -90,6 +94,10 @@ BooksCompanion? mergeMissingFields(Book existing, BooksCompanion incoming) {
     isbn13,
     isbn10,
     olid,
+    genre,
+    priceCents,
+    receivedAt,
+    readingSeconds,
     coverLocalPath,
     locationId,
     seriesId,
@@ -118,6 +126,12 @@ BooksCompanion? mergeMissingFields(Book existing, BooksCompanion incoming) {
     isbn13: isbn13 == null ? const Value.absent() : Value(isbn13),
     isbn10: isbn10 == null ? const Value.absent() : Value(isbn10),
     olid: olid == null ? const Value.absent() : Value(olid),
+    genre: genre == null ? const Value.absent() : Value(genre),
+    priceCents: priceCents == null ? const Value.absent() : Value(priceCents),
+    receivedAt: receivedAt == null ? const Value.absent() : Value(receivedAt),
+    readingSeconds: readingSeconds == null
+        ? const Value.absent()
+        : Value(readingSeconds),
     coverLocalPath: coverLocalPath == null
         ? const Value.absent()
         : Value(coverLocalPath),

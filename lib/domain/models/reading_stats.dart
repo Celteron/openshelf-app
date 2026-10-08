@@ -73,3 +73,63 @@ class ReadingStats {
     );
   }
 }
+
+/// When a book was read and for how long, derived from its sessions: the first
+/// start, the last end of a completed session and the summed reading time.
+///
+/// Pure so it can be tested without a database (Constitution IV.2).
+class ReadingSummary {
+  final DateTime? startedAt;
+  final DateTime? finishedAt;
+
+  /// Summed time of the completed sessions; zero when only dates are known
+  /// (e.g. imported from a source without reading time).
+  final Duration readingTime;
+
+  const ReadingSummary({
+    this.startedAt,
+    this.finishedAt,
+    this.readingTime = Duration.zero,
+  });
+
+  bool get isEmpty =>
+      startedAt == null && finishedAt == null && readingTime == Duration.zero;
+
+  /// Calendar days from start to end, both days included; `null` unless both
+  /// are known.
+  int? get spanDays {
+    final start = startedAt;
+    final end = finishedAt;
+    if (start == null || end == null) return null;
+    // UTC midnights: local ones are only 23 h apart across a DST change, which
+    // would drop a day.
+    final from = DateTime.utc(start.year, start.month, start.day);
+    final to = DateTime.utc(end.year, end.month, end.day);
+    return math.max(0, to.difference(from).inDays) + 1;
+  }
+
+  /// [manualSeconds] is reading time entered without a dated session
+  /// (`Books.readingSeconds`); it is added to the sessions' time.
+  factory ReadingSummary.compute(
+    Iterable<ReadingSession> sessions, {
+    int manualSeconds = 0,
+  }) {
+    DateTime? start;
+    DateTime? end;
+    var seconds = math.max(0, manualSeconds);
+    for (final session in sessions) {
+      if (start == null || session.startedAt.isBefore(start)) {
+        start = session.startedAt;
+      }
+      final ended = session.endedAt;
+      if (ended == null) continue;
+      if (end == null || ended.isAfter(end)) end = ended;
+      seconds += math.max(0, session.durationSeconds);
+    }
+    return ReadingSummary(
+      startedAt: start,
+      finishedAt: end,
+      readingTime: Duration(seconds: seconds),
+    );
+  }
+}

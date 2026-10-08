@@ -15,6 +15,7 @@ import 'package:openreads/data/importers/json_backup_importer.dart';
 import 'package:openreads/data/importers/legacy_backup_importer.dart';
 import 'package:openreads/data/importers/openreads_csv_importer.dart';
 import 'package:openreads/data/importers/openreads_json_importer.dart';
+import 'package:openreads/data/importers/own_csv_importer.dart';
 import 'package:openreads/data/importers/storygraph_csv_importer.dart';
 import 'package:openreads/domain/models/import.dart';
 
@@ -38,9 +39,13 @@ void main() {
   ImportFile json(String content) =>
       ImportFile(name: 'x.json', content: content, type: ImportFileType.json);
 
-  test('there are nine importers, each of them reachable', () {
-    expect(importers, hasLength(9));
-    expect(importers.map((i) => i.formatName).toSet(), hasLength(9));
+  test('there are ten importers, each of them named differently', () {
+    expect(importers, hasLength(10));
+    expect(importers.map((i) => i.formatName).toSet(), hasLength(10));
+  });
+
+  test('the catch-all own-CSV importer comes last', () {
+    expect(importers.last, isA<OwnCsvImporter>());
   });
 
   group('CSV', () {
@@ -93,13 +98,20 @@ void main() {
       expect(detect(file), isA<BookstatsCsvImporter>());
     });
 
-    test('an unknown CSV is not claimed by anyone', () {
-      expect(detect(csv('Name,Alter\nAnna,3\n')), isNull);
+    test('an unknown CSV falls through to the own-CSV importer', () {
+      expect(detect(csv('Name,Alter\nAnna,3\n')), isA<OwnCsvImporter>());
+    });
+
+    test('an empty CSV or a header without data is claimed by no one', () {
       expect(detect(csv('')), isNull);
+      expect(detect(csv('Name,Alter\n')), isNull);
     });
 
     test('a bare ISBN column does not make a file Bookstats', () {
-      expect(detect(csv('isbn,notes\n9780441172719,x\n')), isNull);
+      expect(
+        detect(csv('isbn,notes\n9780441172719,x\n')),
+        isA<OwnCsvImporter>(),
+      );
     });
   });
 

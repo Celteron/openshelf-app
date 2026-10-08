@@ -7,6 +7,7 @@ import 'package:openreads/data/importers/json_backup_importer.dart';
 import 'package:openreads/data/importers/legacy_backup_importer.dart';
 import 'package:openreads/data/importers/openreads_csv_importer.dart';
 import 'package:openreads/data/importers/openreads_json_importer.dart';
+import 'package:openreads/data/importers/own_csv_importer.dart';
 import 'package:openreads/data/importers/storygraph_csv_importer.dart';
 
 /// Every supported import format, in detection order: the first importer that
@@ -23,4 +24,6 @@ List<BookImporter> defaultImporters() => <BookImporter>[
   BookwyrmCsvImporter(),
   BookstatsCsvImporter(),
   BookstatsJsonImporter(),
+  // Last: it accepts every CSV, so it only gets what nothing else recognised.
+  OwnCsvImporter(),
 ];

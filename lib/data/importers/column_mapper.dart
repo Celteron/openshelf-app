@@ -38,6 +38,12 @@ class ColumnMapper {
   static const fieldLendingStatus = 'lendingStatus';
   static const fieldCoverUrl = 'coverUrl';
   static const fieldDateModified = 'dateModified';
+  static const fieldGenre = 'genre';
+  static const fieldPrice = 'price';
+  static const fieldReceivedAt = 'receivedAt';
+  static const fieldDurationHours = 'durationHours';
+  static const fieldDurationMinutes = 'durationMinutes';
+  static const fieldReadingSeconds = 'readingSeconds';
 
   /// Source header (lowercased and trimmed) → canonical field.
   final Map<String, String> headerToField;

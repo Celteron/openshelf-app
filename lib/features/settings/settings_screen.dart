@@ -9,6 +9,7 @@ import 'package:openreads/data/export/export_service.dart';
 import 'package:openreads/domain/models/app_preferences.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/services/cover_sync_service.dart';
+import 'package:openreads/domain/services/data_wipe_service.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/features/importer/importer_screen.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
@@ -284,6 +285,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               const Divider(),
+              _section(l10n.dataSection),
+              ListTile(
+                key: const ValueKey('clear-library'),
+                leading: const Icon(Icons.delete_sweep_outlined),
+                title: Text(l10n.clearLibrary),
+                subtitle: Text(l10n.clearLibraryHint),
+                onTap: _clearLibrary,
+              ),
+              ListTile(
+                key: const ValueKey('delete-all-data'),
+                leading: Icon(
+                  Icons.warning_amber_rounded,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                title: Text(l10n.deleteAllData),
+                subtitle: Text(l10n.deleteAllDataHint),
+                onTap: _deleteAllData,
+              ),
+              const Divider(),
               _section(l10n.appInfoLabel),
               ListTile(
                 leading: const Icon(Icons.info_outline),
@@ -480,6 +500,92 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Empties the library: the user chooses between the (restorable) trash and
+  /// deleting for good; the latter asks a second time.
+  Future<void> _clearLibrary() async {
+    final l10n = AppLocalizations.of(context);
+    final choice = await showDialog<_ClearChoice>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.clearLibraryTitle),
+        content: Text(l10n.clearLibraryBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(dialogContext, _ClearChoice.trash),
+            child: Text(l10n.moveToTrash),
+          ),
+          FilledButton(
+            style: _dangerStyle(dialogContext),
+            onPressed: () => Navigator.pop(dialogContext, _ClearChoice.forever),
+            child: Text(l10n.deleteForever),
+          ),
+        ],
+      ),
+    );
+    if (choice == null || !mounted) return;
+
+    final service = context.read<DataWipeService>();
+    final messenger = ScaffoldMessenger.of(context);
+    switch (choice) {
+      case _ClearChoice.trash:
+        final count = await service.trashLibrary();
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.libraryTrashed(count))),
+        );
+      case _ClearChoice.forever:
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(l10n.deleteForeverAllTitle),
+            content: Text(l10n.deleteForeverAllBody),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                style: _dangerStyle(dialogContext),
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(l10n.deleteForever),
+              ),
+            ],
+          ),
+        );
+        if (confirmed != true) return;
+        final count = await service.deleteLibrary();
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.libraryDeleted(count))),
+        );
+    }
+  }
+
+  /// Deletes everything the app stores locally. Typing the confirmation word
+  /// guards against an accidental tap.
+  Future<void> _deleteAllData() async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => const _ConfirmWordDialog(),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final service = context.read<DataWipeService>();
+    final settings = context.read<SettingsCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    await service.deleteAllData();
+    await settings.load();
+    messenger.showSnackBar(SnackBar(content: Text(l10n.allDataDeleted)));
+  }
+
+  ButtonStyle _dangerStyle(BuildContext context) => FilledButton.styleFrom(
+    backgroundColor: Theme.of(context).colorScheme.error,
+    foregroundColor: Theme.of(context).colorScheme.onError,
+  );
+
   Future<void> _open(String url) async {
     try {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
@@ -507,6 +613,66 @@ class _SettingsScreenState extends State<SettingsScreen> {
           '${AppLocalizations.of(context).exportDone} ${file.path}',
         ),
       ),
+    );
+  }
+}
+
+enum _ClearChoice { trash, forever }
+
+/// Asks the user to type a word before the irreversible deletion is enabled.
+class _ConfirmWordDialog extends StatefulWidget {
+  const _ConfirmWordDialog();
+
+  @override
+  State<_ConfirmWordDialog> createState() => _ConfirmWordDialogState();
+}
+
+class _ConfirmWordDialogState extends State<_ConfirmWordDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final word = l10n.confirmWord;
+    final matches = _controller.text.trim().toUpperCase() == word;
+    final scheme = Theme.of(context).colorScheme;
+    return AlertDialog(
+      title: Text(l10n.deleteAllDataTitle),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.deleteAllDataBody),
+          const SizedBox(height: 16),
+          TextField(
+            key: const ValueKey('confirm-word'),
+            controller: _controller,
+            autofocus: true,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(helperText: l10n.typeToConfirm(word)),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: scheme.error,
+            foregroundColor: scheme.onError,
+          ),
+          onPressed: matches ? () => Navigator.pop(context, true) : null,
+          child: Text(l10n.deleteEverything),
+        ),
+      ],
     );
   }
 }

@@ -39,10 +39,10 @@ class CoverSyncService {
     var done = 0;
     var downloaded = 0;
     for (final book in missing) {
-      final url = (book.coverUrl ?? '').isNotEmpty
-          ? book.coverUrl
-          : openLibraryCoverUrl(book.isbn13!);
-      final path = await _covers.resolve(keyFor(book), url);
+      final path = await _covers.resolveAny(
+        keyFor(book),
+        coverCandidates(coverUrl: book.coverUrl, isbn: book.isbn13),
+      );
       if (path != null) {
         await _books.setCoverLocalPath(book.id, path);
         downloaded++;

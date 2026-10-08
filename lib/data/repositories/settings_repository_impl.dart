@@ -44,4 +44,12 @@ class SettingsRepositoryImpl implements SettingsRepository {
       await prefs.setString('settings.$key', value);
     }
   }
+
+  @override
+  Future<void> clearAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    for (final key in prefs.getKeys().where((k) => k.startsWith('settings.'))) {
+      await prefs.remove(key);
+    }
+  }
 }

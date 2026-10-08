@@ -9,6 +9,7 @@ import 'package:openreads/data/database/daos/series_dao.dart';
 import 'package:openreads/data/database/daos/tags_dao.dart';
 import 'package:openreads/data/export/export_service.dart';
 import 'package:openreads/data/repositories/book_repository_impl.dart';
+import 'package:openreads/data/repositories/data_reset_repository_impl.dart';
 import 'package:openreads/data/repositories/goal_repository_impl.dart';
 import 'package:openreads/data/repositories/lending_repository_impl.dart';
 import 'package:openreads/data/repositories/location_repository_impl.dart';
@@ -18,6 +19,7 @@ import 'package:openreads/data/repositories/series_repository_impl.dart';
 import 'package:openreads/data/repositories/settings_repository_impl.dart';
 import 'package:openreads/data/repositories/tag_repository_impl.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
+import 'package:openreads/domain/repositories/data_reset_repository.dart';
 import 'package:openreads/domain/repositories/goal_repository.dart';
 import 'package:openreads/domain/repositories/lending_repository.dart';
 import 'package:openreads/domain/repositories/location_repository.dart';
@@ -46,6 +48,7 @@ class AppDependencies {
   late final TagRepository tagRepository;
   late final GoalRepository goalRepository;
   late final ReadingTrackerService readingTracker;
+  late final DataResetRepository dataResetRepository;
 
   AppDependencies(this.database) {
     bookRepository = BookRepositoryImpl(BooksDao(database));
@@ -59,5 +62,6 @@ class AppDependencies {
     tagRepository = TagRepositoryImpl(TagsDao(database));
     goalRepository = GoalRepositoryImpl(GoalsDao(database));
     readingTracker = ReadingTrackerService(bookRepository, readingRepository);
+    dataResetRepository = DataResetRepositoryImpl(database);
   }
 }

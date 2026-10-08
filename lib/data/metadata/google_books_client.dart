@@ -12,21 +12,30 @@ class GoogleBooksClient implements MetadataSourceStrategy {
 
   final http.Client _client;
   final Duration _timeout;
+  final String? _apiKey;
 
+  /// [apiKey] is optional and meant for tests and development: the anonymous
+  /// quota is shared and often exhausted (HTTP 429). The app passes none, so
+  /// it works without a key.
   GoogleBooksClient({
     http.Client? client,
     Duration timeout = metadataRequestTimeout,
+    String? apiKey,
   }) : _client = client ?? http.Client(),
-       _timeout = timeout;
+       _timeout = timeout,
+       _apiKey = apiKey == null || apiKey.trim().isEmpty ? null : apiKey.trim();
 
   @override
   MetadataSource get id => MetadataSource.googleBooks;
 
   @override
   Future<BookMetadata?> lookupByIsbn(String isbn13) async {
-    final uri = Uri.parse(
-      _baseUrl,
-    ).replace(queryParameters: {'q': 'isbn:$isbn13'});
+    final uri = Uri.parse(_baseUrl).replace(
+      queryParameters: {
+        'q': 'isbn:$isbn13',
+        if (_apiKey != null) 'key': _apiKey,
+      },
+    );
 
     try {
       final response = await _client

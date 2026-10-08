@@ -7,6 +7,7 @@ import 'package:openreads/core/themes/app_theme.dart';
 import 'package:openreads/data/cover/cover_cache_service.dart';
 import 'package:openreads/data/cover/cover_picker.dart';
 import 'package:openreads/domain/services/cover_sync_service.dart';
+import 'package:openreads/domain/services/data_wipe_service.dart';
 import 'package:openreads/features/trash/trash_cubit.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:openreads/data/database/app_database.dart';
@@ -57,6 +58,12 @@ void main() async {
     deps.bookRepository,
     coverCache: coverCache,
   );
+  final dataWipe = DataWipeService(
+    books: deps.bookRepository,
+    reset: deps.dataResetRepository,
+    settings: deps.settingsRepository,
+    covers: coverCache,
+  );
   final lookupQueue = MetadataLookupQueue(aggregator);
   final settingsCubit = SettingsCubit(deps.settingsRepository);
   await settingsCubit.load();
@@ -71,6 +78,7 @@ void main() async {
       settingsCubit: settingsCubit,
       coverCache: coverCache,
       coverSync: coverSync,
+      dataWipe: dataWipe,
     ),
   );
 }
@@ -84,6 +92,7 @@ class OpenShelfApp extends StatelessWidget {
   final SettingsCubit settingsCubit;
   final CoverCacheService coverCache;
   final CoverSyncService coverSync;
+  final DataWipeService dataWipe;
   final CoverPicker coverPicker;
 
   OpenShelfApp({
@@ -96,6 +105,7 @@ class OpenShelfApp extends StatelessWidget {
     required this.settingsCubit,
     required this.coverCache,
     required this.coverSync,
+    required this.dataWipe,
     CoverPicker? coverPicker,
   }) : coverPicker = coverPicker ?? ImagePickerCoverPicker();
 
@@ -117,6 +127,7 @@ class OpenShelfApp extends StatelessWidget {
         RepositoryProvider.value(value: coverCache),
         RepositoryProvider(create: (_) => OpenLibrarySearchClient()),
         RepositoryProvider.value(value: coverSync),
+        RepositoryProvider.value(value: dataWipe),
         RepositoryProvider<CoverPicker>.value(value: coverPicker),
       ],
       child: MultiBlocProvider(

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:openreads/core/helpers/rating.dart';
+import 'package:openreads/core/helpers/price.dart';
 import 'package:openreads/data/importers/book_importer.dart';
 import 'package:openreads/data/importers/import_parsing.dart';
 import 'package:openreads/domain/models/import.dart';
@@ -96,6 +97,9 @@ class BookstatsJsonImporter implements BookImporter {
       format: parseFormat(_pick(map, const ['buchart', 'format'])),
       isFavorite: map['favorit'] == true || map['favorite'] == true,
       review: _pick(map, const ['rezension', 'review']),
+      genre: parseGenre(_pick(map, const ['genre'])),
+      priceCents: _pickPriceCents(map),
+      receivedAt: parseDate(_pick(map, const ['erhalten am'])),
       tags: parseTags(
         [
           _pick(map, const ['genre']),
@@ -113,6 +117,13 @@ class BookstatsJsonImporter implements BookImporter {
       ),
       addedAt: addedAt,
     );
+  }
+
+  /// Prices come as numbers (`12.9`, taken as euros) or text (`"12,90 €"`).
+  int? _pickPriceCents(Map<String, dynamic> map) {
+    final value = map['preis'] ?? map['price'];
+    if (value is num) return value < 0 ? null : (value * 100).round();
+    return value is String ? parsePriceCents(value) : null;
   }
 
   int? _pickInt(Map<String, dynamic> map, List<String> keys) {

@@ -81,6 +81,10 @@ class BookRepositoryImpl implements BookRepository {
       metadataSource: Value(draft.metadataSource),
       locationId: Value(draft.locationId),
       seriesId: Value(draft.seriesId),
+      genre: Value(draft.genre),
+      priceCents: Value(draft.priceCents),
+      receivedAt: Value(draft.receivedAt),
+      readingSeconds: Value(draft.readingSeconds),
     );
   }
 
@@ -113,6 +117,12 @@ class BookRepositoryImpl implements BookRepository {
 
   @override
   Future<int> emptyTrash() => _dao.emptyTrash();
+
+  @override
+  Future<int> trashAllBooks() => _dao.trashAll(DateTime.now());
+
+  @override
+  Future<int> deleteAllBooksPermanently() => _dao.deleteAll();
 
   @override
   Future<void> bulkSetFormat(List<int> bookIds, BookFormat format) =>

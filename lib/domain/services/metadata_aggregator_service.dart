@@ -1,3 +1,4 @@
+import 'package:openreads/data/cover/cover_cache_service.dart';
 import 'package:openreads/domain/models/book_metadata.dart';
 import 'package:openreads/domain/models/enums.dart';
 
@@ -69,6 +70,15 @@ class MetadataAggregatorService {
 
       merged = _merge(merged, incoming, _fillableFor(source.id), editedFields);
       primary ??= source.id;
+    }
+
+    // A known book without a cover URL (Google answered 429, Open Library has
+    // none): point at the DNB cover service, which covers most German titles.
+    // It is a plain URL; the image is only fetched when the cover is shown.
+    if (primary != null &&
+        (merged.coverUrl == null || merged.coverUrl!.isEmpty) &&
+        !editedFields.contains('coverUrl')) {
+      merged = merged.withCoverUrl(dnbCoverUrl(isbn));
     }
 
     return AggregatedMetadata(metadata: merged, primarySource: primary);

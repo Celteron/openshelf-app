@@ -913,6 +913,48 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _genreMeta = const VerificationMeta('genre');
+  @override
+  late final GeneratedColumn<String> genre = GeneratedColumn<String>(
+    'genre',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _priceCentsMeta = const VerificationMeta(
+    'priceCents',
+  );
+  @override
+  late final GeneratedColumn<int> priceCents = GeneratedColumn<int>(
+    'price_cents',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _receivedAtMeta = const VerificationMeta(
+    'receivedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> receivedAt = GeneratedColumn<DateTime>(
+    'received_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _readingSecondsMeta = const VerificationMeta(
+    'readingSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> readingSeconds = GeneratedColumn<int>(
+    'reading_seconds',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -966,6 +1008,10 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     review,
     olid,
     deletedAt,
+    genre,
+    priceCents,
+    receivedAt,
+    readingSeconds,
     createdAt,
     updatedAt,
   ];
@@ -1127,6 +1173,33 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('genre')) {
+      context.handle(
+        _genreMeta,
+        genre.isAcceptableOrUnknown(data['genre']!, _genreMeta),
+      );
+    }
+    if (data.containsKey('price_cents')) {
+      context.handle(
+        _priceCentsMeta,
+        priceCents.isAcceptableOrUnknown(data['price_cents']!, _priceCentsMeta),
+      );
+    }
+    if (data.containsKey('received_at')) {
+      context.handle(
+        _receivedAtMeta,
+        receivedAt.isAcceptableOrUnknown(data['received_at']!, _receivedAtMeta),
+      );
+    }
+    if (data.containsKey('reading_seconds')) {
+      context.handle(
+        _readingSecondsMeta,
+        readingSeconds.isAcceptableOrUnknown(
+          data['reading_seconds']!,
+          _readingSecondsMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1266,6 +1339,22 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      genre: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}genre'],
+      ),
+      priceCents: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}price_cents'],
+      ),
+      receivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}received_at'],
+      ),
+      readingSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reading_seconds'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1343,6 +1432,21 @@ class Book extends DataClass implements Insertable<Book> {
   /// When the book was moved to the trash; `null` = in the library
   /// (Openreads soft delete, schema v3).
   final DateTime? deletedAt;
+
+  /// Free-text genre; user-editable and never overwritten by imports
+  /// (schema v4).
+  final String? genre;
+
+  /// Purchase price in euro cents (integer, so no float rounding); a currency
+  /// column can be added later (schema v4).
+  final int? priceCents;
+
+  /// When the book was bought or received (schema v4).
+  final DateTime? receivedAt;
+
+  /// Reading time entered without any dated session (e.g. imported from a
+  /// source that only knows a total). Added to the sessions' time (schema v5).
+  final int? readingSeconds;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Book({
@@ -1373,6 +1477,10 @@ class Book extends DataClass implements Insertable<Book> {
     this.review,
     this.olid,
     this.deletedAt,
+    this.genre,
+    this.priceCents,
+    this.receivedAt,
+    this.readingSeconds,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1460,6 +1568,18 @@ class Book extends DataClass implements Insertable<Book> {
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
     }
+    if (!nullToAbsent || genre != null) {
+      map['genre'] = Variable<String>(genre);
+    }
+    if (!nullToAbsent || priceCents != null) {
+      map['price_cents'] = Variable<int>(priceCents);
+    }
+    if (!nullToAbsent || receivedAt != null) {
+      map['received_at'] = Variable<DateTime>(receivedAt);
+    }
+    if (!nullToAbsent || readingSeconds != null) {
+      map['reading_seconds'] = Variable<int>(readingSeconds);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1530,6 +1650,18 @@ class Book extends DataClass implements Insertable<Book> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      genre: genre == null && nullToAbsent
+          ? const Value.absent()
+          : Value(genre),
+      priceCents: priceCents == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priceCents),
+      receivedAt: receivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(receivedAt),
+      readingSeconds: readingSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(readingSeconds),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1574,6 +1706,10 @@ class Book extends DataClass implements Insertable<Book> {
       review: serializer.fromJson<String?>(json['review']),
       olid: serializer.fromJson<String?>(json['olid']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      genre: serializer.fromJson<String?>(json['genre']),
+      priceCents: serializer.fromJson<int?>(json['priceCents']),
+      receivedAt: serializer.fromJson<DateTime?>(json['receivedAt']),
+      readingSeconds: serializer.fromJson<int?>(json['readingSeconds']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1615,6 +1751,10 @@ class Book extends DataClass implements Insertable<Book> {
       'review': serializer.toJson<String?>(review),
       'olid': serializer.toJson<String?>(olid),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'genre': serializer.toJson<String?>(genre),
+      'priceCents': serializer.toJson<int?>(priceCents),
+      'receivedAt': serializer.toJson<DateTime?>(receivedAt),
+      'readingSeconds': serializer.toJson<int?>(readingSeconds),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1648,6 +1788,10 @@ class Book extends DataClass implements Insertable<Book> {
     Value<String?> review = const Value.absent(),
     Value<String?> olid = const Value.absent(),
     Value<DateTime?> deletedAt = const Value.absent(),
+    Value<String?> genre = const Value.absent(),
+    Value<int?> priceCents = const Value.absent(),
+    Value<DateTime?> receivedAt = const Value.absent(),
+    Value<int?> readingSeconds = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Book(
@@ -1684,6 +1828,12 @@ class Book extends DataClass implements Insertable<Book> {
     review: review.present ? review.value : this.review,
     olid: olid.present ? olid.value : this.olid,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    genre: genre.present ? genre.value : this.genre,
+    priceCents: priceCents.present ? priceCents.value : this.priceCents,
+    receivedAt: receivedAt.present ? receivedAt.value : this.receivedAt,
+    readingSeconds: readingSeconds.present
+        ? readingSeconds.value
+        : this.readingSeconds,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1736,6 +1886,16 @@ class Book extends DataClass implements Insertable<Book> {
       review: data.review.present ? data.review.value : this.review,
       olid: data.olid.present ? data.olid.value : this.olid,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      genre: data.genre.present ? data.genre.value : this.genre,
+      priceCents: data.priceCents.present
+          ? data.priceCents.value
+          : this.priceCents,
+      receivedAt: data.receivedAt.present
+          ? data.receivedAt.value
+          : this.receivedAt,
+      readingSeconds: data.readingSeconds.present
+          ? data.readingSeconds.value
+          : this.readingSeconds,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1771,6 +1931,10 @@ class Book extends DataClass implements Insertable<Book> {
           ..write('review: $review, ')
           ..write('olid: $olid, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('genre: $genre, ')
+          ..write('priceCents: $priceCents, ')
+          ..write('receivedAt: $receivedAt, ')
+          ..write('readingSeconds: $readingSeconds, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1806,6 +1970,10 @@ class Book extends DataClass implements Insertable<Book> {
     review,
     olid,
     deletedAt,
+    genre,
+    priceCents,
+    receivedAt,
+    readingSeconds,
     createdAt,
     updatedAt,
   ]);
@@ -1840,6 +2008,10 @@ class Book extends DataClass implements Insertable<Book> {
           other.review == this.review &&
           other.olid == this.olid &&
           other.deletedAt == this.deletedAt &&
+          other.genre == this.genre &&
+          other.priceCents == this.priceCents &&
+          other.receivedAt == this.receivedAt &&
+          other.readingSeconds == this.readingSeconds &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1872,6 +2044,10 @@ class BooksCompanion extends UpdateCompanion<Book> {
   final Value<String?> review;
   final Value<String?> olid;
   final Value<DateTime?> deletedAt;
+  final Value<String?> genre;
+  final Value<int?> priceCents;
+  final Value<DateTime?> receivedAt;
+  final Value<int?> readingSeconds;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const BooksCompanion({
@@ -1902,6 +2078,10 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.review = const Value.absent(),
     this.olid = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.genre = const Value.absent(),
+    this.priceCents = const Value.absent(),
+    this.receivedAt = const Value.absent(),
+    this.readingSeconds = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -1933,6 +2113,10 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.review = const Value.absent(),
     this.olid = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.genre = const Value.absent(),
+    this.priceCents = const Value.absent(),
+    this.receivedAt = const Value.absent(),
+    this.readingSeconds = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : title = Value(title),
@@ -1966,6 +2150,10 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Expression<String>? review,
     Expression<String>? olid,
     Expression<DateTime>? deletedAt,
+    Expression<String>? genre,
+    Expression<int>? priceCents,
+    Expression<DateTime>? receivedAt,
+    Expression<int>? readingSeconds,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -1997,6 +2185,10 @@ class BooksCompanion extends UpdateCompanion<Book> {
       if (review != null) 'review': review,
       if (olid != null) 'olid': olid,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (genre != null) 'genre': genre,
+      if (priceCents != null) 'price_cents': priceCents,
+      if (receivedAt != null) 'received_at': receivedAt,
+      if (readingSeconds != null) 'reading_seconds': readingSeconds,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -2030,6 +2222,10 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Value<String?>? review,
     Value<String?>? olid,
     Value<DateTime?>? deletedAt,
+    Value<String?>? genre,
+    Value<int?>? priceCents,
+    Value<DateTime?>? receivedAt,
+    Value<int?>? readingSeconds,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
@@ -2061,6 +2257,10 @@ class BooksCompanion extends UpdateCompanion<Book> {
       review: review ?? this.review,
       olid: olid ?? this.olid,
       deletedAt: deletedAt ?? this.deletedAt,
+      genre: genre ?? this.genre,
+      priceCents: priceCents ?? this.priceCents,
+      receivedAt: receivedAt ?? this.receivedAt,
+      readingSeconds: readingSeconds ?? this.readingSeconds,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -2160,6 +2360,18 @@ class BooksCompanion extends UpdateCompanion<Book> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (genre.present) {
+      map['genre'] = Variable<String>(genre.value);
+    }
+    if (priceCents.present) {
+      map['price_cents'] = Variable<int>(priceCents.value);
+    }
+    if (receivedAt.present) {
+      map['received_at'] = Variable<DateTime>(receivedAt.value);
+    }
+    if (readingSeconds.present) {
+      map['reading_seconds'] = Variable<int>(readingSeconds.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2199,6 +2411,10 @@ class BooksCompanion extends UpdateCompanion<Book> {
           ..write('review: $review, ')
           ..write('olid: $olid, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('genre: $genre, ')
+          ..write('priceCents: $priceCents, ')
+          ..write('receivedAt: $receivedAt, ')
+          ..write('readingSeconds: $readingSeconds, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -4987,6 +5203,10 @@ typedef $$BooksTableCreateCompanionBuilder =
       Value<String?> review,
       Value<String?> olid,
       Value<DateTime?> deletedAt,
+      Value<String?> genre,
+      Value<int?> priceCents,
+      Value<DateTime?> receivedAt,
+      Value<int?> readingSeconds,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -5019,6 +5239,10 @@ typedef $$BooksTableUpdateCompanionBuilder =
       Value<String?> review,
       Value<String?> olid,
       Value<DateTime?> deletedAt,
+      Value<String?> genre,
+      Value<int?> priceCents,
+      Value<DateTime?> receivedAt,
+      Value<int?> readingSeconds,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -5272,6 +5496,26 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get genre => $composableBuilder(
+    column: $table.genre,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get priceCents => $composableBuilder(
+    column: $table.priceCents,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get receivedAt => $composableBuilder(
+    column: $table.receivedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get readingSeconds => $composableBuilder(
+    column: $table.readingSeconds,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5566,6 +5810,26 @@ class $$BooksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get genre => $composableBuilder(
+    column: $table.genre,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get priceCents => $composableBuilder(
+    column: $table.priceCents,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get receivedAt => $composableBuilder(
+    column: $table.receivedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get readingSeconds => $composableBuilder(
+    column: $table.readingSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -5726,6 +5990,24 @@ class $$BooksTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get genre =>
+      $composableBuilder(column: $table.genre, builder: (column) => column);
+
+  GeneratedColumn<int> get priceCents => $composableBuilder(
+    column: $table.priceCents,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get receivedAt => $composableBuilder(
+    column: $table.receivedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get readingSeconds => $composableBuilder(
+    column: $table.readingSeconds,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -5942,6 +6224,10 @@ class $$BooksTableTableManager
                 Value<String?> review = const Value.absent(),
                 Value<String?> olid = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String?> genre = const Value.absent(),
+                Value<int?> priceCents = const Value.absent(),
+                Value<DateTime?> receivedAt = const Value.absent(),
+                Value<int?> readingSeconds = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => BooksCompanion(
@@ -5972,6 +6258,10 @@ class $$BooksTableTableManager
                 review: review,
                 olid: olid,
                 deletedAt: deletedAt,
+                genre: genre,
+                priceCents: priceCents,
+                receivedAt: receivedAt,
+                readingSeconds: readingSeconds,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -6004,6 +6294,10 @@ class $$BooksTableTableManager
                 Value<String?> review = const Value.absent(),
                 Value<String?> olid = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String?> genre = const Value.absent(),
+                Value<int?> priceCents = const Value.absent(),
+                Value<DateTime?> receivedAt = const Value.absent(),
+                Value<int?> readingSeconds = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => BooksCompanion.insert(
@@ -6034,6 +6328,10 @@ class $$BooksTableTableManager
                 review: review,
                 olid: olid,
                 deletedAt: deletedAt,
+                genre: genre,
+                priceCents: priceCents,
+                receivedAt: receivedAt,
+                readingSeconds: readingSeconds,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),

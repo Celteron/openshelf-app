@@ -1,3 +1,4 @@
+import 'package:openreads/core/helpers/price.dart';
 import 'package:openreads/data/export/export_service.dart';
 import 'package:openreads/data/importers/column_mapper.dart';
 import 'package:openreads/data/importers/csv_importer_base.dart';
@@ -36,6 +37,10 @@ class OpenreadsCsvImporter extends CsvImporter {
     'date_added': ColumnMapper.fieldDateAdded,
     'date_modified': ColumnMapper.fieldDateModified,
     'olid': ColumnMapper.fieldOlid,
+    'genre': ColumnMapper.fieldGenre,
+    'price': ColumnMapper.fieldPrice,
+    'received_at': ColumnMapper.fieldReceivedAt,
+    'reading_seconds': ColumnMapper.fieldReadingSeconds,
     'publisher': ColumnMapper.fieldPublisher,
     'language': ColumnMapper.fieldLanguage,
     'current_page': ColumnMapper.fieldCurrentPage,
@@ -53,6 +58,14 @@ class OpenreadsCsvImporter extends CsvImporter {
 
   @override
   String get formatName => 'Openreads CSV';
+
+  /// Separates the tags inside one cell.
+  Pattern get tagSeparator => ExportService.tagSeparator;
+
+  /// `deleted` is an internal flag, not something to match a column to.
+  @override
+  Set<String> get mappableFields =>
+      super.mappableFields.difference({'deleted'});
 
   @override
   ColumnMapper get columnMapper => _mapper;
@@ -95,10 +108,7 @@ class OpenreadsCsvImporter extends CsvImporter {
       status: parseStatus(fields[ColumnMapper.fieldStatus]),
       isFavorite: parseBool(fields[ColumnMapper.fieldFavorite]),
       review: fields[ColumnMapper.fieldReview],
-      tags: parseTags(
-        fields[ColumnMapper.fieldTags],
-        separator: ExportService.tagSeparator,
-      ),
+      tags: parseTags(fields[ColumnMapper.fieldTags], separator: tagSeparator),
       notes: [
         ..._splitNotes(fields[ColumnMapper.fieldNotes], NoteKind.note, addedAt),
         ..._splitNotes(
@@ -107,10 +117,20 @@ class OpenreadsCsvImporter extends CsvImporter {
           addedAt,
         ),
       ],
-      readings: parseOpenreadsReadings(fields[ColumnMapper.fieldReadings]),
+      readings: (fields[ColumnMapper.fieldReadings] ?? '').trim().isNotEmpty
+          ? parseOpenreadsReadings(fields[ColumnMapper.fieldReadings])
+          // Plain start/finish date columns (own CSV files).
+          : singleReading(
+              parseDate(fields[ColumnMapper.fieldStartDate]),
+              parseDate(fields[ColumnMapper.fieldFinishDate]),
+            ),
       addedAt: addedAt,
       updatedAt: parseDate(fields[ColumnMapper.fieldDateModified]),
       olid: fields[ColumnMapper.fieldOlid],
+      genre: fields[ColumnMapper.fieldGenre],
+      priceCents: parsePriceCents(fields[ColumnMapper.fieldPrice]),
+      receivedAt: parseDate(fields[ColumnMapper.fieldReceivedAt]),
+      readingSeconds: parseInt(fields[ColumnMapper.fieldReadingSeconds]),
       coverUrl: fields[ColumnMapper.fieldCoverUrl],
       seriesName: fields[ColumnMapper.fieldSeriesName],
       seriesVolume: double.tryParse(

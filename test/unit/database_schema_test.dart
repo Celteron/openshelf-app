@@ -38,8 +38,8 @@ void main() {
     );
   });
 
-  test('schema version is 3', () {
-    expect(db.schemaVersion, 3);
+  test('schema version is 5', () {
+    expect(db.schemaVersion, 5);
   });
 
   test('inserts and reads a book with 0.5-step rating', () async {

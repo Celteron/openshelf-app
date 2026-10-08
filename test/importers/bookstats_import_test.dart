@@ -233,4 +233,105 @@ void main() {
       expect(note.createdAt, DateTime(2022, 3, 24));
     },
   );
+  group('genre, price, received date and reading time (spec 003)', () {
+    test('maps Genre, Preis and Erhalten am of the real export', () async {
+      await runImport();
+      final books = await db.select(db.books).get();
+      final first = books.firstWhere(
+        (b) => b.title == 'Whitestone Hospital - High Hopes',
+      );
+
+      expect(first.genre, 'New Adult');
+      expect(first.priceCents, 1290);
+      expect(first.receivedAt, DateTime(2022, 3, 24));
+      expect(books.where((b) => b.genre != null), hasLength(greaterThan(700)));
+      expect(books.where((b) => b.priceCents != null), hasLength(773));
+      expect(books.where((b) => b.receivedAt != null), hasLength(773));
+    });
+
+    test('drops opaque ids in the genre column', () async {
+      await runImport();
+      final genres = (await db.select(db.books).get()).map((b) => b.genre);
+      expect(
+        genres.any((g) => g != null && RegExp(r'^[0-9a-f]{8}-').hasMatch(g)),
+        isFalse,
+      );
+    });
+
+    test('Dauer (Stunden/Minuten) becomes the reading session time', () async {
+      const csv =
+          '"Titel";"Autor(en)";"ISBN";"Genre";"Preis";"Lesestatus";'
+          '"Lesebeginn";"Leseende";"Dauer (Stunden)";"Dauer (Minuten)";'
+          '"Erhalten am"\n'
+          '"Lang";"Doe, Jane";"9783736315471";"Krimi";"9,99 €";"Gelesen";'
+          '"01.02.2020";"15.02.2020";"5";"30";"20.01.2020"\n';
+      final fresh = AppDatabase(NativeDatabase.memory());
+      addTearDown(fresh.close);
+      await ImportService(BookRepositoryImpl(BooksDao(fresh))).import(
+        BookstatsCsvImporter().parse(
+          const ImportFile(
+            name: 'd.csv',
+            content: csv,
+            type: ImportFileType.csv,
+          ),
+        ),
+      );
+
+      final book = await fresh.select(fresh.books).getSingle();
+      expect((book.genre, book.priceCents), ('Krimi', 999));
+      final session = await fresh.select(fresh.readingSessions).getSingle();
+      expect(session.durationSeconds, 5 * 3600 + 30 * 60);
+    });
+  });
+
+  test('Bookstats JSON maps genre, price and received date', () async {
+    const json =
+        '[{"titel":"A","autor":"B","isbn":"9783446172580","genre":"Krimi",'
+        '"preis":12.9,"erhalten am":"20.01.2020"},'
+        '{"titel":"C","autor":"D","isbn":"9783442719255","preis":"9,99 €",'
+        '"hinzugefuegt":"05.05.2021"}]';
+    final fresh = AppDatabase(NativeDatabase.memory());
+    addTearDown(fresh.close);
+    await ImportService(BookRepositoryImpl(BooksDao(fresh))).import(
+      BookstatsJsonImporter().parse(
+        const ImportFile(
+          name: 'b.json',
+          content: json,
+          type: ImportFileType.json,
+        ),
+      ),
+    );
+
+    final books = await fresh.select(fresh.books).get();
+    final a = books.firstWhere((b) => b.title == 'A');
+    expect(
+      (a.genre, a.priceCents, a.receivedAt),
+      ('Krimi', 1290, DateTime(2020, 1, 20)),
+    );
+    final c = books.firstWhere((b) => b.title == 'C');
+    expect(c.priceCents, 999);
+    expect(
+      c.receivedAt,
+      isNull,
+      reason: 'only "added" is known, not "received"',
+    );
+  });
+
+  test('Dauer without any reading date is kept as the reading time', () async {
+    const csv =
+        '"Titel";"Autor(en)";"ISBN";"Lesestatus";"Dauer (Stunden)";'
+        '"Dauer (Minuten)"\n'
+        '"Ohne Datum";"Doe, Jane";"9783736315471";"Gelesen";"5";"30"\n';
+    final fresh = AppDatabase(NativeDatabase.memory());
+    addTearDown(fresh.close);
+    await ImportService(BookRepositoryImpl(BooksDao(fresh))).import(
+      BookstatsCsvImporter().parse(
+        const ImportFile(name: 'd.csv', content: csv, type: ImportFileType.csv),
+      ),
+    );
+
+    final book = await fresh.select(fresh.books).getSingle();
+    expect(book.readingSeconds, 5 * 3600 + 30 * 60);
+    expect(await fresh.select(fresh.readingSessions).get(), isEmpty);
+  });
 }

@@ -24,6 +24,10 @@ import 'package:test/test.dart';
 ///   - 9783442719255  "Wenn das Eis bricht" (Camilla Grebe, btb)
 ///   - 9783462033748  "Der Schwarm"         (Frank Schätzing, Kiepenheuer & Witsch)
 const _grebeIsbn = '9783442719255';
+
+/// Optional, for development only: `export GOOGLE_BOOKS_API_KEY=...` in your
+/// shell. Never commit a key. The app itself runs without one.
+final _googleKey = Platform.environment['GOOGLE_BOOKS_API_KEY'];
 const _schwarmIsbn = '9783462033748';
 
 void main() {
@@ -47,7 +51,7 @@ void main() {
     }, skip: enabled ? false : skipReason);
 
     test('Google Books cover lookup degrades gracefully', () async {
-      final client = GoogleBooksClient();
+      final client = GoogleBooksClient(apiKey: _googleKey);
       final metadata = await client.lookupByIsbn(_grebeIsbn);
 
       // Google Books anonymous quota may be exhausted (HTTP 429) or the edition
@@ -76,7 +80,7 @@ void main() {
     test('Aggregator: DNB is primary and merges deterministically', () async {
       final aggregator = MetadataAggregatorService([
         DnbClient(),
-        GoogleBooksClient(),
+        GoogleBooksClient(apiKey: _googleKey),
         OpenLibraryClient(),
       ]);
 
@@ -110,7 +114,7 @@ void main() {
       () async {
         final aggregator = MetadataAggregatorService([
           DnbClient(),
-          GoogleBooksClient(),
+          GoogleBooksClient(apiKey: _googleKey),
           OpenLibraryClient(),
         ]);
 

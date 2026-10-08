@@ -71,6 +71,21 @@ class Books extends Table {
   /// When the book was moved to the trash; `null` = in the library
   /// (Openreads soft delete, schema v3).
   DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  /// Free-text genre; user-editable and never overwritten by imports
+  /// (schema v4).
+  TextColumn get genre => text().nullable()();
+
+  /// Purchase price in euro cents (integer, so no float rounding); a currency
+  /// column can be added later (schema v4).
+  IntColumn get priceCents => integer().nullable()();
+
+  /// When the book was bought or received (schema v4).
+  DateTimeColumn get receivedAt => dateTime().nullable()();
+
+  /// Reading time entered without any dated session (e.g. imported from a
+  /// source that only knows a total). Added to the sessions' time (schema v5).
+  IntColumn get readingSeconds => integer().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }

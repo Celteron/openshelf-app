@@ -55,6 +55,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   void _clearSelection() => setState(_selectedIds.clear);
 
+  /// Selects every book the list currently shows (respecting search/filters).
+  void _selectAll() {
+    final state = context.read<LibraryCubit>().state;
+    if (state is! LibraryLoaded) return;
+    setState(() => _selectedIds.addAll(state.books.map((b) => b.id)));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -69,6 +76,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
               )
             : null,
         actions: [
+          if (_selectionMode)
+            IconButton(
+              key: const ValueKey('select-all'),
+              icon: const Icon(Icons.select_all),
+              tooltip: l10n.selectAll,
+              onPressed: _selectAll,
+            ),
           const _ViewToggle(),
           const _SortMenu(),
           IconButton(

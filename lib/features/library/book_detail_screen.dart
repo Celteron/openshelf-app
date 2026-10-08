@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:openreads/core/helpers/price.dart';
 import 'package:openreads/core/helpers/rating.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/features/lending/lending_cubit.dart';
+import 'package:openreads/domain/models/reading_stats.dart';
 import 'package:openreads/domain/repositories/notes_repository.dart';
+import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/domain/models/app_preferences.dart';
@@ -39,10 +43,12 @@ class BookDetailScreen extends StatefulWidget {
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
   Book? _book;
+  late final Stream<List<ReadingSession>> _sessions;
 
   @override
   void initState() {
     super.initState();
+    _sessions = context.read<ReadingRepository>().watchSessions(widget.bookId);
     _load();
     context.read<LendingCubit>().watch(widget.bookId);
   }
@@ -96,6 +102,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.bookDeleted),
+        // A SnackBar with an action would otherwise stay until dismissed.
+        persist: false,
         action: SnackBarAction(
           label: l10n.undo,
           onPressed: () => cubit.restoreBook(book.id),
@@ -217,7 +225,16 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          _MetadataTable(book: book),
+          StreamBuilder<List<ReadingSession>>(
+            stream: _sessions,
+            builder: (context, snapshot) => _MetadataTable(
+              book: book,
+              reading: ReadingSummary.compute(
+                snapshot.data ?? const <ReadingSession>[],
+                manualSeconds: book.readingSeconds ?? 0,
+              ),
+            ),
+          ),
           if (book.description != null && book.description!.isNotEmpty) ...[
             const SizedBox(height: 16),
             Text(
@@ -515,17 +532,28 @@ class _NotesTile extends StatelessWidget {
 
 class _MetadataTable extends StatelessWidget {
   final Book book;
-  const _MetadataTable({required this.book});
+  final ReadingSummary reading;
+  const _MetadataTable({required this.book, required this.reading});
 
   static String _date(BuildContext context, DateTime date) =>
       MaterialLocalizations.of(context).formatMediumDate(date);
 
+  static String _time(AppLocalizations l10n, Duration time) =>
+      time <= Duration.zero
+      ? ''
+      : l10n.readingDuration(time.inHours, time.inMinutes % 60);
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).languageCode;
+    final price = book.priceCents;
+    final started = reading.startedAt;
+    final finished = reading.finishedAt;
     final rows = <(String, String?)>[
-      (l10n.isbn13Label, book.isbn13),
-      (l10n.isbn10Label, book.isbn10),
+      // One ISBN is enough for the reader; both numbers stay in the data.
+      (l10n.fieldIsbn, book.isbn13 ?? book.isbn10),
+      (l10n.genreLabel, book.genre),
       (l10n.publisherLabel, book.publisher),
       (l10n.yearLabel, book.publishedYear?.toString()),
       (l10n.pagesLabel, book.pageCount?.toString()),
@@ -533,29 +561,68 @@ class _MetadataTable extends StatelessWidget {
       (l10n.formatLabel, book.format?.name),
       (l10n.seriesVolumeLabel, book.seriesVolume?.toString()),
       (l10n.olidLabel, book.olid),
+      (l10n.priceLabel, price == null ? null : formatPriceCents(price, locale)),
+      (
+        l10n.receivedAtLabel,
+        book.receivedAt == null ? null : _date(context, book.receivedAt!),
+      ),
       (l10n.dateAddedLabel, _date(context, book.createdAt)),
       (l10n.dateModifiedLabel, _date(context, book.updatedAt)),
+      (
+        l10n.readingStartedLabel,
+        started == null ? null : _date(context, started),
+      ),
+      (
+        l10n.readingFinishedLabel,
+        finished == null ? null : _date(context, finished),
+      ),
+      // The period (when it was read) and the time (how long actually) differ.
+      (
+        l10n.readingSpanLabel,
+        reading.spanDays == null ? null : l10n.daysCount(reading.spanDays!),
+      ),
+      (l10n.readingTimeLabel, _time(l10n, reading.readingTime)),
     ];
-    return Table(
-      columnWidths: const {0: FixedColumnWidth(120)},
+    return Column(
       children: [
         for (final (label, value) in rows)
           if (value != null && value.isNotEmpty)
-            TableRow(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(
-                    label,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(value),
-                ),
-              ],
-            ),
+            _CopyableRow(label: label, value: value),
+      ],
+    );
+  }
+}
+
+/// One label/value line whose value can be selected and copied in one tap.
+class _CopyableRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _CopyableRow({required this.label, required this.value});
+
+  Future<void> _copy(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final message = AppLocalizations.of(context).copiedToClipboard;
+    await Clipboard.setData(ClipboardData(text: value));
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 120,
+          child: Text(label, style: const TextStyle(color: Colors.grey)),
+        ),
+        Expanded(child: SelectableText(value)),
+        IconButton(
+          key: ValueKey('copy:$label'),
+          icon: const Icon(Icons.copy, size: 18),
+          tooltip: l10n.copyValue(label),
+          onPressed: () => _copy(context),
+        ),
       ],
     );
   }

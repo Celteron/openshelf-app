@@ -84,4 +84,65 @@ void main() {
     expect(result.metadata.title, isNull);
     expect(result.primarySource, isNull);
   });
+
+  group('DNB cover fallback', () {
+    final dnbOnly = _FakeSource(
+      MetadataSource.dnb,
+      const BookMetadata(title: 'Nur DNB', authors: ['A']),
+    );
+    final googleBlocked = _NullSource(MetadataSource.googleBooks);
+
+    test('is used when no source delivers a cover (e.g. Google 429)', () async {
+      final service = MetadataAggregatorService([dnbOnly, googleBlocked]);
+      final result = await service.enrich(
+        const BookMetadata(isbn13: '9783833874239'),
+      );
+
+      expect(
+        result.metadata.coverUrl,
+        'https://portal.dnb.de/opac/mvb/cover?isbn=9783833874239',
+      );
+    });
+
+    test('never replaces a cover a source did deliver', () async {
+      final service = MetadataAggregatorService([dnbOnly, google]);
+      final result = await service.enrich(
+        const BookMetadata(isbn13: '9783833874239'),
+      );
+
+      expect(result.metadata.coverUrl, 'https://cover');
+    });
+
+    test('is not invented for an ISBN no source knows', () async {
+      final service = MetadataAggregatorService([
+        _NullSource(MetadataSource.dnb),
+        googleBlocked,
+      ]);
+      final result = await service.enrich(
+        const BookMetadata(isbn13: '9783833874239'),
+      );
+
+      expect(result.metadata.coverUrl, isNull);
+    });
+
+    test('respects a cover the user removed by hand', () async {
+      final service = MetadataAggregatorService([dnbOnly, googleBlocked]);
+      final result = await service.enrich(
+        const BookMetadata(isbn13: '9783833874239'),
+        editedFields: const {'coverUrl'},
+      );
+
+      expect(result.metadata.coverUrl, isNull);
+    });
+  });
+}
+
+class _NullSource implements MetadataSourceStrategy {
+  @override
+  final MetadataSource id;
+
+  _NullSource(this.id);
+
+  @override
+  Future<BookMetadata?> lookupByIsbn(String isbn13) async => null;
 }

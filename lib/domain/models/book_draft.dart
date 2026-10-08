@@ -26,6 +26,14 @@ class BookDraft {
   final int? locationId;
   final int? seriesId;
 
+  /// Free-text genre, purchase price (euro cents) and received date.
+  final String? genre;
+  final int? priceCents;
+  final DateTime? receivedAt;
+
+  /// Reading time entered without a dated session, in seconds.
+  final int? readingSeconds;
+
   /// Canonical field names the user edited by hand. Used to flip the DNB
   /// verification badge to "bearbeitet" (spec §6.3).
   final Set<String> editedFields;
@@ -51,6 +59,10 @@ class BookDraft {
     this.metadataSource,
     this.locationId,
     this.seriesId,
+    this.genre,
+    this.priceCents,
+    this.receivedAt,
+    this.readingSeconds,
     this.editedFields = const {},
   });
 }

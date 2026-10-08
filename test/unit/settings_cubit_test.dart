@@ -31,6 +31,9 @@ class _FakeSettingsRepository implements SettingsRepository {
 
   @override
   Future<void> setLocaleCode(String code) async => locale = code;
+
+  @override
+  Future<void> clearAll() async => values.clear();
 }
 
 void main() {

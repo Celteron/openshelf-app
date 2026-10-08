@@ -12,6 +12,7 @@ import 'package:openreads/data/cover/cover_picker.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/data/metadata/open_library_search_client.dart';
 import 'package:openreads/domain/models/book_draft.dart';
+import 'package:openreads/domain/models/book_metadata.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/domain/repositories/location_repository.dart';
@@ -30,8 +31,12 @@ class _Books implements BookRepository {
   final added = <BookDraft>[];
   final updated = <(int, BookDraft)>[];
 
+  /// Makes saving fail, like a database that is out of date.
+  Object? failWith;
+
   @override
   Future<int> addBook(BookDraft draft) async {
+    if (failWith != null) throw failWith!;
     added.add(draft);
     return 77;
   }
@@ -74,7 +79,14 @@ class _Picker implements CoverPicker {
   }
 }
 
-Book existing({String? coverUrl, String? coverLocalPath}) => Book(
+Book existing({
+  String? coverUrl,
+  String? coverLocalPath,
+  String? genre,
+  int? priceCents,
+  DateTime? receivedAt,
+  int? readingSeconds,
+}) => Book(
   id: 5,
   title: 'Bestehend',
   authors: const ['Autorin'],
@@ -82,6 +94,10 @@ Book existing({String? coverUrl, String? coverLocalPath}) => Book(
   rating: 3,
   seriesId: 9,
   olid: 'OL1M',
+  genre: genre,
+  priceCents: priceCents,
+  receivedAt: receivedAt,
+  readingSeconds: readingSeconds,
   coverUrl: coverUrl,
   coverLocalPath: coverLocalPath,
   editedFields: const [],
@@ -118,6 +134,7 @@ void main() {
     WidgetTester tester, {
     Book? book,
     bool withPicker = true,
+    MetadataAggregatorService aggregator = const MetadataAggregatorService([]),
   }) async {
     tester.view.physicalSize = const Size(800, 3000);
     tester.view.devicePixelRatio = 1.0;
@@ -142,9 +159,7 @@ void main() {
         child: MultiBlocProvider(
           providers: [
             BlocProvider(create: (_) => LibraryCubit(books)),
-            BlocProvider(
-              create: (_) => MetadataCubit(const MetadataAggregatorService([])),
-            ),
+            BlocProvider(create: (_) => MetadataCubit(aggregator)),
             BlocProvider.value(value: settingsCubit),
           ],
           child: MaterialApp(
@@ -431,4 +446,172 @@ void main() {
       expect(find.text('Keine Treffer'), findsOneWidget);
     });
   });
+  group('genre, price and received date (spec 003)', () {
+    testWidgets('are saved with a new book', (tester) async {
+      await pump(tester);
+      await enterTitle(tester, 'Neu');
+      await tester.enterText(find.widgetWithText(TextField, 'Genre'), 'Krimi');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Preis in Euro'),
+        '12,90',
+      );
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      final draft = books.added.single;
+      expect((draft.genre, draft.priceCents), ('Krimi', 1290));
+      expect(draft.receivedAt, isNull);
+    });
+
+    testWidgets('are pre-filled and kept when editing', (tester) async {
+      await pump(
+        tester,
+        book: existing(
+          genre: 'Fantasy',
+          priceCents: 999,
+          receivedAt: DateTime(2025, 12, 24),
+        ),
+      );
+
+      expect(find.widgetWithText(TextField, 'Fantasy'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '9,99'), findsOneWidget);
+
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      final draft = books.updated.single.$2;
+      expect(
+        (draft.genre, draft.priceCents, draft.receivedAt),
+        ('Fantasy', 999, DateTime(2025, 12, 24)),
+      );
+      expect(
+        draft.editedFields,
+        isNot(contains('genre')),
+        reason: 'only DNB-sourced fields drive the verification badge',
+      );
+    });
+
+    testWidgets('clearing the fields removes the values', (tester) async {
+      await pump(
+        tester,
+        book: existing(
+          genre: 'Fantasy',
+          priceCents: 999,
+          receivedAt: DateTime(2025, 12, 24),
+        ),
+      );
+      await tester.enterText(find.widgetWithText(TextField, 'Fantasy'), '');
+      await tester.enterText(find.widgetWithText(TextField, '9,99'), '');
+      await tester.tap(find.byKey(const ValueKey('received-at-clear')));
+      await tester.pump();
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      final draft = books.updated.single.$2;
+      expect(
+        (draft.genre, draft.priceCents, draft.receivedAt),
+        (null, null, null),
+      );
+    });
+
+    testWidgets('an invalid price blocks saving and shows a hint', (
+      tester,
+    ) async {
+      await pump(tester);
+      await enterTitle(tester, 'Neu');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Preis in Euro'),
+        'gratis',
+      );
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      expect(books.added, isEmpty);
+      expect(
+        find.text('Bitte einen gültigen Preis eingeben, z. B. 12,90'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the received date is picked from a date picker', (
+      tester,
+    ) async {
+      await pump(tester);
+      await enterTitle(tester, 'Neu');
+      await tester.tap(find.byKey(const ValueKey('received-at-field')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      expect(books.added.single.receivedAt, isNotNull);
+    });
+  });
+
+  group('data the form does not show (regressions)', () {
+    testWidgets('editing keeps an imported reading time', (tester) async {
+      await pump(tester, book: existing(readingSeconds: 19800));
+
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      expect(books.updated.single.$2.readingSeconds, 19800);
+    });
+
+    testWidgets('a metadata lookup without a real cover keeps a manual one', (
+      tester,
+    ) async {
+      final path = (await tester.runAsync(
+        () => cache.saveCover('manual-1', testPng()),
+      ))!;
+      await pump(
+        tester,
+        book: existing(coverLocalPath: path),
+        aggregator: MetadataAggregatorService([_TitleOnlySource()]),
+      );
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'ISBN'),
+        '9783833874239',
+      );
+      await tester.tap(find.byTooltip('Metadaten suchen'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      final draft = books.updated.single.$2;
+      expect(draft.coverLocalPath, path, reason: 'the user picked this cover');
+      expect(draft.coverUrl, isNull);
+    });
+  });
+
+  group('a failing save', () {
+    testWidgets('is reported and keeps the form open', (tester) async {
+      books.failWith = StateError('no such column: genre');
+      await pump(tester);
+      await enterTitle(tester, 'Neu');
+
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddBookScreen), findsOneWidget);
+      expect(
+        find.textContaining('Das Buch konnte nicht gespeichert werden'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('no such column: genre'), findsOneWidget);
+      expect(find.widgetWithText(TextField, 'Neu'), findsOneWidget);
+    });
+  });
+}
+
+/// Knows the book but has no cover, so the aggregator adds the DNB fallback URL.
+class _TitleOnlySource implements MetadataSourceStrategy {
+  @override
+  MetadataSource get id => MetadataSource.dnb;
+
+  @override
+  Future<BookMetadata?> lookupByIsbn(String isbn13) async =>
+      const BookMetadata(title: 'Gefunden', authors: ['A']);
 }

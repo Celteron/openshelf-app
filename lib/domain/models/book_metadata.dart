@@ -54,6 +54,24 @@ class BookMetadata {
     this.seriesVolume,
   });
 
+  /// The same metadata with a different cover URL.
+  BookMetadata withCoverUrl(String? url) => BookMetadata(
+    isbn13: isbn13,
+    isbn10: isbn10,
+    title: title,
+    subtitle: subtitle,
+    authors: authors,
+    publisher: publisher,
+    publishedYear: publishedYear,
+    pageCount: pageCount,
+    format: format,
+    language: language,
+    description: description,
+    coverUrl: url,
+    seriesName: seriesName,
+    seriesVolume: seriesVolume,
+  );
+
   /// Whether every field is empty (the source yielded nothing useful).
   bool get isEmpty =>
       isbn13 == null &&

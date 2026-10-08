@@ -117,3 +117,7 @@ lint/tmp/
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode
+
+# Local secrets (e.g. GOOGLE_BOOKS_API_KEY) never go into the repo
+.env
+.env.*

@@ -22,6 +22,13 @@ class FakeSettingsRepository implements SettingsRepository {
   Future<String?> getValue(String key) async => values[key];
 
   @override
+  Future<void> clearAll() async {
+    theme = 'system';
+    locale = 'de';
+    values.clear();
+  }
+
+  @override
   Future<void> setValue(String key, String? value) async {
     if (value == null) {
       values.remove(key);

@@ -506,4 +506,43 @@ void main() {
       expect(repo.authorChanges.single.$2, ['Jane Doe', 'John Roe']);
     });
   });
+
+  testWidgets('select all picks every shown book and can trash them', (
+    tester,
+  ) async {
+    final books = await pumpLibrary(tester);
+
+    expect(find.byKey(const ValueKey('select-all')), findsNothing);
+    await tester.longPress(find.text('Alpha'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 ausgewählt'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('select-all')));
+    await tester.pumpAndSettle();
+    expect(find.text('3 ausgewählt'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('bulk-delete')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'In den Papierkorb'));
+    await tester.pumpAndSettle();
+
+    expect(books.trashed, unorderedEquals([1, 2, 3]));
+  });
+
+  testWidgets('select all only takes the books of the active filter', (
+    tester,
+  ) async {
+    await pumpLibrary(tester);
+    final chip = find.widgetWithText(FilterChip, 'Wunschliste');
+    await tester.ensureVisible(chip);
+    await tester.tap(chip);
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('Wunsch'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('select-all')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 ausgewählt'), findsOneWidget);
+  });
 }

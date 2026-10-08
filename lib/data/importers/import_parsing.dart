@@ -196,9 +196,39 @@ List<ReadingImport> parseOpenreadsReadings(String? raw) {
 
 /// Builds the reading list for sources that only know a start and/or finish
 /// date of the current read.
-List<ReadingImport> singleReading(DateTime? start, DateTime? finish) {
+///
+/// A [duration] (hand-entered reading time) is only kept together with a date,
+/// because a session without any date would otherwise be stamped "now".
+List<ReadingImport> singleReading(
+  DateTime? start,
+  DateTime? finish, {
+  Duration? duration,
+}) {
   if (start == null && finish == null) return const [];
-  return [ReadingImport(startedAt: start, finishedAt: finish)];
+  return [
+    ReadingImport(
+      startedAt: start,
+      finishedAt: finish,
+      duration: duration == null || duration <= Duration.zero ? null : duration,
+    ),
+  ];
+}
+
+/// A reading time from separate hour and minute cells (`5` + `30` = 5 h 30 min).
+Duration? parseHoursMinutes(String? hours, String? minutes) {
+  final total = Duration(
+    hours: parseInt(hours) ?? 0,
+    minutes: parseInt(minutes) ?? 0,
+  );
+  return total > Duration.zero ? total : null;
+}
+
+/// A genre as free text; blank values and opaque machine ids (see [parseTags])
+/// are not genres.
+String? parseGenre(String? raw) {
+  final genre = raw?.trim().replaceAll(RegExp(r'\s+'), ' ');
+  if (genre == null || genre.isEmpty || _opaqueId.hasMatch(genre)) return null;
+  return genre;
 }
 
 /// A free-text note as a one-element list, or empty for blank text.

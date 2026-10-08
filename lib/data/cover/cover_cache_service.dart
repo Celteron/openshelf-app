@@ -15,6 +15,21 @@ import 'package:http/http.dart' as http;
 String openLibraryCoverUrl(String isbn) =>
     'https://covers.openlibrary.org/b/isbn/$isbn-L.jpg?default=false';
 
+/// The DNB's public cover service (MVB); covers most German-language ISBNs
+/// that Open Library lacks.
+String dnbCoverUrl(String isbn) =>
+    'https://portal.dnb.de/opac/mvb/cover?isbn=$isbn';
+
+/// Where to look for a book's cover, best first: the URL stored with the book
+/// (from the metadata lookup), then the DNB, then Open Library by ISBN.
+List<String> coverCandidates({String? coverUrl, String? isbn}) {
+  final stored = coverUrl?.trim() ?? '';
+  return {
+    if (stored.isNotEmpty) stored,
+    if (isbn != null) ...[dnbCoverUrl(isbn), openLibraryCoverUrl(isbn)],
+  }.toList();
+}
+
 class CoverCacheService {
   static const _maxConcurrentDownloads = 4;
 
@@ -56,6 +71,19 @@ class CoverCacheService {
     return downloadAndCache(key, url);
   }
 
+  /// Like [resolve], but tries [urls] in order and keeps the first that
+  /// delivers an image. A source that is down or rate-limited (e.g. Google
+  /// Books answering 429) simply hands over to the next one.
+  Future<String?> resolveAny(String key, Iterable<String> urls) async {
+    final cached = cachedPath(key);
+    if (cached != null) return cached;
+    for (final url in urls) {
+      final path = await downloadAndCache(key, url);
+      if (path != null) return path;
+    }
+    return null;
+  }
+
   /// Downloads [coverUrl] into the cache under [key] (replacing an older
   /// file) and returns the local path, or `null` on any failure.
   Future<String?> downloadAndCache(String key, String coverUrl) async {
@@ -89,6 +117,24 @@ class CoverCacheService {
     try {
       final file = File(path);
       if (await file.exists()) await file.delete();
+    } catch (_) {}
+  }
+
+  /// Deletes every cached and manually chosen cover.
+  ///
+  /// Only the `*.jpg` files the app wrote are removed, never recursively: on
+  /// Linux the base folder is `~/Documents`, where a user may keep their own
+  /// `covers` folder. The folder itself goes only when nothing else is in it.
+  Future<void> deleteAll() async {
+    try {
+      final dir = _coversDir;
+      if (!await dir.exists()) return;
+      await for (final entity in dir.list(followLinks: false)) {
+        if (entity is File && entity.path.endsWith('.jpg')) {
+          await entity.delete();
+        }
+      }
+      if (await dir.list().isEmpty) await dir.delete();
     } catch (_) {}
   }
 

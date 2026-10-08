@@ -321,6 +321,15 @@ class BooksDao {
   Future<int> purge(int id) =>
       (db.delete(db.books)..where((t) => t.id.equals(id))).go();
 
+  /// Trashes every active book and returns how many.
+  Future<int> trashAll(DateTime at) =>
+      (db.update(db.books)..where((t) => t.deletedAt.isNull())).write(
+        BooksCompanion(deletedAt: Value(at)),
+      );
+
+  /// Permanently deletes every book (cascades to its satellites).
+  Future<int> deleteAll() => db.delete(db.books).go();
+
   /// Permanently deletes everything in the trash and returns how many books.
   Future<int> emptyTrash() =>
       (db.delete(db.books)..where((t) => t.deletedAt.isNotNull())).go();

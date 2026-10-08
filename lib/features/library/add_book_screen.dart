@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/core/helpers/isbn.dart';
+import 'package:openreads/core/helpers/price.dart';
 import 'package:openreads/core/helpers/rating.dart';
 import 'package:openreads/data/cover/cover_cache_service.dart';
 import 'package:openreads/data/cover/cover_picker.dart';
@@ -45,6 +46,10 @@ class _AddBookScreenState extends State<AddBookScreen> {
   final _year = TextEditingController();
   final _pages = TextEditingController();
   final _language = TextEditingController();
+  final _genre = TextEditingController();
+  final _price = TextEditingController();
+  DateTime? _receivedAt;
+  bool _priceInvalid = false;
   BookFormat _format = BookFormat.paperback;
   BookStatus _status = BookStatus.unread;
   double _rating = 0.0;
@@ -70,6 +75,9 @@ class _AddBookScreenState extends State<AddBookScreen> {
       _year.text = book.publishedYear?.toString() ?? '';
       _pages.text = book.pageCount?.toString() ?? '';
       _language.text = book.language ?? '';
+      _genre.text = book.genre ?? '';
+      _price.text = priceInputText(book.priceCents);
+      _receivedAt = book.receivedAt;
       _format = book.format ?? BookFormat.paperback;
       _status = book.status;
       _rating = book.rating;
@@ -104,6 +112,8 @@ class _AddBookScreenState extends State<AddBookScreen> {
       _year,
       _pages,
       _language,
+      _genre,
+      _price,
     ]) {
       c.dispose();
     }
@@ -139,7 +149,13 @@ class _AddBookScreenState extends State<AddBookScreen> {
         _pages.text = m.pageCount?.toString() ?? _pages.text;
         _language.text = m.language ?? _language.text;
         _description.text = m.description ?? _description.text;
-        if (m.coverUrl != null && m.coverUrl != _coverUrl) {
+        // The DNB fallback URL is only a guess for books no source has a cover
+        // for; it must not replace a cover the user already has.
+        final guess = m.coverUrl == dnbCoverUrl(isbn13);
+        final hasCover = _coverLocalPath != null || _coverUrl != null;
+        if (m.coverUrl != null &&
+            m.coverUrl != _coverUrl &&
+            !(guess && hasCover)) {
           _coverUrl = m.coverUrl;
           // A freshly looked-up cover replaces an older cached/manual file.
           _coverLocalPath = null;
@@ -284,7 +300,32 @@ class _AddBookScreenState extends State<AddBookScreen> {
       .where((a) => a.isNotEmpty)
       .toList();
 
+  Future<void> _pickReceivedAt() async {
+    final now = DateTime.now();
+    final first = DateTime(1900);
+    final last = DateTime(now.year + 1);
+    final current = _receivedAt ?? now;
+    final picked = await showDatePicker(
+      context: context,
+      // An imported date outside the range would trip the picker's assert.
+      initialDate: current.isBefore(first)
+          ? first
+          : current.isAfter(last)
+          ? last
+          : current,
+      firstDate: first,
+      lastDate: last,
+    );
+    if (picked != null && mounted) setState(() => _receivedAt = picked);
+  }
+
   Future<void> _save() async {
+    final priceText = _price.text.trim();
+    final priceCents = parsePriceCents(priceText);
+    if (priceText.isNotEmpty && priceCents == null) {
+      setState(() => _priceInvalid = true);
+      return;
+    }
     final isbn13 = normalizeIsbn(_isbn.text);
     final isbn10 = isbn13 != null ? null : cleanIsbn(_isbn.text);
     final draft = BookDraft(
@@ -312,18 +353,31 @@ class _AddBookScreenState extends State<AddBookScreen> {
       olid: _olid,
       seriesId: widget.book?.seriesId,
       seriesVolume: widget.book?.seriesVolume,
+      // Not shown in the form: carry it over so editing never drops it.
+      readingSeconds: widget.book?.readingSeconds,
+      genre: _genre.text.trim().isEmpty ? null : _genre.text.trim(),
+      priceCents: priceCents,
+      receivedAt: _receivedAt,
       editedFields: _isEditing ? _editedFields() : const {},
     );
 
     final cubit = context.read<LibraryCubit>();
-    if (_isEditing) {
-      await cubit.updateBook(widget.book!.id, draft);
-    } else {
-      final id = await cubit.addBook(draft);
-      final defaultTags = _settings?.defaultTagIds ?? const <int>{};
-      if (defaultTags.isNotEmpty && mounted) {
-        await context.read<TagRepository>().setBookTags(id, defaultTags);
+    try {
+      if (_isEditing) {
+        await cubit.updateBook(widget.book!.id, draft);
+      } else {
+        final id = await cubit.addBook(draft);
+        final defaultTags = _settings?.defaultTagIds ?? const <int>{};
+        if (defaultTags.isNotEmpty && mounted) {
+          await context.read<TagRepository>().setBookTags(id, defaultTags);
+        }
       }
+    } catch (e) {
+      // Stay on the form so nothing typed is lost, and say why.
+      if (mounted) {
+        _showSnack(AppLocalizations.of(context).saveFailed(e.toString()));
+      }
+      return;
     }
     if (mounted) Navigator.of(context).pop();
   }
@@ -398,6 +452,25 @@ class _AddBookScreenState extends State<AddBookScreen> {
           _field(_year, l10n.fieldYear),
           _field(_pages, l10n.fieldPages),
           _field(_language, l10n.fieldLanguage),
+          _field(_genre, l10n.fieldGenre),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: TextField(
+              controller: _price,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              onChanged: (_) {
+                if (_priceInvalid) setState(() => _priceInvalid = false);
+              },
+              decoration: InputDecoration(
+                labelText: l10n.fieldPrice,
+                suffixText: '€',
+                errorText: _priceInvalid ? l10n.invalidPrice : null,
+              ),
+            ),
+          ),
+          _receivedAtField(l10n),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: TextField(
@@ -440,6 +513,35 @@ class _AddBookScreenState extends State<AddBookScreen> {
           const SizedBox(height: 16),
           FilledButton(onPressed: _save, child: Text(l10n.save)),
         ],
+      ),
+    );
+  }
+
+  Widget _receivedAtField(AppLocalizations l10n) {
+    final date = _receivedAt;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: InkWell(
+        key: const ValueKey('received-at-field'),
+        onTap: _pickReceivedAt,
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: l10n.fieldReceivedAt,
+            suffixIcon: date == null
+                ? const Icon(Icons.calendar_today_outlined)
+                : IconButton(
+                    key: const ValueKey('received-at-clear'),
+                    icon: const Icon(Icons.clear),
+                    tooltip: l10n.clearDate,
+                    onPressed: () => setState(() => _receivedAt = null),
+                  ),
+          ),
+          child: Text(
+            date == null
+                ? ''
+                : MaterialLocalizations.of(context).formatMediumDate(date),
+          ),
+        ),
       ),
     );
   }

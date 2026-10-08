@@ -38,8 +38,6 @@
   "noMetadataFound": "Keine Metadaten gefunden",
   "ratingLabel": "Bewertung",
   "statusLabel": "Status",
-  "isbn13Label": "ISBN-13",
-  "isbn10Label": "ISBN-10",
   "publisherLabel": "Verlag",
   "yearLabel": "Jahr",
   "pagesLabel": "Seiten",
@@ -166,7 +164,7 @@
   "appInfoLabel": "App-Info",
   "versionLabel": "Version",
   "licenseLabel": "Lizenz",
-  "licenseText": "GPL-3.0",
+  "licenseText": "GPL-2.0",
   "openSourceCreditsLabel": "Open-Source-Danksagungen",
   "creditsText": "Flutter, Drift, BLoC",
   "delete": "Löschen",
@@ -223,9 +221,7 @@
     }
   },
   "logSession": "Sitzung nachtragen",
-  "sessionDurationMinutes": "Dauer (Minuten)",
   "sessionStartPage": "Von Seite",
-  "sessionEndPage": "Bis Seite",
   "sessionDate": "Datum",
   "deleteSession": "Sitzung löschen",
   "durationHm": "{hours} Std. {minutes} Min.",
@@ -552,5 +548,117 @@
   "filePickerFailed": "Der Dateidialog ist nicht verfügbar (unter Linux wird zenity oder kdialog benötigt). Gib den Pfad unten ein.",
   "fileNotReadable": "Die Datei konnte nicht gelesen werden",
   "importPathLabel": "Dateipfad",
-  "importFromPath": "Aus Pfad laden"
+  "importFromPath": "Aus Pfad laden",
+  "genreLabel": "Genre",
+  "priceLabel": "Preis",
+  "receivedAtLabel": "Erhalten am",
+  "readingStartedLabel": "Lesebeginn",
+  "readingFinishedLabel": "Leseende",
+  "readingTimeLabel": "Lesezeit",
+  "readingDuration": "{hours} Std. {minutes} Min.",
+  "@readingDuration": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "daysCount": "{count, plural, =1{1 Tag} other{{count} Tage}}",
+  "@daysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copyValue": "{label} kopieren",
+  "@copyValue": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldGenre": "Genre",
+  "fieldPrice": "Preis in Euro",
+  "fieldReceivedAt": "Erhalten am",
+  "invalidPrice": "Bitte einen gültigen Preis eingeben, z. B. 12,90",
+  "clearDate": "Datum entfernen",
+  "importFieldName": "{field, select, title{Titel} subtitle{Untertitel} authors{Autor(en)} isbn{ISBN} isbn13{ISBN-13} isbn10{ISBN-10} publisher{Verlag} publishedYear{Erscheinungsjahr} pageCount{Seitenzahl} format{Format} language{Sprache} description{Beschreibung} rating{Bewertung} status{Lesestatus} seriesName{Reihe} seriesVolume{Band} favorite{Favorit} review{Rezension} notes{Notizen} tags{Tags} startDate{Lesebeginn} finishDate{Leseende} readings{Lesungen} dateAdded{Hinzugefügt am} olid{Open-Library-ID} quotes{Zitate} currentPage{Aktuelle Seite} finishedAt{Beendet am} location{Standort} borrower{Verleihen an} lentAt{Verliehen am} expectedReturn{Rückgabe bis} lendingStatus{Verleihstatus} coverUrl{Cover-URL} dateModified{Geändert am} genre{Genre} price{Preis} receivedAt{Erhalten am} durationHours{Lesedauer (Stunden)} durationMinutes{Lesedauer (Minuten)} readingSeconds{Lesezeit (Sekunden)} other{{field}}}",
+  "@importFieldName": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "importIgnoreColumn": "Nicht importieren",
+  "importFormatLabel": "Importformat",
+  "importColumnsHint": "Ordne jede Spalte einem Feld zu. Spalten ohne Zuordnung werden nicht importiert.",
+  "sessionTimeRead": "Gelesene Zeit (optional)",
+  "sessionTimeReadHint": "Nur die tatsächliche Lesezeit. Der Zeitraum ergibt sich aus Start- und Enddatum.",
+  "unitMinutes": "Minuten",
+  "unitHours": "Stunden",
+  "sessionEndPageOptional": "Bis Seite (optional)",
+  "readingSpanLabel": "Lesezeitraum",
+  "dataSection": "Daten",
+  "clearLibrary": "Bibliothek leeren",
+  "clearLibraryHint": "Alle Bücher entfernen; Orte, Tags und Einstellungen bleiben",
+  "clearLibraryTitle": "Bibliothek leeren?",
+  "clearLibraryBody": "Alle Bücher in den Papierkorb verschieben (wiederherstellbar) oder endgültig löschen?",
+  "deleteForeverAllTitle": "Wirklich endgültig löschen?",
+  "deleteForeverAllBody": "Alle Bücher samt Notizen, Tag-Zuordnungen, Lesesitzungen und Covern, auch im Papierkorb, werden unwiderruflich gelöscht. Exportiere vorher ein Backup, wenn du die Daten behalten willst.",
+  "libraryTrashed": "{count, plural, =1{1 Buch in den Papierkorb verschoben} other{{count} Bücher in den Papierkorb verschoben}}",
+  "@libraryTrashed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeleted": "{count, plural, =1{1 Buch endgültig gelöscht} other{{count} Bücher endgültig gelöscht}}",
+  "@libraryDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAllData": "Alle Daten löschen",
+  "deleteAllDataHint": "Bibliothek, Orte, Tags, Ziele, Cover und Einstellungen",
+  "deleteAllDataTitle": "Alle Daten löschen?",
+  "deleteAllDataBody": "Alles, was die App lokal speichert, wird unwiderruflich gelöscht: Bücher, Orte, Tags, Lesesitzungen, Ziele, Cover und Einstellungen. Die App selbst bleibt installiert. Exportiere vorher ein Backup, wenn du die Daten behalten willst.",
+  "confirmWord": "LÖSCHEN",
+  "typeToConfirm": "Tippe „{word}“ zur Bestätigung",
+  "@typeToConfirm": {
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteEverything": "Alles löschen",
+  "allDataDeleted": "Alle Daten wurden gelöscht",
+  "selectAll": "Alle auswählen",
+  "importColumnN": "Spalte {n}",
+  "@importColumnN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "importNeedsTitle": "Ordne mindestens eine Spalte dem Titel zu.",
+  "importFormatOwnCsv": "Eigene CSV",
+  "saveFailed": "Das Buch konnte nicht gespeichert werden: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

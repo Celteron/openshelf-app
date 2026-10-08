@@ -193,4 +193,124 @@ void main() {
     expect(peak, 4);
     expect(paths.whereType<String>(), hasLength(10));
   });
+  group('coverCandidates', () {
+    test('lists the stored URL first, then DNB, then Open Library', () {
+      expect(
+        coverCandidates(coverUrl: 'https://g/c.jpg', isbn: '9783833874239'),
+        [
+          'https://g/c.jpg',
+          dnbCoverUrl('9783833874239'),
+          openLibraryCoverUrl('9783833874239'),
+        ],
+      );
+    });
+
+    test('skips what is missing and never repeats a URL', () {
+      expect(coverCandidates(coverUrl: ' ', isbn: null), isEmpty);
+      expect(coverCandidates(coverUrl: 'https://g/c.jpg', isbn: null), [
+        'https://g/c.jpg',
+      ]);
+      final dnb = dnbCoverUrl('9783833874239');
+      expect(coverCandidates(coverUrl: dnb, isbn: '9783833874239'), [
+        dnb,
+        openLibraryCoverUrl('9783833874239'),
+      ]);
+    });
+
+    test('the DNB URL is the public MVB cover service', () {
+      expect(
+        dnbCoverUrl('9783833874239'),
+        'https://portal.dnb.de/opac/mvb/cover?isbn=9783833874239',
+      );
+    });
+  });
+
+  group('resolveAny', () {
+    test('a rate-limited source (429) falls through to the next one', () async {
+      final requested = <String>[];
+      final service = serviceFor((req) async {
+        requested.add(req.url.toString());
+        return req.url.host == 'google.test'
+            ? http.Response('quota', 429)
+            : image();
+      });
+
+      final path = await service.resolveAny('k', [
+        'https://google.test/c.jpg',
+        'https://dnb.test/c.jpg',
+      ]);
+
+      expect(path, '${dir.path}/covers/k.jpg');
+      expect(requested, [
+        'https://google.test/c.jpg',
+        'https://dnb.test/c.jpg',
+      ]);
+    });
+
+    test('stops at the first source that delivers', () async {
+      final requested = <String>[];
+      final service = serviceFor((req) async {
+        requested.add(req.url.toString());
+        return image();
+      });
+
+      await service.resolveAny('k', ['https://a/c.jpg', 'https://b/c.jpg']);
+
+      expect(requested, ['https://a/c.jpg']);
+    });
+
+    test('an already cached cover needs no request', () async {
+      var calls = 0;
+      final service = serviceFor((_) async {
+        calls++;
+        return image();
+      });
+      await service.saveCover('k', testPng());
+
+      final path = await service.resolveAny('k', ['https://a/c.jpg']);
+
+      expect(path, '${dir.path}/covers/k.jpg');
+      expect(calls, 0);
+    });
+
+    test('returns null when every source fails', () async {
+      final service = serviceFor((_) async => http.Response('', 404));
+      expect(await service.resolveAny('k', ['https://a', 'https://b']), isNull);
+      expect(await service.resolveAny('k', const []), isNull);
+    });
+  });
+
+  group('deleteAll', () {
+    test('removes the covers and the empty folder', () async {
+      final service = serviceFor((_) async => image());
+      await service.saveCover('a', testPng());
+      await service.saveCover('b', testPng());
+
+      await service.deleteAll();
+
+      expect(service.cachedPath('a'), isNull);
+      expect(Directory('${dir.path}/covers').existsSync(), isFalse);
+    });
+
+    test('never touches files or folders that are not covers', () async {
+      // On Linux the base folder is ~/Documents; a user may keep their own
+      // "covers" folder there.
+      final service = serviceFor((_) async => image());
+      await service.saveCover('a', testPng());
+      final foreign = File('${dir.path}/covers/notes.txt')
+        ..writeAsStringSync('mine');
+      final nested = File('${dir.path}/covers/album/front.png')
+        ..createSync(recursive: true);
+
+      await service.deleteAll();
+
+      expect(service.cachedPath('a'), isNull, reason: 'our cover is gone');
+      expect(foreign.existsSync(), isTrue);
+      expect(nested.existsSync(), isTrue);
+    });
+
+    test('is a no-op without a covers folder', () async {
+      await serviceFor((_) async => image()).deleteAll();
+    });
+  });
 }

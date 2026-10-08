@@ -19,6 +19,28 @@ abstract class CsvImporter implements BookImporter {
     return expectedHeaders.every(header.contains);
   }
 
+  /// The canonical fields a column of this format can be assigned to in the
+  /// matcher: everything the format maps by default.
+  Set<String> get mappableFields => columnMapper.headerToField.values.toSet();
+
+  /// The source columns of [file] with a sample from the first data row.
+  List<({String header, String sample})> columns(ImportFile file) {
+    try {
+      final rows = parseCsvRows(file.content);
+      if (rows.isEmpty) return const [];
+      final first = rows.length > 1 ? rows[1] : const <dynamic>[];
+      return [
+        for (var i = 0; i < rows.first.length; i++)
+          (
+            header: rows.first[i].toString().trim(),
+            sample: i < first.length ? first[i].toString().trim() : '',
+          ),
+      ];
+    } catch (_) {
+      return const [];
+    }
+  }
+
   /// Lowercased headers that identify this format.
   Set<String> get expectedHeaders;
 
@@ -26,8 +48,13 @@ abstract class CsvImporter implements BookImporter {
   /// `null` for a row that must be skipped.
   BookImport? buildBook(Map<String, String> fields);
 
+  /// Parses [file]. [columnFields] (column index → field) chosen in the
+  /// matcher replaces the format's default header → field mapping.
   @override
-  Stream<ImportRow> parse(ImportFile file) async* {
+  Stream<ImportRow> parse(
+    ImportFile file, {
+    Map<int, String>? columnFields,
+  }) async* {
     final List<List<dynamic>> rows;
     try {
       rows = parseCsvRows(file.content);
@@ -38,10 +65,12 @@ abstract class CsvImporter implements BookImporter {
     if (rows.isEmpty) return;
 
     final header = rows.first.map((e) => e.toString().trim()).toList();
-    final indexToField = <int, String>{};
-    for (var i = 0; i < header.length; i++) {
-      final field = columnMapper.fieldForHeader(header[i]);
-      if (field != null) indexToField[i] = field;
+    final indexToField = columnFields ?? <int, String>{};
+    if (columnFields == null) {
+      for (var i = 0; i < header.length; i++) {
+        final field = columnMapper.fieldForHeader(header[i]);
+        if (field != null) indexToField[i] = field;
+      }
     }
 
     for (var r = 1; r < rows.length; r++) {

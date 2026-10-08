@@ -145,13 +145,20 @@ class _BookCoverState extends State<BookCover> {
     final key = BookCover.keyFor(book);
     var path = cache.cachedPath(key);
     if (path == null && !_failedKeys.contains(key)) {
-      // Imported books have an ISBN but no cover URL: ask Open Library by ISBN.
+      // Merely showing a book asks one source: its stored URL, or Open Library
+      // for imported books without one. The wider fallback (DNB, ...) runs in
+      // the explicit "download missing covers" action (Constitution I.2).
       final isbn = book.isbn13;
-      final url = (book.coverUrl ?? '').isNotEmpty
-          ? book.coverUrl
-          : (isbn == null ? null : openLibraryCoverUrl(isbn));
-      path = await cache.resolve(key, url);
-      if (path == null && url != null) _failedKeys.add(key);
+      final stored = (book.coverUrl ?? '').trim();
+      final candidates = [
+        if (stored.isNotEmpty) stored,
+        // Without a stored URL, or with only the DNB guess (see the
+        // aggregator), Open Library is the one other place to look.
+        if (isbn != null && (stored.isEmpty || stored == dnbCoverUrl(isbn)))
+          openLibraryCoverUrl(isbn),
+      ];
+      path = await cache.resolveAny(key, candidates);
+      if (path == null && candidates.isNotEmpty) _failedKeys.add(key);
     }
     if (path == null || !mounted) return;
     setState(() => _path = path);

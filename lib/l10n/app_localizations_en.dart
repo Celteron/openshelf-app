@@ -104,12 +104,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusLabel => 'Status';
 
   @override
-  String get isbn13Label => 'ISBN-13';
-
-  @override
-  String get isbn10Label => 'ISBN-10';
-
-  @override
   String get publisherLabel => 'Publisher';
 
   @override
@@ -309,7 +303,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get licenseLabel => 'License';
 
   @override
-  String get licenseText => 'GPL-3.0';
+  String get licenseText => 'GPL-2.0';
 
   @override
   String get openSourceCreditsLabel => 'Open source credits';
@@ -386,13 +380,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logSession => 'Log a session';
 
   @override
-  String get sessionDurationMinutes => 'Duration (minutes)';
-
-  @override
   String get sessionStartPage => 'From page';
-
-  @override
-  String get sessionEndPage => 'To page';
 
   @override
   String get sessionDate => 'Date';
@@ -979,4 +967,229 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importFromPath => 'Load from path';
+
+  @override
+  String get genreLabel => 'Genre';
+
+  @override
+  String get priceLabel => 'Price';
+
+  @override
+  String get receivedAtLabel => 'Received on';
+
+  @override
+  String get readingStartedLabel => 'Reading started';
+
+  @override
+  String get readingFinishedLabel => 'Reading finished';
+
+  @override
+  String get readingTimeLabel => 'Reading time';
+
+  @override
+  String readingDuration(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String daysCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String copyValue(String label) {
+    return 'Copy $label';
+  }
+
+  @override
+  String get fieldGenre => 'Genre';
+
+  @override
+  String get fieldPrice => 'Price in euro';
+
+  @override
+  String get fieldReceivedAt => 'Received on';
+
+  @override
+  String get invalidPrice => 'Enter a valid price, e.g. 12.90';
+
+  @override
+  String get clearDate => 'Clear date';
+
+  @override
+  String importFieldName(String field) {
+    String _temp0 = intl.Intl.selectLogic(field, {
+      'title': 'Title',
+      'subtitle': 'Subtitle',
+      'authors': 'Author(s)',
+      'isbn': 'ISBN',
+      'isbn13': 'ISBN-13',
+      'isbn10': 'ISBN-10',
+      'publisher': 'Publisher',
+      'publishedYear': 'Year published',
+      'pageCount': 'Page count',
+      'format': 'Format',
+      'language': 'Language',
+      'description': 'Description',
+      'rating': 'Rating',
+      'status': 'Reading status',
+      'seriesName': 'Series',
+      'seriesVolume': 'Volume',
+      'favorite': 'Favourite',
+      'review': 'Review',
+      'notes': 'Notes',
+      'tags': 'Tags',
+      'startDate': 'Reading started',
+      'finishDate': 'Reading finished',
+      'readings': 'Readings',
+      'dateAdded': 'Added on',
+      'olid': 'Open Library ID',
+      'quotes': 'Quotes',
+      'currentPage': 'Current page',
+      'finishedAt': 'Finished on',
+      'location': 'Location',
+      'borrower': 'Lent to',
+      'lentAt': 'Lent on',
+      'expectedReturn': 'Return by',
+      'lendingStatus': 'Lending status',
+      'coverUrl': 'Cover URL',
+      'dateModified': 'Modified on',
+      'genre': 'Genre',
+      'price': 'Price',
+      'receivedAt': 'Received on',
+      'durationHours': 'Reading time (hours)',
+      'durationMinutes': 'Reading time (minutes)',
+      'readingSeconds': 'Reading time (seconds)',
+      'other': '$field',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get importIgnoreColumn => 'Do not import';
+
+  @override
+  String get importFormatLabel => 'Import format';
+
+  @override
+  String get importColumnsHint =>
+      'Assign each column to a field. Columns without an assignment are not imported.';
+
+  @override
+  String get sessionTimeRead => 'Time read (optional)';
+
+  @override
+  String get sessionTimeReadHint =>
+      'Only the time actually spent reading. The period follows from the start and end date.';
+
+  @override
+  String get unitMinutes => 'Minutes';
+
+  @override
+  String get unitHours => 'Hours';
+
+  @override
+  String get sessionEndPageOptional => 'To page (optional)';
+
+  @override
+  String get readingSpanLabel => 'Reading period';
+
+  @override
+  String get dataSection => 'Data';
+
+  @override
+  String get clearLibrary => 'Empty library';
+
+  @override
+  String get clearLibraryHint =>
+      'Remove all books; locations, tags and settings stay';
+
+  @override
+  String get clearLibraryTitle => 'Empty the library?';
+
+  @override
+  String get clearLibraryBody =>
+      'Move all books to the trash (restorable) or delete them permanently?';
+
+  @override
+  String get deleteForeverAllTitle => 'Really delete permanently?';
+
+  @override
+  String get deleteForeverAllBody =>
+      'All books with their notes, tag assignments, reading sessions and covers, including those in the trash, are deleted for good. Export a backup first if you want to keep the data.';
+
+  @override
+  String libraryTrashed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count books moved to the trash',
+      one: '1 book moved to the trash',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String libraryDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count books deleted permanently',
+      one: '1 book deleted permanently',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteAllData => 'Delete all data';
+
+  @override
+  String get deleteAllDataHint =>
+      'Library, locations, tags, goals, covers and settings';
+
+  @override
+  String get deleteAllDataTitle => 'Delete all data?';
+
+  @override
+  String get deleteAllDataBody =>
+      'Everything the app stores locally is deleted for good: books, locations, tags, reading sessions, goals, covers and settings. The app itself stays installed. Export a backup first if you want to keep the data.';
+
+  @override
+  String get confirmWord => 'DELETE';
+
+  @override
+  String typeToConfirm(String word) {
+    return 'Type “$word” to confirm';
+  }
+
+  @override
+  String get deleteEverything => 'Delete everything';
+
+  @override
+  String get allDataDeleted => 'All data was deleted';
+
+  @override
+  String get selectAll => 'Select all';
+
+  @override
+  String importColumnN(int n) {
+    return 'Column $n';
+  }
+
+  @override
+  String get importNeedsTitle => 'Assign at least one column to the title.';
+
+  @override
+  String get importFormatOwnCsv => 'Custom CSV';
+
+  @override
+  String saveFailed(String error) {
+    return 'The book could not be saved: $error';
+  }
 }

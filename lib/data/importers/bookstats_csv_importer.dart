@@ -1,3 +1,4 @@
+import 'package:openreads/core/helpers/price.dart';
 import 'package:openreads/data/importers/column_mapper.dart';
 import 'package:openreads/data/importers/csv_importer_base.dart';
 import 'package:openreads/data/importers/csv_utils.dart';
@@ -8,8 +9,10 @@ import 'package:openreads/domain/models/import.dart';
 /// delimiter, ISO-8859-1, spec §5.3). The column mapping is flexible and
 /// user-confirmed via [ColumnMapper].
 ///
-/// Beyond the book itself it carries over genre/category as tags, notes, the
-/// read dates (as a reading session) and the "received on" date.
+/// Beyond the book itself it carries over the genre (as its own field and as a
+/// tag, so tag filters keep working), the category as tag, notes, the price,
+/// the read dates and hand-entered reading time (as a reading session) and the
+/// "received on" date.
 class BookstatsCsvImporter extends CsvImporter {
   static final ColumnMapper _mapper = ColumnMapper({
     'titel': ColumnMapper.fieldTitle,
@@ -38,8 +41,11 @@ class BookstatsCsvImporter extends CsvImporter {
     'serie': ColumnMapper.fieldSeriesName,
     'reihe': ColumnMapper.fieldSeriesName,
     'band': ColumnMapper.fieldSeriesVolume,
-    'genre': ColumnMapper.fieldTags,
+    'genre': ColumnMapper.fieldGenre,
     'kategorie': ColumnMapper.fieldTags,
+    'preis': ColumnMapper.fieldPrice,
+    'dauer (stunden)': ColumnMapper.fieldDurationHours,
+    'dauer (minuten)': ColumnMapper.fieldDurationMinutes,
     'notizen': ColumnMapper.fieldNotes,
     'lesebeginn': ColumnMapper.fieldStartDate,
     'leseende': ColumnMapper.fieldFinishDate,
@@ -51,6 +57,12 @@ class BookstatsCsvImporter extends CsvImporter {
 
   @override
   ColumnMapper get columnMapper => _mapper;
+
+  @override
+  Set<String> get mappableFields => {
+    ...super.mappableFields,
+    ColumnMapper.fieldReceivedAt,
+  };
 
   @override
   Set<String> get expectedHeaders => {'titel'};
@@ -76,6 +88,15 @@ class BookstatsCsvImporter extends CsvImporter {
       fields[ColumnMapper.fieldIsbn13] ?? fields[ColumnMapper.fieldIsbn],
     );
     final addedAt = parseDate(fields[ColumnMapper.fieldDateAdded]);
+    final duration = parseHoursMinutes(
+      fields[ColumnMapper.fieldDurationHours],
+      fields[ColumnMapper.fieldDurationMinutes],
+    );
+    final readings = singleReading(
+      parseDate(fields[ColumnMapper.fieldStartDate]),
+      parseDate(fields[ColumnMapper.fieldFinishDate]),
+      duration: duration,
+    );
     return BookImport(
       title: fields[ColumnMapper.fieldTitle],
       subtitle: fields[ColumnMapper.fieldSubtitle],
@@ -92,13 +113,20 @@ class BookstatsCsvImporter extends CsvImporter {
       status: parseStatus(fields[ColumnMapper.fieldStatus]),
       seriesName: fields[ColumnMapper.fieldSeriesName],
       seriesVolume: _parseSeriesVolume(fields[ColumnMapper.fieldSeriesVolume]),
-      // Genre and category are merged into one `;`-joined value by the base.
-      tags: parseTags(fields[ColumnMapper.fieldTags], separator: ';'),
-      notes: noteList(fields[ColumnMapper.fieldNotes], createdAt: addedAt),
-      readings: singleReading(
-        parseDate(fields[ColumnMapper.fieldStartDate]),
-        parseDate(fields[ColumnMapper.fieldFinishDate]),
+      genre: parseGenre(fields[ColumnMapper.fieldGenre]),
+      priceCents: parsePriceCents(fields[ColumnMapper.fieldPrice]),
+      receivedAt: parseDate(fields[ColumnMapper.fieldReceivedAt]) ?? addedAt,
+      tags: parseTags(
+        [
+          fields[ColumnMapper.fieldGenre],
+          fields[ColumnMapper.fieldTags],
+        ].whereType<String>().join(';'),
+        separator: ';',
       ),
+      notes: noteList(fields[ColumnMapper.fieldNotes], createdAt: addedAt),
+      readings: readings,
+      // A reading time without any date has no session to live in.
+      readingSeconds: readings.isEmpty ? duration?.inSeconds : null,
       addedAt: addedAt,
     );
   }

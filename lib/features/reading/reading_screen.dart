@@ -9,6 +9,7 @@ import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/domain/services/reading_tracker_service.dart';
 import 'package:openreads/features/common/format_duration.dart';
 import 'package:openreads/features/reading/reading_cubit.dart';
+import 'package:openreads/features/reading/widgets/log_session_dialog.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
 /// Live reading timer, current-page tracker, reading speed and the session
@@ -166,14 +167,14 @@ class _ReadingViewState extends State<_ReadingView> {
 
   Future<void> _logSession(BuildContext context, Book book) async {
     final cubit = context.read<ReadingCubit>();
-    final result = await showDialog<_ManualSession>(
+    final result = await showDialog<ManualSession>(
       context: context,
-      builder: (_) => _LogSessionDialog(startPage: book.currentPage),
+      builder: (_) => LogSessionDialog(startPage: book.currentPage),
     );
     if (result == null) return;
     await cubit.logSession(
       startedAt: result.date,
-      duration: Duration(minutes: result.minutes),
+      duration: result.duration,
       startPage: result.startPage,
       endPage: result.endPage,
       endedAt: result.endDate,
@@ -397,175 +398,6 @@ class _SessionTile extends StatelessWidget {
               tooltip: l10n.deleteSession,
               onPressed: onDelete,
             ),
-    );
-  }
-}
-
-class _ManualSession {
-  final DateTime date;
-  final int minutes;
-  final int startPage;
-  final int endPage;
-
-  /// Set for a reading that spans several days (legacy start/finish dates).
-  final DateTime? endDate;
-
-  const _ManualSession(
-    this.date,
-    this.minutes,
-    this.startPage,
-    this.endPage, [
-    this.endDate,
-  ]);
-}
-
-class _LogSessionDialog extends StatefulWidget {
-  final int startPage;
-  const _LogSessionDialog({required this.startPage});
-
-  @override
-  State<_LogSessionDialog> createState() => _LogSessionDialogState();
-}
-
-class _LogSessionDialogState extends State<_LogSessionDialog> {
-  late final TextEditingController _minutes = TextEditingController();
-  late final TextEditingController _start = TextEditingController(
-    text: widget.startPage.toString(),
-  );
-  late final TextEditingController _end = TextEditingController();
-  DateTime _date = DateTime.now();
-  DateTime? _endDate;
-  bool _invalid = false;
-
-  @override
-  void dispose() {
-    _minutes.dispose();
-    _start.dispose();
-    _end.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date,
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-    );
-    if (picked == null) return;
-    setState(() {
-      _date = picked;
-      final end = _endDate;
-      if (end != null && end.isBefore(picked)) _endDate = picked;
-    });
-  }
-
-  Future<void> _pickEndDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _endDate ?? _date,
-      firstDate: _date,
-      lastDate: DateTime.now().isBefore(_date) ? _date : DateTime.now(),
-    );
-    if (picked != null) setState(() => _endDate = picked);
-  }
-
-  void _submit() {
-    final minutes = int.tryParse(_minutes.text.trim());
-    final start = int.tryParse(_start.text.trim());
-    final end = int.tryParse(_end.text.trim());
-    if (minutes == null || minutes <= 0 || start == null || end == null) {
-      setState(() => _invalid = true);
-      return;
-    }
-    final now = DateTime.now();
-    final endDate = _endDate;
-    Navigator.pop(
-      context,
-      _ManualSession(
-        DateTime(_date.year, _date.month, _date.day, now.hour, now.minute),
-        minutes,
-        start,
-        end,
-        endDate == null || DateUtils.isSameDay(endDate, _date)
-            ? null
-            : DateTime(
-                endDate.year,
-                endDate.month,
-                endDate.day,
-                now.hour,
-                now.minute,
-              ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return AlertDialog(
-      title: Text(l10n.logSession),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.event),
-              title: Text(l10n.sessionDate),
-              subtitle: Text(
-                MaterialLocalizations.of(context).formatMediumDate(_date),
-              ),
-              onTap: _pickDate,
-            ),
-            ListTile(
-              key: const ValueKey('session-end-date'),
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.event_available),
-              title: Text(l10n.sessionEndDate),
-              subtitle: Text(
-                _endDate == null
-                    ? l10n.sessionEndDateHint
-                    : MaterialLocalizations.of(
-                        context,
-                      ).formatMediumDate(_endDate!),
-              ),
-              trailing: _endDate == null
-                  ? null
-                  : IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () => setState(() => _endDate = null),
-                    ),
-              onTap: _pickEndDate,
-            ),
-            TextField(
-              controller: _minutes,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: l10n.sessionDurationMinutes,
-                errorText: _invalid ? l10n.enterPositiveNumber : null,
-              ),
-            ),
-            TextField(
-              controller: _start,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: l10n.sessionStartPage),
-            ),
-            TextField(
-              controller: _end,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: l10n.sessionEndPage),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.cancel),
-        ),
-        FilledButton(onPressed: _submit, child: Text(l10n.save)),
-      ],
     );
   }
 }

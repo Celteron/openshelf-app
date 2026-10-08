@@ -230,7 +230,7 @@ void main() {
       repo: _Repo(),
     );
     expect(find.byKey(const ValueKey('cover-placeholder')), findsOneWidget);
-    expect(requests, 1);
+    expect(requests, 1, reason: 'viewing only asks the stored URL');
 
     await pump(
       tester,
@@ -295,5 +295,59 @@ void main() {
   test('the cache key is the ISBN-13, else the book id', () {
     expect(BookCover.keyFor(book(isbn13: '9780000000001')), '9780000000001');
     expect(BookCover.keyFor(book(id: 42)), 'book-42');
+  });
+
+  testWidgets('a stored DNB fallback URL without a cover tries Open Library', (
+    tester,
+  ) async {
+    final asked = <String>[];
+    final cache = CoverCacheService(
+      baseDirectory: dir,
+      client: MockClient((request) async {
+        asked.add(request.url.host);
+        return request.url.host == 'portal.dnb.de'
+            ? http.Response('', 404)
+            : http.Response.bytes(
+                testPng(),
+                200,
+                headers: {'content-type': 'image/png'},
+              );
+      }),
+    );
+    const isbn = '9783833874239';
+
+    await pump(
+      tester,
+      BookCover(
+        book: book(isbn13: isbn, coverUrl: dnbCoverUrl(isbn)),
+      ),
+      cache: cache,
+      repo: _Repo(),
+    );
+
+    expect(asked, ['portal.dnb.de', 'covers.openlibrary.org']);
+    expect(find.byKey(const ValueKey('cover-placeholder')), findsNothing);
+  });
+
+  testWidgets('a real stored cover URL is the only one asked', (tester) async {
+    final asked = <String>[];
+    final cache = CoverCacheService(
+      baseDirectory: dir,
+      client: MockClient((request) async {
+        asked.add(request.url.host);
+        return http.Response('', 404);
+      }),
+    );
+
+    await pump(
+      tester,
+      BookCover(
+        book: book(isbn13: '9783000000999', coverUrl: 'https://x/c.png'),
+      ),
+      cache: cache,
+      repo: _Repo(),
+    );
+
+    expect(asked, ['x']);
   });
 }

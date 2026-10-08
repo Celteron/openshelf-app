@@ -109,10 +109,10 @@ void main() {
     return settings;
   }
 
-  testWidgets('shows the licence as GPL-3.0 and the credits', (tester) async {
+  testWidgets('shows the licence as GPL-2.0 and the credits', (tester) async {
     await pump(tester);
-    await tester.scrollUntilVisible(find.text('GPL-3.0'), 300);
-    expect(find.text('GPL-3.0'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('GPL-2.0'), 300);
+    expect(find.text('GPL-2.0'), findsOneWidget);
     expect(find.text('Flutter, Drift, BLoC'), findsOneWidget);
     expect(find.text('Quellcode'), findsOneWidget);
     expect(find.text('Fehler melden'), findsOneWidget);

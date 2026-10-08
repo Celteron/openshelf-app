@@ -93,6 +93,10 @@ class ExportService {
     'expected_return',
     'quotes',
     'cover_url',
+    'genre',
+    'price',
+    'received_at',
+    'reading_seconds',
   ];
 
   /// Every book (trashed ones flagged `deleted=true`) with all of its data:
@@ -197,10 +201,19 @@ class ExportService {
             if (n.kind == NoteKind.quote) n.content,
         ].join(noteSeparator),
         b.coverUrl ?? '',
+        b.genre ?? '',
+        _price(b.priceCents),
+        b.receivedAt?.toIso8601String() ?? '',
+        b.readingSeconds?.toString() ?? '',
       ]);
     }
     return const ListToCsvConverter(eol: '\n').convert(rows);
   }
+
+  /// Euro cents as a plain `12.90` so spreadsheets and other tools can read it.
+  static String _price(int? cents) => cents == null
+      ? ''
+      : '${cents ~/ 100}.${(cents % 100).toString().padLeft(2, '0')}';
 
   /// Openreads status vocabulary where there is an equivalent.
   static String _status(BookStatus s) => switch (s) {
@@ -239,6 +252,10 @@ class ExportService {
     'isFavorite': b.isFavorite,
     'review': b.review,
     'olid': b.olid,
+    'genre': b.genre,
+    'priceCents': b.priceCents,
+    'receivedAt': b.receivedAt?.toIso8601String(),
+    'readingSeconds': b.readingSeconds,
     'deletedAt': b.deletedAt?.toIso8601String(),
     'createdAt': b.createdAt.toIso8601String(),
     'updatedAt': b.updatedAt.toIso8601String(),

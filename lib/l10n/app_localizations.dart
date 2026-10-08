@@ -284,18 +284,6 @@ abstract class AppLocalizations {
   /// **'Status'**
   String get statusLabel;
 
-  /// No description provided for @isbn13Label.
-  ///
-  /// In de, this message translates to:
-  /// **'ISBN-13'**
-  String get isbn13Label;
-
-  /// No description provided for @isbn10Label.
-  ///
-  /// In de, this message translates to:
-  /// **'ISBN-10'**
-  String get isbn10Label;
-
   /// No description provided for @publisherLabel.
   ///
   /// In de, this message translates to:
@@ -659,7 +647,7 @@ abstract class AppLocalizations {
   /// No description provided for @licenseText.
   ///
   /// In de, this message translates to:
-  /// **'GPL-3.0'**
+  /// **'GPL-2.0'**
   String get licenseText;
 
   /// No description provided for @openSourceCreditsLabel.
@@ -794,23 +782,11 @@ abstract class AppLocalizations {
   /// **'Sitzung nachtragen'**
   String get logSession;
 
-  /// No description provided for @sessionDurationMinutes.
-  ///
-  /// In de, this message translates to:
-  /// **'Dauer (Minuten)'**
-  String get sessionDurationMinutes;
-
   /// No description provided for @sessionStartPage.
   ///
   /// In de, this message translates to:
   /// **'Von Seite'**
   String get sessionStartPage;
-
-  /// No description provided for @sessionEndPage.
-  ///
-  /// In de, this message translates to:
-  /// **'Bis Seite'**
-  String get sessionEndPage;
 
   /// No description provided for @sessionDate.
   ///
@@ -1777,6 +1753,282 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Aus Pfad laden'**
   String get importFromPath;
+
+  /// No description provided for @genreLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Genre'**
+  String get genreLabel;
+
+  /// No description provided for @priceLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Preis'**
+  String get priceLabel;
+
+  /// No description provided for @receivedAtLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Erhalten am'**
+  String get receivedAtLabel;
+
+  /// No description provided for @readingStartedLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesebeginn'**
+  String get readingStartedLabel;
+
+  /// No description provided for @readingFinishedLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Leseende'**
+  String get readingFinishedLabel;
+
+  /// No description provided for @readingTimeLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesezeit'**
+  String get readingTimeLabel;
+
+  /// No description provided for @readingDuration.
+  ///
+  /// In de, this message translates to:
+  /// **'{hours} Std. {minutes} Min.'**
+  String readingDuration(int hours, int minutes);
+
+  /// No description provided for @daysCount.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Tag} other{{count} Tage}}'**
+  String daysCount(int count);
+
+  /// No description provided for @copyValue.
+  ///
+  /// In de, this message translates to:
+  /// **'{label} kopieren'**
+  String copyValue(String label);
+
+  /// No description provided for @fieldGenre.
+  ///
+  /// In de, this message translates to:
+  /// **'Genre'**
+  String get fieldGenre;
+
+  /// No description provided for @fieldPrice.
+  ///
+  /// In de, this message translates to:
+  /// **'Preis in Euro'**
+  String get fieldPrice;
+
+  /// No description provided for @fieldReceivedAt.
+  ///
+  /// In de, this message translates to:
+  /// **'Erhalten am'**
+  String get fieldReceivedAt;
+
+  /// No description provided for @invalidPrice.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte einen gültigen Preis eingeben, z. B. 12,90'**
+  String get invalidPrice;
+
+  /// No description provided for @clearDate.
+  ///
+  /// In de, this message translates to:
+  /// **'Datum entfernen'**
+  String get clearDate;
+
+  /// No description provided for @importFieldName.
+  ///
+  /// In de, this message translates to:
+  /// **'{field, select, title{Titel} subtitle{Untertitel} authors{Autor(en)} isbn{ISBN} isbn13{ISBN-13} isbn10{ISBN-10} publisher{Verlag} publishedYear{Erscheinungsjahr} pageCount{Seitenzahl} format{Format} language{Sprache} description{Beschreibung} rating{Bewertung} status{Lesestatus} seriesName{Reihe} seriesVolume{Band} favorite{Favorit} review{Rezension} notes{Notizen} tags{Tags} startDate{Lesebeginn} finishDate{Leseende} readings{Lesungen} dateAdded{Hinzugefügt am} olid{Open-Library-ID} quotes{Zitate} currentPage{Aktuelle Seite} finishedAt{Beendet am} location{Standort} borrower{Verleihen an} lentAt{Verliehen am} expectedReturn{Rückgabe bis} lendingStatus{Verleihstatus} coverUrl{Cover-URL} dateModified{Geändert am} genre{Genre} price{Preis} receivedAt{Erhalten am} durationHours{Lesedauer (Stunden)} durationMinutes{Lesedauer (Minuten)} readingSeconds{Lesezeit (Sekunden)} other{{field}}}'**
+  String importFieldName(String field);
+
+  /// No description provided for @importIgnoreColumn.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht importieren'**
+  String get importIgnoreColumn;
+
+  /// No description provided for @importFormatLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Importformat'**
+  String get importFormatLabel;
+
+  /// No description provided for @importColumnsHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Ordne jede Spalte einem Feld zu. Spalten ohne Zuordnung werden nicht importiert.'**
+  String get importColumnsHint;
+
+  /// No description provided for @sessionTimeRead.
+  ///
+  /// In de, this message translates to:
+  /// **'Gelesene Zeit (optional)'**
+  String get sessionTimeRead;
+
+  /// No description provided for @sessionTimeReadHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur die tatsächliche Lesezeit. Der Zeitraum ergibt sich aus Start- und Enddatum.'**
+  String get sessionTimeReadHint;
+
+  /// No description provided for @unitMinutes.
+  ///
+  /// In de, this message translates to:
+  /// **'Minuten'**
+  String get unitMinutes;
+
+  /// No description provided for @unitHours.
+  ///
+  /// In de, this message translates to:
+  /// **'Stunden'**
+  String get unitHours;
+
+  /// No description provided for @sessionEndPageOptional.
+  ///
+  /// In de, this message translates to:
+  /// **'Bis Seite (optional)'**
+  String get sessionEndPageOptional;
+
+  /// No description provided for @readingSpanLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesezeitraum'**
+  String get readingSpanLabel;
+
+  /// No description provided for @dataSection.
+  ///
+  /// In de, this message translates to:
+  /// **'Daten'**
+  String get dataSection;
+
+  /// No description provided for @clearLibrary.
+  ///
+  /// In de, this message translates to:
+  /// **'Bibliothek leeren'**
+  String get clearLibrary;
+
+  /// No description provided for @clearLibraryHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Bücher entfernen; Orte, Tags und Einstellungen bleiben'**
+  String get clearLibraryHint;
+
+  /// No description provided for @clearLibraryTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Bibliothek leeren?'**
+  String get clearLibraryTitle;
+
+  /// No description provided for @clearLibraryBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Bücher in den Papierkorb verschieben (wiederherstellbar) oder endgültig löschen?'**
+  String get clearLibraryBody;
+
+  /// No description provided for @deleteForeverAllTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Wirklich endgültig löschen?'**
+  String get deleteForeverAllTitle;
+
+  /// No description provided for @deleteForeverAllBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Bücher samt Notizen, Tag-Zuordnungen, Lesesitzungen und Covern, auch im Papierkorb, werden unwiderruflich gelöscht. Exportiere vorher ein Backup, wenn du die Daten behalten willst.'**
+  String get deleteForeverAllBody;
+
+  /// No description provided for @libraryTrashed.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Buch in den Papierkorb verschoben} other{{count} Bücher in den Papierkorb verschoben}}'**
+  String libraryTrashed(int count);
+
+  /// No description provided for @libraryDeleted.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Buch endgültig gelöscht} other{{count} Bücher endgültig gelöscht}}'**
+  String libraryDeleted(int count);
+
+  /// No description provided for @deleteAllData.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Daten löschen'**
+  String get deleteAllData;
+
+  /// No description provided for @deleteAllDataHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Bibliothek, Orte, Tags, Ziele, Cover und Einstellungen'**
+  String get deleteAllDataHint;
+
+  /// No description provided for @deleteAllDataTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Daten löschen?'**
+  String get deleteAllDataTitle;
+
+  /// No description provided for @deleteAllDataBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Alles, was die App lokal speichert, wird unwiderruflich gelöscht: Bücher, Orte, Tags, Lesesitzungen, Ziele, Cover und Einstellungen. Die App selbst bleibt installiert. Exportiere vorher ein Backup, wenn du die Daten behalten willst.'**
+  String get deleteAllDataBody;
+
+  /// No description provided for @confirmWord.
+  ///
+  /// In de, this message translates to:
+  /// **'LÖSCHEN'**
+  String get confirmWord;
+
+  /// No description provided for @typeToConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Tippe „{word}“ zur Bestätigung'**
+  String typeToConfirm(String word);
+
+  /// No description provided for @deleteEverything.
+  ///
+  /// In de, this message translates to:
+  /// **'Alles löschen'**
+  String get deleteEverything;
+
+  /// No description provided for @allDataDeleted.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Daten wurden gelöscht'**
+  String get allDataDeleted;
+
+  /// No description provided for @selectAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle auswählen'**
+  String get selectAll;
+
+  /// No description provided for @importColumnN.
+  ///
+  /// In de, this message translates to:
+  /// **'Spalte {n}'**
+  String importColumnN(int n);
+
+  /// No description provided for @importNeedsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Ordne mindestens eine Spalte dem Titel zu.'**
+  String get importNeedsTitle;
+
+  /// No description provided for @importFormatOwnCsv.
+  ///
+  /// In de, this message translates to:
+  /// **'Eigene CSV'**
+  String get importFormatOwnCsv;
+
+  /// No description provided for @saveFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Buch konnte nicht gespeichert werden: {error}'**
+  String saveFailed(String error);
 }
 
 class _AppLocalizationsDelegate

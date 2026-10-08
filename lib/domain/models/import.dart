@@ -21,6 +21,28 @@ class ImportFile {
   });
 }
 
+/// One source column in the importer's matcher: its position, header, a sample
+/// value and the canonical field it is assigned to (`null` = not imported).
+///
+/// Columns are told apart by [index], not by name: headers can repeat or be
+/// empty.
+class ImportColumn {
+  final int index;
+  final String header;
+  final String sample;
+  final String? field;
+
+  const ImportColumn({
+    required this.index,
+    required this.header,
+    required this.sample,
+    required this.field,
+  });
+
+  ImportColumn withField(String? field) =>
+      ImportColumn(index: index, header: header, sample: sample, field: field);
+}
+
 /// One level of a physical location path (room → shelf → compartment).
 class LocationRef {
   final String name;
@@ -140,6 +162,14 @@ class BookImport {
   final String? language;
   final String? description;
   final String? coverUrl;
+  final String? genre;
+
+  /// Purchase price in euro cents and the date the book was received.
+  final int? priceCents;
+  final DateTime? receivedAt;
+
+  /// Reading time known without any reading date, in seconds.
+  final int? readingSeconds;
   final String? seriesName;
   final double? seriesVolume;
   final double? rating;
@@ -193,6 +223,10 @@ class BookImport {
     this.language,
     this.description,
     this.coverUrl,
+    this.genre,
+    this.priceCents,
+    this.receivedAt,
+    this.readingSeconds,
     this.seriesName,
     this.seriesVolume,
     this.rating,

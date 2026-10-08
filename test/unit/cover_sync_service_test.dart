@@ -64,7 +64,11 @@ void main() {
   test(
     'downloads only covers that are known by URL but missing locally',
     () async {
-      final covers = cache({'https://x/fail.jpg'});
+      final covers = cache({
+        'https://x/fail.jpg',
+        dnbCoverUrl('9783000000205'),
+        openLibraryCoverUrl('9783000000205'),
+      });
       final existing = await covers.saveCover('present', testPng());
       final repo = _Repo([
         book(1, isbn13: '9783000000201', url: 'https://x/a.jpg'), // missing
@@ -107,5 +111,20 @@ void main() {
 
     expect((result.total, result.downloaded, result.failed), (0, 0, 0));
     expect(repo.paths, isEmpty);
+  });
+  test('falls back to DNB when the stored URL and Open Library fail', () async {
+    const isbn = '9783833874239';
+    final repo = _Repo([
+      book(1, isbn13: isbn, url: 'https://google.test/c.jpg'),
+    ]);
+    final covers = cache({
+      'https://google.test/c.jpg',
+      openLibraryCoverUrl(isbn),
+    });
+
+    final result = await CoverSyncService(repo, covers).downloadMissing();
+
+    expect((result.downloaded, result.failed), (1, 0));
+    expect(repo.paths[1], '${dir.path}/covers/$isbn.jpg');
   });
 }

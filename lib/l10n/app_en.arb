@@ -31,8 +31,6 @@
   "noMetadataFound": "No metadata found",
   "ratingLabel": "Rating",
   "statusLabel": "Status",
-  "isbn13Label": "ISBN-13",
-  "isbn10Label": "ISBN-10",
   "publisherLabel": "Publisher",
   "yearLabel": "Year",
   "pagesLabel": "Pages",
@@ -107,7 +105,7 @@
   "appInfoLabel": "App info",
   "versionLabel": "Version",
   "licenseLabel": "License",
-  "licenseText": "GPL-3.0",
+  "licenseText": "GPL-2.0",
   "openSourceCreditsLabel": "Open source credits",
   "creditsText": "Flutter, Drift, BLoC",
   "delete": "Delete",
@@ -164,9 +162,7 @@
     }
   },
   "logSession": "Log a session",
-  "sessionDurationMinutes": "Duration (minutes)",
   "sessionStartPage": "From page",
-  "sessionEndPage": "To page",
   "sessionDate": "Date",
   "deleteSession": "Delete session",
   "durationHm": "{hours} h {minutes} min",
@@ -493,5 +489,117 @@
   "filePickerFailed": "The file dialog is unavailable (Linux needs zenity or kdialog). Enter the path below.",
   "fileNotReadable": "The file could not be read",
   "importPathLabel": "File path",
-  "importFromPath": "Load from path"
+  "importFromPath": "Load from path",
+  "genreLabel": "Genre",
+  "priceLabel": "Price",
+  "receivedAtLabel": "Received on",
+  "readingStartedLabel": "Reading started",
+  "readingFinishedLabel": "Reading finished",
+  "readingTimeLabel": "Reading time",
+  "readingDuration": "{hours} h {minutes} min",
+  "@readingDuration": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "daysCount": "{count, plural, =1{1 day} other{{count} days}}",
+  "@daysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copyValue": "Copy {label}",
+  "@copyValue": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldGenre": "Genre",
+  "fieldPrice": "Price in euro",
+  "fieldReceivedAt": "Received on",
+  "invalidPrice": "Enter a valid price, e.g. 12.90",
+  "clearDate": "Clear date",
+  "importFieldName": "{field, select, title{Title} subtitle{Subtitle} authors{Author(s)} isbn{ISBN} isbn13{ISBN-13} isbn10{ISBN-10} publisher{Publisher} publishedYear{Year published} pageCount{Page count} format{Format} language{Language} description{Description} rating{Rating} status{Reading status} seriesName{Series} seriesVolume{Volume} favorite{Favourite} review{Review} notes{Notes} tags{Tags} startDate{Reading started} finishDate{Reading finished} readings{Readings} dateAdded{Added on} olid{Open Library ID} quotes{Quotes} currentPage{Current page} finishedAt{Finished on} location{Location} borrower{Lent to} lentAt{Lent on} expectedReturn{Return by} lendingStatus{Lending status} coverUrl{Cover URL} dateModified{Modified on} genre{Genre} price{Price} receivedAt{Received on} durationHours{Reading time (hours)} durationMinutes{Reading time (minutes)} readingSeconds{Reading time (seconds)} other{{field}}}",
+  "@importFieldName": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "importIgnoreColumn": "Do not import",
+  "importFormatLabel": "Import format",
+  "importColumnsHint": "Assign each column to a field. Columns without an assignment are not imported.",
+  "sessionTimeRead": "Time read (optional)",
+  "sessionTimeReadHint": "Only the time actually spent reading. The period follows from the start and end date.",
+  "unitMinutes": "Minutes",
+  "unitHours": "Hours",
+  "sessionEndPageOptional": "To page (optional)",
+  "readingSpanLabel": "Reading period",
+  "dataSection": "Data",
+  "clearLibrary": "Empty library",
+  "clearLibraryHint": "Remove all books; locations, tags and settings stay",
+  "clearLibraryTitle": "Empty the library?",
+  "clearLibraryBody": "Move all books to the trash (restorable) or delete them permanently?",
+  "deleteForeverAllTitle": "Really delete permanently?",
+  "deleteForeverAllBody": "All books with their notes, tag assignments, reading sessions and covers, including those in the trash, are deleted for good. Export a backup first if you want to keep the data.",
+  "libraryTrashed": "{count, plural, =1{1 book moved to the trash} other{{count} books moved to the trash}}",
+  "@libraryTrashed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeleted": "{count, plural, =1{1 book deleted permanently} other{{count} books deleted permanently}}",
+  "@libraryDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAllData": "Delete all data",
+  "deleteAllDataHint": "Library, locations, tags, goals, covers and settings",
+  "deleteAllDataTitle": "Delete all data?",
+  "deleteAllDataBody": "Everything the app stores locally is deleted for good: books, locations, tags, reading sessions, goals, covers and settings. The app itself stays installed. Export a backup first if you want to keep the data.",
+  "confirmWord": "DELETE",
+  "typeToConfirm": "Type “{word}” to confirm",
+  "@typeToConfirm": {
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteEverything": "Delete everything",
+  "allDataDeleted": "All data was deleted",
+  "selectAll": "Select all",
+  "importColumnN": "Column {n}",
+  "@importColumnN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "importNeedsTitle": "Assign at least one column to the title.",
+  "importFormatOwnCsv": "Custom CSV",
+  "saveFailed": "The book could not be saved: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

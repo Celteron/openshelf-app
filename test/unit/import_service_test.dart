@@ -84,6 +84,12 @@ void main() {
 
 class _ThrowingRepository implements BookRepository {
   @override
+  Future<int> trashAllBooks() async => 0;
+
+  @override
+  Future<int> deleteAllBooksPermanently() async => 0;
+
+  @override
   Future<int> addBook(BookDraft draft) async => 0;
 
   @override

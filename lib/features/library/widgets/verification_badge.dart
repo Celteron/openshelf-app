@@ -18,12 +18,12 @@ class VerificationBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final verified = _isVerified;
+    // A pure status label: the edit icon it used to carry made it look like
+    // a button although it does nothing when tapped.
     return Chip(
-      avatar: Icon(
-        verified ? Icons.verified : Icons.edit,
-        size: 16,
-        color: verified ? Colors.blue : Colors.grey,
-      ),
+      avatar: verified
+          ? const Icon(Icons.verified, size: 16, color: Colors.blue)
+          : null,
       label: Text(verified ? l10n.dnbVerified : l10n.edited),
       visualDensity: VisualDensity.compact,
     );
