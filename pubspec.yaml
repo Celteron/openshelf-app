@@ -36,6 +36,8 @@ dependencies:
   
   flutter_localizations:
     sdk: flutter
+  # Pinned: cancel detection matches the plugin's error message text.
+  google_mlkit_document_scanner: 0.6.1
 
 dev_dependencies:
   flutter_test:

@@ -37,6 +37,6 @@ lending tracker (one active lending, history), reading timer/sessions, duplicate
 
 - **Languages**: German and English only (Openreads shipped ~40 community translations).
 - **Welcome / onboarding screen** and store links (rate/support/community): not applicable to this app.
-- **Cover cropping** and the **DuckDuckGo image search**: replaced by gallery, camera and Open Library covers.
+- **DuckDuckGo image search**: replaced by gallery, camera and Open Library covers. (Cover cropping is back since spec 003 T3-23, via the ML Kit document scanner.)
 - **Legacy backup v3** (SQLite dump from 2022) is not importable; v4/v5 are.
 - **Cloud backup**: backups are files (JSON/CSV); no cloud integration.

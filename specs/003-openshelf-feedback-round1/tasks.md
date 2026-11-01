@@ -35,7 +35,7 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-F1-xx in `spec.md`.
 - [X] T3-20 `trashAllBooks` / `deleteAllBooksPermanently`, `DataResetRepository`, `DataWipeService`; Settings → Data; "select all".
 - [X] T3-21 Matcher by column index, `canImport` needs a title, `OwnCsvImporter` (last in detection order).
 - [X] T3-22 DNB cover URL fallback in the aggregator; optional `apiKey` in `GoogleBooksClient` (live test reads `GOOGLE_BOOKS_API_KEY`).
-- [ ] T3-23 Open: camera scan + crop of a cover photo (see chat).
+- [X] T3-23 Camera cover photo with crop: `ScannerCoverPicker` uses the ML Kit document scanner on Android (edge detection as a crop suggestion, draggable corners, perspective correction, gallery import); gallery and devices without Play services keep `image_picker`; scans shrink to 1200 px. Decision: `doc/adr/0002-cover-zuschnitt-mlkit-document-scanner.md`.
 - [X] T3-28 Google Books API key in Settings → Books: baked in at build time (`--dart-define=GOOGLE_BOOKS_API_KEY=…`, never in the repo), overridable, clearable (= anonymous quota) and resettable; read per request, shown only by its last four characters.
 - [X] T3-24 Review fixes: edit keeps `readingSeconds`; `CoverCacheService.deleteAll` only removes its own `*.jpg` (never a user folder); lookup never swaps an existing cover for the DNB guess; failing DNB guess still tries Open Library; non-finite session time rejected; failing import ends in an error state; rating control exposes increase/decrease.
 - [X] T3-26 Rating bar enlarged (60×56 dp per star) with tap + drag; a failing save shows the error and keeps the form.

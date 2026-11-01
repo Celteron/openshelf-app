@@ -118,7 +118,7 @@ class OpenShelfApp extends StatelessWidget {
     required this.dataWipe,
     CoverPicker? coverPicker,
     ExportFileSaver? exportFileSaver,
-  }) : coverPicker = coverPicker ?? ImagePickerCoverPicker(),
+  }) : coverPicker = coverPicker ?? platformCoverPicker(),
        exportFileSaver = exportFileSaver ?? PlatformExportFileSaver();
 
   @override
