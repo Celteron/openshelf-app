@@ -32,8 +32,16 @@ Uint8List? compactCover(Uint8List bytes) {
   final scaled = fits
       ? image
       : image.width * coverMaxHeight > image.height * coverMaxWidth
-      ? img.copyResize(image, width: coverMaxWidth)
-      : img.copyResize(image, height: coverMaxHeight);
+      ? img.copyResize(
+          image,
+          width: coverMaxWidth,
+          interpolation: img.Interpolation.average,
+        )
+      : img.copyResize(
+          image,
+          height: coverMaxHeight,
+          interpolation: img.Interpolation.average,
+        );
   final encoded = img.encodeJpg(scaled, quality: coverJpegQuality);
   // A heavy image inside the box could, in rare cases, encode larger.
   return fits && encoded.length >= bytes.length ? bytes : encoded;

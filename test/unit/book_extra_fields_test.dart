@@ -171,6 +171,19 @@ void main() {
       expect(patch.coverNotFound.value, isFalse);
     });
 
+    test('a merged cover file clears the cover-not-found flag too', () {
+      final patch = mergeMissingFields(
+        existing(),
+        BooksCompanion.insert(
+          title: 'T',
+          authors: const ['A'],
+          editedFields: const [],
+          coverLocalPath: const Value('/covers/k.jpg'),
+        ),
+      )!;
+      expect(patch.coverNotFound.value, isFalse);
+    });
+
     test('fills empty genre, price and received date', () {
       final patch = mergeMissingFields(existing(), incoming())!;
       expect(patch.genre.value, 'Fantasy');

@@ -300,7 +300,22 @@ void main() {
       );
     });
 
-    test('placeholders and non-images count as no cover', () async {
+    test('image placeholders count as no cover', () async {
+      expect(
+        await find([
+          () => http.Response.bytes(
+            List.filled(43, 1),
+            200,
+            headers: {'content-type': 'image/gif'},
+          ),
+        ]),
+        isA<CoverMissing>(),
+      );
+    });
+
+    test('an HTML page (captive portal, CDN error) says nothing', () async {
+      // Hotel Wi-Fi answers every request with its login page: marking the
+      // whole library as "no cover online" would hide it from every lookup.
       expect(
         await find([
           () => http.Response.bytes(
@@ -314,7 +329,7 @@ void main() {
             headers: {'content-type': 'text/html'},
           ),
         ]),
-        isA<CoverMissing>(),
+        isA<CoverUnavailable>(),
       );
     });
 

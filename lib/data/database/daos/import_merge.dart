@@ -132,8 +132,9 @@ BooksCompanion? mergeMissingFields(Book existing, BooksCompanion incoming) {
     priceCents: priceCents == null ? const Value.absent() : Value(priceCents),
     receivedAt: receivedAt == null ? const Value.absent() : Value(receivedAt),
     receivedAs: receivedAs == null ? const Value.absent() : Value(receivedAs),
-    // A new cover URL or ISBN is a new chance to find a cover online.
-    coverNotFound: coverUrl != null || isbn13 != null
+    // A new cover URL or ISBN is a new chance to find a cover online; a cover
+    // file makes the flag moot (as in setCoverLocalPath).
+    coverNotFound: coverUrl != null || isbn13 != null || coverLocalPath != null
         ? const Value(false)
         : const Value.absent(),
     readingSeconds: readingSeconds == null

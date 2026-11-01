@@ -134,9 +134,10 @@ class CoverCacheService {
         CoverMissing() || CoverUnavailable() => null,
       };
 
-  /// Downloads one cover. 404/410, placeholder-sized bodies and non-images
-  /// are [CoverMissing]; network errors, timeouts, other HTTP errors (429,
-  /// 5xx) and a failed write are [CoverUnavailable].
+  /// Downloads one cover. 404/410, placeholder-sized images and undecodable
+  /// images are [CoverMissing]; network errors, timeouts, other HTTP errors
+  /// (429, 5xx), bodies that are no image at all (a captive portal's login
+  /// page, a CDN error page) and a failed write are [CoverUnavailable].
   Future<CoverFetch> fetch(String key, String coverUrl) async {
     await _acquire();
     try {
@@ -147,8 +148,10 @@ class CoverCacheService {
       if (status == 404 || status == 410) return const CoverMissing();
       if (status != 200) return const CoverUnavailable();
       final contentType = response.headers['content-type'];
-      if (response.bodyBytes.length < _minImageBytes ||
-          (contentType != null && !contentType.startsWith('image/'))) {
+      if (contentType != null && !contentType.startsWith('image/')) {
+        return const CoverUnavailable();
+      }
+      if (response.bodyBytes.length < _minImageBytes) {
         return const CoverMissing();
       }
       final compact = await _compact(response.bodyBytes);
@@ -226,13 +229,13 @@ class CoverCacheService {
   }
 
   Future<bool> _compactFile(File file) async {
+    final part = File('${file.path}.part');
     try {
       if (await file.length() <= coverKeepAsIsBytes) return false;
       final modified = await file.lastModified();
       final bytes = await file.readAsBytes();
       final compact = await _compact(bytes);
       if (compact == null || compact.length > bytes.length * 0.9) return false;
-      final part = File('${file.path}.part');
       await part.writeAsBytes(compact, flush: true);
       // A cover saved meanwhile (new photo, download) must not be replaced by
       // the compacted old one.
@@ -242,7 +245,12 @@ class CoverCacheService {
       }
       await part.rename(file.path);
       return true;
-    } on FileSystemException catch (_) {
+    } catch (_) {
+      // Out of memory in the isolate, the book deleted meanwhile, …: this
+      // cover stays as it is, the run goes on with the next one.
+      try {
+        if (await part.exists()) await part.delete();
+      } on FileSystemException catch (_) {}
       return false;
     }
   }
