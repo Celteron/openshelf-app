@@ -138,8 +138,17 @@ class BookRepositoryImpl implements BookRepository {
       _dao.update(id, BooksCompanion(isFavorite: Value(isFavorite)));
 
   @override
-  Future<void> setCoverLocalPath(int id, String? path) =>
-      _dao.update(id, BooksCompanion(coverLocalPath: Value(path)));
+  Future<void> setCoverLocalPath(int id, String? path) => _dao.update(
+    id,
+    BooksCompanion(
+      coverLocalPath: Value(path),
+      coverNotFound: path == null ? const Value.absent() : const Value(false),
+    ),
+  );
+
+  @override
+  Future<void> setCoverNotFound(int id) =>
+      _dao.update(id, const BooksCompanion(coverNotFound: Value(true)));
 
   @override
   Future<void> updateReview(int id, String? review) {
@@ -154,8 +163,19 @@ class BookRepositoryImpl implements BookRepository {
   Future<void> updateBook(int id, BooksCompanion book) => _dao.update(id, book);
 
   @override
-  Future<void> updateBookDraft(int id, BookDraft draft) =>
-      _dao.update(id, _draftToCompanion(draft));
+  Future<void> updateBookDraft(int id, BookDraft draft) async {
+    final before = await getBook(id);
+    // A new cover URL or ISBN is a new chance to find a cover online.
+    final newChance =
+        before != null &&
+        (before.coverUrl != draft.coverUrl || before.isbn13 != draft.isbn13);
+    await _dao.update(
+      id,
+      newChance
+          ? _draftToCompanion(draft).copyWith(coverNotFound: const Value(false))
+          : _draftToCompanion(draft),
+    );
+  }
 
   @override
   Future<void> bulkAssignLocation(List<int> bookIds, int? locationId) =>

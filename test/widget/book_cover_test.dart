@@ -29,6 +29,7 @@ Book book({
   String? isbn13,
   String? coverUrl,
   String? coverLocalPath,
+  bool coverNotFound = false,
 }) => Book(
   id: id,
   title: 'Titel',
@@ -41,7 +42,7 @@ Book book({
   editedFields: const [],
   currentPage: 0,
   isFavorite: false,
-  coverNotFound: false,
+  coverNotFound: coverNotFound,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
 );
@@ -136,6 +137,26 @@ void main() {
     expect(find.byKey(ValueKey('cover-image:$path')), findsOneWidget);
     expect(find.byKey(const ValueKey('cover-placeholder')), findsNothing);
     expect(requests, 0);
+  });
+
+  testWidgets('a book known to have no cover online asks nobody', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      BookCover(
+        book: book(
+          isbn13: '9783000000101',
+          coverUrl: 'https://x/c.png',
+          coverNotFound: true,
+        ),
+      ),
+      cache: service(),
+      repo: _Repo(),
+    );
+
+    expect(requests, 0);
+    expect(find.byKey(const ValueKey('cover-placeholder')), findsOneWidget);
   });
 
   testWidgets('downloads the remote cover once and remembers the file', (

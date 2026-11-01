@@ -415,7 +415,10 @@ void main() {
       });
       await tester.pump();
 
-      expect(find.text('2 Cover geladen, 0 nicht verfügbar'), findsOneWidget);
+      expect(
+        find.text('2 Cover geladen, 0 ohne Online-Cover, 0 nicht erreichbar'),
+        findsOneWidget,
+      );
       expect(books.paths.keys, unorderedEquals([1, 2]));
     });
   });

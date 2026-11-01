@@ -70,6 +70,58 @@ void main() {
     });
   });
 
+  group('cover-not-found flag (FR-R2-08)', () {
+    Future<int> flagged({String? url, String? isbn}) async {
+      final id = await repository.addBook(
+        BookDraft(
+          title: 'Buch',
+          authors: const ['A'],
+          coverUrl: url,
+          isbn13: isbn,
+        ),
+      );
+      await repository.setCoverNotFound(id);
+      expect((await repository.getBook(id))!.coverNotFound, isTrue);
+      return id;
+    }
+
+    test('a stored cover clears it', () async {
+      final id = await flagged();
+      await repository.setCoverLocalPath(id, '/covers/b.jpg');
+      expect((await repository.getBook(id))!.coverNotFound, isFalse);
+    });
+
+    test('a new cover URL or ISBN clears it, other edits keep it', () async {
+      final id = await flagged(url: 'https://a/c.jpg');
+      await repository.updateBookDraft(
+        id,
+        const BookDraft(
+          title: 'Neu',
+          authors: ['A'],
+          coverUrl: 'https://a/c.jpg',
+        ),
+      );
+      expect((await repository.getBook(id))!.coverNotFound, isTrue);
+
+      await repository.updateBookDraft(
+        id,
+        const BookDraft(
+          title: 'Neu',
+          authors: ['A'],
+          coverUrl: 'https://b/c.jpg',
+        ),
+      );
+      expect((await repository.getBook(id))!.coverNotFound, isFalse);
+
+      final other = await flagged();
+      await repository.updateBookDraft(
+        other,
+        const BookDraft(title: 'Buch', authors: ['A'], isbn13: '9783442719255'),
+      );
+      expect((await repository.getBook(other))!.coverNotFound, isFalse);
+    });
+  });
+
   group('mergeMissingFields', () {
     Book existing({
       String? genre,
@@ -105,6 +157,19 @@ void main() {
       receivedAt: Value(DateTime(2024, 5, 1)),
       receivedAs: const Value(ReceivedAs.purchase),
     );
+
+    test('a merged cover URL clears the cover-not-found flag', () {
+      final patch = mergeMissingFields(
+        existing(),
+        BooksCompanion.insert(
+          title: 'T',
+          authors: const ['A'],
+          editedFields: const [],
+          coverUrl: const Value('https://x/c.jpg'),
+        ),
+      )!;
+      expect(patch.coverNotFound.value, isFalse);
+    });
 
     test('fills empty genre, price and received date', () {
       final patch = mergeMissingFields(existing(), incoming())!;

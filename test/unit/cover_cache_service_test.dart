@@ -280,6 +280,80 @@ void main() {
     });
   });
 
+  group('findAny tells "no cover" from "could not ask" (FR-R2-08)', () {
+    Future<CoverFetch> find(List<FutureOr<http.Response> Function()> answers) {
+      var i = 0;
+      final service = serviceFor((_) async => answers[i++]());
+      return service.findAny('k', [
+        for (var n = 0; n < answers.length; n++) 'https://s$n/c.jpg',
+      ]);
+    }
+
+    test('every source answering 404 means no cover online', () async {
+      expect(
+        await find([
+          () => http.Response('', 404),
+          () => http.Response('', 404),
+        ]),
+        isA<CoverMissing>(),
+      );
+    });
+
+    test('placeholders and non-images count as no cover', () async {
+      expect(
+        await find([
+          () => http.Response.bytes(
+            List.filled(43, 1),
+            200,
+            headers: {'content-type': 'image/gif'},
+          ),
+          () => http.Response.bytes(
+            List.filled(5000, 1),
+            200,
+            headers: {'content-type': 'text/html'},
+          ),
+        ]),
+        isA<CoverMissing>(),
+      );
+    });
+
+    test(
+      'one source offline, timing out or failing is not "no cover"',
+      () async {
+        for (final failing in <FutureOr<http.Response> Function()>[
+          () => throw const SocketException('offline'),
+          () => throw TimeoutException('slow'),
+          () => http.Response('quota', 429),
+          () => http.Response('down', 503),
+        ]) {
+          expect(
+            await find([() => http.Response('', 404), failing]),
+            isA<CoverUnavailable>(),
+          );
+        }
+      },
+    );
+
+    test('a delivered image is found and cached', () async {
+      final result = await find([() => http.Response('', 404), image]);
+
+      expect(result, isA<CoverFound>());
+      expect((result as CoverFound).path, '${dir.path}/covers/k.jpg');
+    });
+
+    test('a cached cover is found without asking', () async {
+      var calls = 0;
+      final service = serviceFor((_) async {
+        calls++;
+        return image();
+      });
+      await service.saveCover('k', testPng());
+
+      expect(await service.findAny('k', ['https://a']), isA<CoverFound>());
+      expect(calls, 0);
+    });
+  });
+
   group('deleteAll', () {
     test('removes the covers and the empty folder', () async {
       final service = serviceFor((_) async => image());

@@ -14,7 +14,11 @@ import '../helpers/test_images.dart';
 class _Repo implements BookRepository {
   final List<Book> books;
   final paths = <int, String?>{};
+  final notFound = <int>{};
   _Repo(this.books);
+
+  @override
+  Future<void> setCoverNotFound(int id) async => notFound.add(id);
 
   @override
   Future<List<Book>> getAllBooks() async => books;
@@ -27,7 +31,13 @@ class _Repo implements BookRepository {
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-Book book(int id, {String? isbn13, String? url, String? local}) => Book(
+Book book(
+  int id, {
+  String? isbn13,
+  String? url,
+  String? local,
+  bool notFound = false,
+}) => Book(
   id: id,
   title: 'B$id',
   authors: const ['A'],
@@ -39,7 +49,7 @@ Book book(int id, {String? isbn13, String? url, String? local}) => Book(
   editedFields: const [],
   currentPage: 0,
   isFavorite: false,
-  coverNotFound: false,
+  coverNotFound: notFound,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
 );
@@ -97,7 +107,9 @@ void main() {
 
       expect(result.total, 5);
       expect(result.downloaded, 4);
-      expect(result.failed, 1);
+      expect(result.notFound, 1, reason: 'every source answered 404');
+      expect(result.failed, 0);
+      expect(repo.notFound, {5});
       expect(repo.paths.keys, unorderedEquals([1, 2, 4, 6]));
       expect(repo.paths[1], '${dir.path}/covers/9783000000201.jpg');
       expect(repo.paths[2], '${dir.path}/covers/book-2.jpg');
@@ -110,7 +122,10 @@ void main() {
 
     final result = await CoverSyncService(repo, cache({})).downloadMissing();
 
-    expect((result.total, result.downloaded, result.failed), (0, 0, 0));
+    expect(
+      (result.total, result.downloaded, result.notFound, result.failed),
+      (0, 0, 0, 0),
+    );
     expect(repo.paths, isEmpty);
   });
   test('falls back to DNB when the stored URL and Open Library fail', () async {
@@ -127,5 +142,35 @@ void main() {
 
     expect((result.downloaded, result.failed), (1, 0));
     expect(repo.paths[1], '${dir.path}/covers/$isbn.jpg');
+  });
+
+  test('an unreachable source is a failure, not "no cover"', () async {
+    final repo = _Repo([book(1, isbn13: '9783000000201')]);
+    final covers = CoverCacheService(
+      baseDirectory: dir,
+      client: MockClient((_) async => throw const SocketException('offline')),
+    );
+
+    final result = await CoverSyncService(repo, covers).downloadMissing();
+
+    expect((result.notFound, result.failed), (0, 1));
+    expect(repo.notFound, isEmpty);
+  });
+
+  test('books already known to have no cover online are skipped', () async {
+    var requests = 0;
+    final repo = _Repo([book(1, isbn13: '9783000000201', notFound: true)]);
+    final covers = CoverCacheService(
+      baseDirectory: dir,
+      client: MockClient((_) async {
+        requests++;
+        return http.Response('', 404);
+      }),
+    );
+
+    final result = await CoverSyncService(repo, covers).downloadMissing();
+
+    expect(requests, 0);
+    expect((result.total, result.notFound), (0, 1));
   });
 }

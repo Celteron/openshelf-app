@@ -144,7 +144,8 @@ class _BookCoverState extends State<BookCover> {
 
     final key = BookCover.keyFor(book);
     var path = cache.cachedPath(key);
-    if (path == null && !_failedKeys.contains(key)) {
+    // Known to have no cover online: only the explicit online search asks.
+    if (path == null && !book.coverNotFound && !_failedKeys.contains(key)) {
       // Merely showing a book asks one source: its stored URL, or Open Library
       // for imported books without one. The wider fallback (DNB, ...) runs in
       // the explicit "download missing covers" action (Constitution I.2).

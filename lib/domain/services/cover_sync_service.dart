@@ -3,14 +3,21 @@ import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 
 class CoverSyncResult {
-  /// Books that had a cover URL but no local file.
+  /// Books that were looked up (a cover URL or ISBN but no local file).
   final int total;
   final int downloaded;
+
+  /// Books no source has a cover for: found now, or known from earlier runs
+  /// (those are skipped and not part of [total]).
+  final int notFound;
+
+  /// Books whose sources could not be reached (offline, timeout, 429, 5xx).
   final int failed;
 
   const CoverSyncResult({
     required this.total,
     required this.downloaded,
+    required this.notFound,
     required this.failed,
   });
 }
@@ -29,30 +36,48 @@ class CoverSyncService {
   Future<CoverSyncResult> downloadMissing({
     void Function(int done, int total)? onProgress,
   }) async {
-    final missing = [
-      for (final book in await _books.getAllBooks())
-        if (((book.coverUrl ?? '').isNotEmpty || book.isbn13 != null) &&
-            !_covers.exists(book.coverLocalPath))
-          book,
-    ];
+    var knownMissing = 0;
+    final missing = <Book>[];
+    for (final book in await _books.getAllBooks()) {
+      if (((book.coverUrl ?? '').isEmpty && book.isbn13 == null) ||
+          _covers.exists(book.coverLocalPath)) {
+        continue;
+      }
+      // Asked before and every source said no: the per-book online search is
+      // the way to retry, not this bulk run.
+      if (book.coverNotFound) {
+        knownMissing++;
+      } else {
+        missing.add(book);
+      }
+    }
 
     var done = 0;
     var downloaded = 0;
+    var notFound = 0;
+    var failed = 0;
     for (final book in missing) {
-      final path = await _covers.resolveAny(
+      final result = await _covers.findAny(
         keyFor(book),
         coverCandidates(coverUrl: book.coverUrl, isbn: book.isbn13),
       );
-      if (path != null) {
-        await _books.setCoverLocalPath(book.id, path);
-        downloaded++;
+      switch (result) {
+        case CoverFound(:final path):
+          await _books.setCoverLocalPath(book.id, path);
+          downloaded++;
+        case CoverMissing():
+          await _books.setCoverNotFound(book.id);
+          notFound++;
+        case CoverUnavailable():
+          failed++;
       }
       onProgress?.call(++done, missing.length);
     }
     return CoverSyncResult(
       total: missing.length,
       downloaded: downloaded,
-      failed: missing.length - downloaded,
+      notFound: notFound + knownMissing,
+      failed: failed,
     );
   }
 }

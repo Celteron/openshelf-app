@@ -495,10 +495,13 @@
   "googleBooksKeyHint": "Ohne eigenen Key teilen sich alle Nutzer ein Kontingent, das oft ausgeschöpft ist. Leer lassen, um keinen Key zu senden.",
   "coversDownloading": "Cover werden geladen …",
   "coversNoneMissing": "Es fehlen keine Cover",
-  "coversDownloaded": "{ok} Cover geladen, {failed} nicht verfügbar",
+  "coversDownloaded": "{ok} Cover geladen, {missing} ohne Online-Cover, {failed} nicht erreichbar",
   "@coversDownloaded": {
     "placeholders": {
       "ok": {
+        "type": "int"
+      },
+      "missing": {
         "type": "int"
       },
       "failed": {

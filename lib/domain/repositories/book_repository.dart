@@ -64,7 +64,11 @@ abstract class BookRepository {
   Future<void> updateFavorite(int id, bool isFavorite);
 
   /// Remembers (or clears) the locally cached/manual cover file of a book.
+  /// Setting a file also clears the "no cover online" flag.
   Future<void> setCoverLocalPath(int id, String? path);
+
+  /// Remembers that every online source answered "no cover" (FR-R2-08).
+  Future<void> setCoverNotFound(int id);
 
   /// Sets the review text; blank text clears it.
   Future<void> updateReview(int id, String? review);

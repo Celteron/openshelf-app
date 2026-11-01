@@ -871,8 +871,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coversNoneMissing => 'No covers are missing';
 
   @override
-  String coversDownloaded(int ok, int failed) {
-    return '$ok covers downloaded, $failed unavailable';
+  String coversDownloaded(int ok, int missing, int failed) {
+    return '$ok covers loaded, $missing without an online cover, $failed unreachable';
   }
 
   @override

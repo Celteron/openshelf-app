@@ -504,9 +504,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          result.total == 0
+          result.total == 0 && result.notFound == 0
               ? l10n.coversNoneMissing
-              : l10n.coversDownloaded(result.downloaded, result.failed),
+              : l10n.coversDownloaded(
+                  result.downloaded,
+                  result.notFound,
+                  result.failed,
+                ),
         ),
       ),
     );

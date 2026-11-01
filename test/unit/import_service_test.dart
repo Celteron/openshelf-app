@@ -110,6 +110,9 @@ void main() {
 
 class _ThrowingRepository implements BookRepository {
   @override
+  Future<void> setCoverNotFound(int id) async {}
+
+  @override
   Future<int> trashAllBooks() async => 0;
 
   @override

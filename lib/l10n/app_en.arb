@@ -436,7 +436,7 @@
   "googleBooksKeyHint": "Without your own key all users share a quota that is often used up. Leave empty to send no key.",
   "coversDownloading": "Downloading covers …",
   "coversNoneMissing": "No covers are missing",
-  "coversDownloaded": "{ok} covers downloaded, {failed} unavailable",
+  "coversDownloaded": "{ok} covers loaded, {missing} without an online cover, {failed} unreachable",
   "@coversDownloaded": {
     "placeholders": {
       "ok": {

@@ -30,6 +30,26 @@ List<String> coverCandidates({String? coverUrl, String? isbn}) {
   }.toList();
 }
 
+/// Outcome of looking for a cover online. Only [CoverMissing] is a definite
+/// "there is none": a source that is offline, slow or overloaded says nothing
+/// about the cover, so it is [CoverUnavailable].
+sealed class CoverFetch {
+  const CoverFetch();
+}
+
+class CoverFound extends CoverFetch {
+  final String path;
+  const CoverFound(this.path);
+}
+
+class CoverMissing extends CoverFetch {
+  const CoverMissing();
+}
+
+class CoverUnavailable extends CoverFetch {
+  const CoverUnavailable();
+}
+
 class CoverCacheService {
   static const _maxConcurrentDownloads = 4;
 
@@ -74,35 +94,59 @@ class CoverCacheService {
   /// Like [resolve], but tries [urls] in order and keeps the first that
   /// delivers an image. A source that is down or rate-limited (e.g. Google
   /// Books answering 429) simply hands over to the next one.
-  Future<String?> resolveAny(String key, Iterable<String> urls) async {
+  Future<String?> resolveAny(String key, Iterable<String> urls) async =>
+      switch (await findAny(key, urls)) {
+        CoverFound(:final path) => path,
+        CoverMissing() || CoverUnavailable() => null,
+      };
+
+  /// Tries [urls] in order like [resolveAny] and says why nothing was found:
+  /// [CoverMissing] only when every source answered "no cover".
+  Future<CoverFetch> findAny(String key, Iterable<String> urls) async {
     final cached = cachedPath(key);
-    if (cached != null) return cached;
+    if (cached != null) return CoverFound(cached);
+    var unavailable = false;
     for (final url in urls) {
-      final path = await downloadAndCache(key, url);
-      if (path != null) return path;
+      switch (await fetch(key, url)) {
+        case final CoverFound found:
+          return found;
+        case CoverMissing():
+          break;
+        case CoverUnavailable():
+          unavailable = true;
+      }
     }
-    return null;
+    return unavailable ? const CoverUnavailable() : const CoverMissing();
   }
 
   /// Downloads [coverUrl] into the cache under [key] (replacing an older
   /// file) and returns the local path, or `null` on any failure.
-  Future<String?> downloadAndCache(String key, String coverUrl) async {
+  Future<String?> downloadAndCache(String key, String coverUrl) async =>
+      switch (await fetch(key, coverUrl)) {
+        CoverFound(:final path) => path,
+        CoverMissing() || CoverUnavailable() => null,
+      };
+
+  /// Downloads one cover. 404/410, placeholder-sized bodies and non-images
+  /// are [CoverMissing]; network errors, timeouts, other HTTP errors (429,
+  /// 5xx) and a failed write are [CoverUnavailable].
+  Future<CoverFetch> fetch(String key, String coverUrl) async {
     await _acquire();
     try {
       final response = await _client
           .get(Uri.parse(coverUrl))
           .timeout(const Duration(seconds: 15));
-      if (response.statusCode != 200 ||
-          response.bodyBytes.length < _minImageBytes) {
-        return null;
-      }
+      final status = response.statusCode;
+      if (status == 404 || status == 410) return const CoverMissing();
+      if (status != 200) return const CoverUnavailable();
       final contentType = response.headers['content-type'];
-      if (contentType != null && !contentType.startsWith('image/')) {
-        return null;
+      if (response.bodyBytes.length < _minImageBytes ||
+          (contentType != null && !contentType.startsWith('image/'))) {
+        return const CoverMissing();
       }
-      return await _write(key, response.bodyBytes);
+      return CoverFound(await _write(key, response.bodyBytes));
     } catch (_) {
-      return null;
+      return const CoverUnavailable();
     } finally {
       _release();
     }

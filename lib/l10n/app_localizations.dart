@@ -1577,8 +1577,8 @@ abstract class AppLocalizations {
   /// No description provided for @coversDownloaded.
   ///
   /// In de, this message translates to:
-  /// **'{ok} Cover geladen, {failed} nicht verfügbar'**
-  String coversDownloaded(int ok, int failed);
+  /// **'{ok} Cover geladen, {missing} ohne Online-Cover, {failed} nicht erreichbar'**
+  String coversDownloaded(int ok, int missing, int failed);
 
   /// No description provided for @exportJsonHint.
   ///
