@@ -24,7 +24,7 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 - [X] T4-33 `CoverFetch` result (found / not found / failed) + tests. (FR-R2-08)
 - [X] T4-34 Cover flag: set by "download missing covers", cleared by the repository, no passive lookup when set + tests. (FR-R2-08)
 - [X] T4-35 `compactCover` in every cover write, scanner shrink removed + tests. (FR-R2-10)
-- [ ] T4-36 One-off compaction of existing cover files + tests. (FR-R2-10)
+- [X] T4-36 One-off compaction of existing cover files + tests. (FR-R2-10)
 - [ ] T4-37 Version bump, release APK.
 
 ## Package 4b: Slipcases (ADR-0003)

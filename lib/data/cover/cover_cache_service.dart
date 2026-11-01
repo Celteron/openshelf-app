@@ -196,6 +196,57 @@ class CoverCacheService {
     } catch (_) {}
   }
 
+  /// Compacts covers written before every write went through [compactCover]
+  /// (ADR-0004) and returns how many files shrank.
+  ///
+  /// One file at a time, so a long library does not hold many images in
+  /// memory. Each file is replaced by an atomic rename on the same path, so the
+  /// book rows stay valid and an interrupted run leaves only whole files (plus
+  /// a `.part` file the next run removes). A result that saves less than a
+  /// tenth is not written: re-encoding would cost quality for nothing and
+  /// make a rerun touch the same files again.
+  Future<int> compactStored() async {
+    var compacted = 0;
+    try {
+      final dir = _coversDir;
+      if (!await dir.exists()) return 0;
+      final entities = await dir.list(followLinks: false).toList();
+      for (final entity in entities) {
+        if (entity is! File) continue;
+        if (entity.path.endsWith('.part')) {
+          await entity.delete();
+        } else if (entity.path.endsWith('.jpg') && await _compactFile(entity)) {
+          compacted++;
+        }
+      }
+    } on FileSystemException catch (_) {
+      // Storage trouble: the covers stay as they are, which is fine.
+    }
+    return compacted;
+  }
+
+  Future<bool> _compactFile(File file) async {
+    try {
+      if (await file.length() <= coverKeepAsIsBytes) return false;
+      final modified = await file.lastModified();
+      final bytes = await file.readAsBytes();
+      final compact = await _compact(bytes);
+      if (compact == null || compact.length > bytes.length * 0.9) return false;
+      final part = File('${file.path}.part');
+      await part.writeAsBytes(compact, flush: true);
+      // A cover saved meanwhile (new photo, download) must not be replaced by
+      // the compacted old one.
+      if (await file.lastModified() != modified) {
+        await part.delete();
+        return false;
+      }
+      await part.rename(file.path);
+      return true;
+    } on FileSystemException catch (_) {
+      return false;
+    }
+  }
+
   Future<String> _store(String key, List<int> bytes) async {
     await _coversDir.create(recursive: true);
     final file = _file(key);

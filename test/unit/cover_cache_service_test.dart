@@ -401,6 +401,61 @@ void main() {
     });
   });
 
+  group('compactStored shrinks covers saved before ADR-0004', () {
+    File put(String name, List<int> bytes) => File('${dir.path}/covers/$name')
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(bytes);
+
+    test('large files are compacted in place, the rest stays', () async {
+      final service = serviceFor((_) async => http.Response('', 404));
+      final large = put(
+        'big.jpg',
+        img.encodeJpg(img.Image(width: 1600, height: 2400), quality: 100),
+      );
+      final small = testPng();
+      final keep = put('small.jpg', small);
+      final junk = put('junk.jpg', List.filled(200 * 1024, 7));
+
+      final compacted = await service.compactStored();
+
+      expect(compacted, 1);
+      final stored = img.decodeImage(large.readAsBytesSync())!;
+      expect((stored.width, stored.height), (720, 1080), reason: 'same path');
+      expect(keep.readAsBytesSync(), small, reason: 'already compact');
+      expect(junk.lengthSync(), 200 * 1024, reason: 'never destroys a file');
+      expect(
+        Directory('${dir.path}/covers').listSync().map((e) => e.path).toSet(),
+        {large.path, keep.path, junk.path},
+        reason: 'no temp files left behind',
+      );
+    });
+
+    test('a second run has nothing left to do', () async {
+      final service = serviceFor((_) async => http.Response('', 404));
+      put(
+        'big.jpg',
+        img.encodeJpg(img.Image(width: 1600, height: 2400), quality: 100),
+      );
+
+      expect(await service.compactStored(), 1);
+      expect(await service.compactStored(), 0);
+    });
+
+    test('removes temp files of an interrupted run', () async {
+      final service = serviceFor((_) async => http.Response('', 404));
+      final stale = put('big.jpg.part', [1, 2, 3]);
+
+      await service.compactStored();
+
+      expect(stale.existsSync(), isFalse);
+    });
+
+    test('without a covers folder there is nothing to do', () async {
+      final service = serviceFor((_) async => http.Response('', 404));
+      expect(await service.compactStored(), 0);
+    });
+  });
+
   group('deleteAll', () {
     test('removes the covers and the empty folder', () async {
       final service = serviceFor((_) async => image());

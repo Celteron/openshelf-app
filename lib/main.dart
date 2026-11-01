@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +9,7 @@ import 'package:openreads/core/themes/app_theme.dart';
 import 'package:openreads/data/cover/cover_cache_service.dart';
 import 'package:openreads/data/cover/cover_picker.dart';
 import 'package:openreads/data/export/export_file_saver.dart';
+import 'package:openreads/domain/services/cover_compaction_job.dart';
 import 'package:openreads/domain/services/cover_sync_service.dart';
 import 'package:openreads/domain/services/data_wipe_service.dart';
 import 'package:openreads/features/trash/trash_cubit.dart';
@@ -89,6 +92,9 @@ void main() async {
       dataWipe: dataWipe,
     ),
   );
+
+  // Background housekeeping; the app never waits for it.
+  unawaited(compactStoredCoversOnce(deps.settingsRepository, coverCache));
 }
 
 class OpenShelfApp extends StatelessWidget {

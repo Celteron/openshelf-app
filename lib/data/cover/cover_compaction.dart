@@ -10,7 +10,7 @@ const coverJpegQuality = 82;
 
 /// Images this small that already fit the box are kept as they are:
 /// re-encoding them would only lose quality.
-const _keepAsIsBytes = 100 * 1024;
+const coverKeepAsIsBytes = 100 * 1024;
 
 /// The bytes to store for a cover: scaled into [coverMaxWidth] ×
 /// [coverMaxHeight] (aspect ratio kept) as JPEG q[coverJpegQuality]. Returns
@@ -27,7 +27,7 @@ Uint8List? compactCover(Uint8List bytes) {
   if (image == null) return null;
 
   final fits = image.width <= coverMaxWidth && image.height <= coverMaxHeight;
-  if (fits && bytes.length <= _keepAsIsBytes) return bytes;
+  if (fits && bytes.length <= coverKeepAsIsBytes) return bytes;
 
   final scaled = fits
       ? image
