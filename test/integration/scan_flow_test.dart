@@ -64,6 +64,20 @@ void main() {
     await db.close();
   });
 
+  test('a new batch starts from the defaults it is given', () async {
+    const defaults = StagedDefaults(
+      format: BookFormat.hardcover,
+      status: BookStatus.wishlist,
+    );
+    cubit.start(defaults: defaults);
+    expect((cubit.state as ScannerActive).shared, same(defaults));
+
+    // A running batch keeps what the user chose.
+    cubit.setShared(const StagedDefaults(format: BookFormat.ebook));
+    cubit.start(defaults: defaults);
+    expect((cubit.state as ScannerActive).shared.format, BookFormat.ebook);
+  });
+
   test('scan → stage → assign → save persists staged books', () async {
     final locationId = await locations.createLocation(
       name: 'Wohnzimmer',

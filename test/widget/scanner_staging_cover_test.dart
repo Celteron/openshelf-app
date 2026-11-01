@@ -35,7 +35,7 @@ class _SeededCubit extends ScannerCubit {
   }
 
   @override
-  void start() {}
+  void start({StagedDefaults defaults = const StagedDefaults()}) {}
 }
 
 void main() {

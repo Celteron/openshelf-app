@@ -84,12 +84,14 @@ class ScannerCubit extends Cubit<ScannerState> {
   ScannerCubit(this._bookRepository, this._lookupQueue)
     : super(const ScannerIdle());
 
-  void start() {
+  /// Starts scanning; a new batch begins with [defaults] (the format and
+  /// status chosen in the settings), a running one keeps its shared values.
+  void start({StagedDefaults defaults = const StagedDefaults()}) {
     final current = state;
     emit(
       current is ScannerActive
           ? current.copyWith(scanning: true)
-          : const ScannerActive(staged: [], scanning: true),
+          : ScannerActive(staged: const [], scanning: true, shared: defaults),
     );
   }
 

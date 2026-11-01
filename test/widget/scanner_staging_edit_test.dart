@@ -38,7 +38,7 @@ class _SeededCubit extends ScannerCubit {
   }
 
   @override
-  void start() {}
+  void start({StagedDefaults defaults = const StagedDefaults()}) {}
 }
 
 /// Editing the staging shelf before saving (FR-R2-12).

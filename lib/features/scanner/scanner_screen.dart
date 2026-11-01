@@ -8,6 +8,7 @@ import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/location_repository.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/features/scanner/scanner_cubit.dart';
+import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/common/widgets/book_cover.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
@@ -42,7 +43,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
         detectionSpeed: DetectionSpeed.noDuplicates,
       );
     }
-    _cubit = context.read<ScannerCubit>()..start();
+    _cubit = context.read<ScannerCubit>()..start(defaults: _defaults());
+  }
+
+  StagedDefaults _defaults() {
+    try {
+      final settings = context.read<SettingsCubit>().state;
+      return StagedDefaults(
+        format: settings.defaultFormat,
+        status: settings.defaultStatus,
+      );
+    } catch (_) {
+      return const StagedDefaults(); // no settings (isolated widget tests)
+    }
   }
 
   @override
