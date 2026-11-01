@@ -30,6 +30,9 @@ class SettingsState {
   final BookStatus defaultStatus;
   final Set<int> defaultTagIds;
 
+  /// Sent with Google Books lookups; `null` = the shared anonymous quota.
+  final String? googleBooksApiKey;
+
   const SettingsState({
     this.themeMode = ThemeMode.system,
     this.localeCode = 'de',
@@ -42,6 +45,7 @@ class SettingsState {
     this.defaultFormat = BookFormat.paperback,
     this.defaultStatus = BookStatus.unread,
     this.defaultTagIds = const {},
+    this.googleBooksApiKey,
   });
 
   SettingsState copyWith({
@@ -58,6 +62,8 @@ class SettingsState {
     BookFormat? defaultFormat,
     BookStatus? defaultStatus,
     Set<int>? defaultTagIds,
+    String? googleBooksApiKey,
+    bool clearGoogleBooksApiKey = false,
   }) {
     return SettingsState(
       themeMode: themeMode ?? this.themeMode,
@@ -71,6 +77,9 @@ class SettingsState {
       defaultFormat: defaultFormat ?? this.defaultFormat,
       defaultStatus: defaultStatus ?? this.defaultStatus,
       defaultTagIds: defaultTagIds ?? this.defaultTagIds,
+      googleBooksApiKey: clearGoogleBooksApiKey
+          ? null
+          : googleBooksApiKey ?? this.googleBooksApiKey,
     );
   }
 }
@@ -87,10 +96,17 @@ class SettingsCubit extends Cubit<SettingsState> {
   static const _format = 'defaultFormat';
   static const _status = 'defaultStatus';
   static const _tags = 'defaultTags';
+  static const _googleKey = 'googleBooksApiKey';
 
   final SettingsRepository _repository;
 
-  SettingsCubit(this._repository) : super(const SettingsState());
+  /// Key baked in at build time (`--dart-define=GOOGLE_BOOKS_API_KEY=…`),
+  /// used until the user sets or clears one in the settings.
+  final String? _defaultGoogleKey;
+
+  SettingsCubit(this._repository, {String? defaultGoogleBooksApiKey})
+    : _defaultGoogleKey = _normalizeKey(defaultGoogleBooksApiKey),
+      super(const SettingsState());
 
   Future<void> load() async {
     final theme = await _repository.getThemeMode();
@@ -104,6 +120,8 @@ class SettingsCubit extends Cubit<SettingsState> {
     final format = await _repository.getValue(_format);
     final status = await _repository.getValue(_status);
     final tags = await _repository.getValue(_tags);
+    // Never stored = the baked-in default; stored empty = cleared on purpose.
+    final googleKey = await _repository.getValue(_googleKey);
 
     emit(
       SettingsState(
@@ -127,6 +145,9 @@ class SettingsCubit extends Cubit<SettingsState> {
           for (final part in (tags ?? '').split(','))
             if (int.tryParse(part) != null) int.parse(part),
         },
+        googleBooksApiKey: googleKey == null
+            ? _defaultGoogleKey
+            : _normalizeKey(googleKey),
       ),
     );
   }
@@ -194,6 +215,33 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setDefaultTagIds(Set<int> ids) async {
     await _repository.setValue(_tags, ids.isEmpty ? null : ids.join(','));
     emit(state.copyWith(defaultTagIds: ids));
+  }
+
+  /// An empty [key] removes it (lookups use the anonymous quota).
+  Future<void> setGoogleBooksApiKey(String key) async {
+    final normalized = _normalizeKey(key);
+    await _repository.setValue(_googleKey, normalized ?? '');
+    emit(
+      normalized == null
+          ? state.copyWith(clearGoogleBooksApiKey: true)
+          : state.copyWith(googleBooksApiKey: normalized),
+    );
+  }
+
+  /// Back to the key baked in at build time.
+  Future<void> resetGoogleBooksApiKey() async {
+    await _repository.setValue(_googleKey, null);
+    final key = _defaultGoogleKey;
+    emit(
+      key == null
+          ? state.copyWith(clearGoogleBooksApiKey: true)
+          : state.copyWith(googleBooksApiKey: key),
+    );
+  }
+
+  static String? _normalizeKey(String? key) {
+    final trimmed = key?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
   }
 
   static ThemeMode _toThemeMode(String name) => switch (name) {

@@ -855,6 +855,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Fetches covers that are only known by link';
 
   @override
+  String get googleBooksKey => 'Google Books API key';
+
+  @override
+  String get googleBooksKeyNone => 'Not set (shared quota)';
+
+  @override
+  String googleBooksKeySet(String suffix) {
+    return 'Set (…$suffix)';
+  }
+
+  @override
+  String get googleBooksKeyHint =>
+      'Without your own key all users share a quota that is often used up. Leave empty to send no key.';
+
+  @override
   String get coversDownloading => 'Downloading covers …';
 
   @override

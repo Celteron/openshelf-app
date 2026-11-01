@@ -62,12 +62,16 @@ void main() {
   });
   tearDown(() => dir.deleteSync(recursive: true));
 
-  Future<SettingsCubit> pump(WidgetTester tester, {_Books? books}) async {
+  Future<SettingsCubit> pump(
+    WidgetTester tester, {
+    _Books? books,
+    String? bakedKey,
+  }) async {
     tester.view.physicalSize = const Size(800, 5000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    final settings = SettingsCubit(repo);
+    final settings = SettingsCubit(repo, defaultGoogleBooksApiKey: bakedKey);
     await settings.load();
     addTearDown(settings.close);
     final tags = TagsCubit(_Tags())..load();
@@ -236,6 +240,66 @@ void main() {
         expect(cubit.state.displayType, type, reason: label);
         expect(find.text(label), findsOneWidget);
       }
+    });
+  });
+
+  group('Google Books API key', () {
+    Future<void> openKeyDialog(WidgetTester tester) async {
+      final tile = find.byKey(const ValueKey('google-books-key'));
+      await tester.scrollUntilVisible(tile, 300);
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a key can be entered and is shown shortened', (tester) async {
+      final cubit = await pump(tester);
+      expect(find.text('Nicht gesetzt (gemeinsames Kontingent)'), findsOne);
+
+      await openKeyDialog(tester);
+      await tester.enterText(
+        find.byKey(const ValueKey('google-key-field')),
+        'AbCdEf123456',
+      );
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      expect(cubit.state.googleBooksApiKey, 'AbCdEf123456');
+      expect(repo.values['googleBooksApiKey'], 'AbCdEf123456');
+      expect(find.text('Gesetzt (…3456)'), findsOneWidget);
+      expect(find.textContaining('AbCdEf'), findsNothing);
+    });
+
+    testWidgets('the baked-in key is used and can be restored', (tester) async {
+      final cubit = await pump(tester, bakedKey: 'baked-9876');
+      expect(find.text('Gesetzt (…9876)'), findsOneWidget);
+
+      await openKeyDialog(tester);
+      await tester.enterText(
+        find.byKey(const ValueKey('google-key-field')),
+        '',
+      );
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+      expect(cubit.state.googleBooksApiKey, isNull);
+
+      await openKeyDialog(tester);
+      await tester.tap(find.text('Zurücksetzen'));
+      await tester.pumpAndSettle();
+      expect(cubit.state.googleBooksApiKey, 'baked-9876');
+    });
+
+    testWidgets('cancelling keeps the key', (tester) async {
+      final cubit = await pump(tester, bakedKey: 'baked-9876');
+
+      await openKeyDialog(tester);
+      await tester.enterText(
+        find.byKey(const ValueKey('google-key-field')),
+        'other',
+      );
+      await tester.tap(find.text('Abbrechen'));
+      await tester.pumpAndSettle();
+
+      expect(cubit.state.googleBooksApiKey, 'baked-9876');
     });
   });
 

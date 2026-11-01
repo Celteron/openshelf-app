@@ -26,16 +26,33 @@ void main() {
   test('sends the key when one is given', () async {
     await GoogleBooksClient(
       client: client(),
-      apiKey: 'test-key',
+      apiKey: () => 'test-key',
     ).lookupByIsbn('9783833874239');
 
     expect(requested.single.queryParameters['key'], 'test-key');
   });
 
+  test('reads the key per request, so a changed key applies at once', () async {
+    String? key = 'old-key';
+    final books = GoogleBooksClient(client: client(), apiKey: () => key);
+
+    await books.lookupByIsbn('9783833874239');
+    key = 'new-key';
+    await books.lookupByIsbn('9783833874239');
+    key = null;
+    await books.lookupByIsbn('9783833874239');
+
+    expect(requested.map((u) => u.queryParameters['key']), [
+      'old-key',
+      'new-key',
+      null,
+    ]);
+  });
+
   test('a blank key counts as no key', () async {
     await GoogleBooksClient(
       client: client(),
-      apiKey: '  ',
+      apiKey: () => '  ',
     ).lookupByIsbn('9783833874239');
 
     expect(requested.single.queryParameters.containsKey('key'), isFalse);

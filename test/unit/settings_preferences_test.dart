@@ -264,4 +264,63 @@ void main() {
       );
     });
   });
+
+  group('Google Books API key', () {
+    test('defaults to the key baked in at build time', () async {
+      final baked = SettingsCubit(repo, defaultGoogleBooksApiKey: 'baked');
+      addTearDown(baked.close);
+      await baked.load();
+
+      expect(baked.state.googleBooksApiKey, 'baked');
+    });
+
+    test('no key at all when none was baked in', () async {
+      await cubit.load();
+
+      expect(cubit.state.googleBooksApiKey, isNull);
+    });
+
+    test('a key set in the settings wins and survives a restart', () async {
+      final baked = SettingsCubit(repo, defaultGoogleBooksApiKey: 'baked');
+      addTearDown(baked.close);
+      await baked.load();
+      await baked.setGoogleBooksApiKey('  mine  ');
+      expect(baked.state.googleBooksApiKey, 'mine');
+
+      final restarted = SettingsCubit(repo, defaultGoogleBooksApiKey: 'baked');
+      addTearDown(restarted.close);
+      await restarted.load();
+      expect(restarted.state.googleBooksApiKey, 'mine');
+    });
+
+    test('clearing the key means none, not the baked-in one', () async {
+      final baked = SettingsCubit(repo, defaultGoogleBooksApiKey: 'baked');
+      addTearDown(baked.close);
+      await baked.load();
+      await baked.setGoogleBooksApiKey('');
+      expect(baked.state.googleBooksApiKey, isNull);
+
+      final restarted = SettingsCubit(repo, defaultGoogleBooksApiKey: 'baked');
+      addTearDown(restarted.close);
+      await restarted.load();
+      expect(restarted.state.googleBooksApiKey, isNull);
+    });
+
+    test('resetting brings the baked-in key back', () async {
+      final baked = SettingsCubit(repo, defaultGoogleBooksApiKey: 'baked');
+      addTearDown(baked.close);
+      await baked.load();
+      await baked.setGoogleBooksApiKey('');
+      await baked.resetGoogleBooksApiKey();
+
+      expect(baked.state.googleBooksApiKey, 'baked');
+    });
+
+    test('other settings keep the key', () async {
+      await cubit.setGoogleBooksApiKey('mine');
+      await cubit.setAmoled(true);
+
+      expect(cubit.state.googleBooksApiKey, 'mine');
+    });
+  });
 }

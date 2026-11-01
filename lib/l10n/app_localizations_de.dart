@@ -857,6 +857,21 @@ class AppLocalizationsDe extends AppLocalizations {
       'Lädt Cover nach, die nur als Link bekannt sind';
 
   @override
+  String get googleBooksKey => 'Google-Books-API-Key';
+
+  @override
+  String get googleBooksKeyNone => 'Nicht gesetzt (gemeinsames Kontingent)';
+
+  @override
+  String googleBooksKeySet(String suffix) {
+    return 'Gesetzt (…$suffix)';
+  }
+
+  @override
+  String get googleBooksKeyHint =>
+      'Ohne eigenen Key teilen sich alle Nutzer ein Kontingent, das oft ausgeschöpft ist. Leer lassen, um keinen Key zu senden.';
+
+  @override
   String get coversDownloading => 'Cover werden geladen …';
 
   @override

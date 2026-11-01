@@ -51,7 +51,7 @@ void main() {
     }, skip: enabled ? false : skipReason);
 
     test('Google Books cover lookup degrades gracefully', () async {
-      final client = GoogleBooksClient(apiKey: _googleKey);
+      final client = GoogleBooksClient(apiKey: () => _googleKey);
       final metadata = await client.lookupByIsbn(_grebeIsbn);
 
       // Google Books anonymous quota may be exhausted (HTTP 429) or the edition
@@ -80,7 +80,7 @@ void main() {
     test('Aggregator: DNB is primary and merges deterministically', () async {
       final aggregator = MetadataAggregatorService([
         DnbClient(),
-        GoogleBooksClient(apiKey: _googleKey),
+        GoogleBooksClient(apiKey: () => _googleKey),
         OpenLibraryClient(),
       ]);
 
@@ -114,7 +114,7 @@ void main() {
       () async {
         final aggregator = MetadataAggregatorService([
           DnbClient(),
-          GoogleBooksClient(apiKey: _googleKey),
+          GoogleBooksClient(apiKey: () => _googleKey),
           OpenLibraryClient(),
         ]);
 

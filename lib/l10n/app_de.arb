@@ -490,6 +490,17 @@
   },
   "downloadMissingCovers": "Fehlende Cover laden",
   "downloadMissingCoversHint": "Lädt Cover nach, die nur als Link bekannt sind",
+  "googleBooksKey": "Google-Books-API-Key",
+  "googleBooksKeyNone": "Nicht gesetzt (gemeinsames Kontingent)",
+  "googleBooksKeySet": "Gesetzt (…{suffix})",
+  "@googleBooksKeySet": {
+    "placeholders": {
+      "suffix": {
+        "type": "String"
+      }
+    }
+  },
+  "googleBooksKeyHint": "Ohne eigenen Key teilen sich alle Nutzer ein Kontingent, das oft ausgeschöpft ist. Leer lassen, um keinen Key zu senden.",
   "coversDownloading": "Cover werden geladen …",
   "coversNoneMissing": "Es fehlen keine Cover",
   "coversDownloaded": "{ok} Cover geladen, {failed} nicht verfügbar",

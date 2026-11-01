@@ -258,6 +258,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 subtitle: Text(l10n.downloadMissingCoversHint),
                 onTap: _downloadCovers,
               ),
+              ListTile(
+                key: const ValueKey('google-books-key'),
+                leading: const Icon(Icons.key),
+                title: Text(l10n.googleBooksKey),
+                subtitle: Text(_keyLabel(l10n, state.googleBooksApiKey)),
+                onTap: () => _editGoogleKey(state.googleBooksApiKey),
+              ),
               const Divider(),
               _section(l10n.exportLabel),
               ListTile(
@@ -482,6 +489,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (confirmed == true) await cubit.setDefaultTagIds(selected);
   }
 
+  /// Only the last characters, so the key is not readable over a shoulder.
+  String _keyLabel(AppLocalizations l10n, String? key) => key == null
+      ? l10n.googleBooksKeyNone
+      : l10n.googleBooksKeySet(
+          key.length <= 4 ? key : key.substring(key.length - 4),
+        );
+
+  Future<void> _editGoogleKey(String? current) async {
+    final cubit = context.read<SettingsCubit>();
+    final choice = await showDialog<_KeyChoice>(
+      context: context,
+      builder: (_) => _GoogleKeyDialog(initial: current ?? ''),
+    );
+    switch (choice) {
+      case null:
+        return;
+      case _KeySave(:final key):
+        await cubit.setGoogleBooksApiKey(key);
+      case _KeyReset():
+        await cubit.resetGoogleBooksApiKey();
+    }
+  }
+
   Future<void> _downloadCovers() async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -620,6 +650,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
 }
 
 enum _ClearChoice { trash, forever }
+
+sealed class _KeyChoice {
+  const _KeyChoice();
+}
+
+class _KeySave extends _KeyChoice {
+  final String key;
+
+  const _KeySave(this.key);
+}
+
+class _KeyReset extends _KeyChoice {
+  const _KeyReset();
+}
+
+/// Edits the Google Books API key. Owns its controller so it is disposed
+/// together with the dialog.
+class _GoogleKeyDialog extends StatefulWidget {
+  final String initial;
+
+  const _GoogleKeyDialog({required this.initial});
+
+  @override
+  State<_GoogleKeyDialog> createState() => _GoogleKeyDialogState();
+}
+
+class _GoogleKeyDialogState extends State<_GoogleKeyDialog> {
+  late final _controller = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.googleBooksKey),
+      content: TextField(
+        key: const ValueKey('google-key-field'),
+        controller: _controller,
+        autocorrect: false,
+        enableSuggestions: false,
+        decoration: InputDecoration(
+          helperText: l10n.googleBooksKeyHint,
+          helperMaxLines: 4,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, const _KeyReset()),
+          child: Text(l10n.resetToDefault),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _KeySave(_controller.text)),
+          child: Text(l10n.save),
+        ),
+      ],
+    );
+  }
+}
 
 /// Asks the user to type a word before the irreversible deletion is enabled.
 class _ConfirmWordDialog extends StatefulWidget {

@@ -1544,6 +1544,30 @@ abstract class AppLocalizations {
   /// **'Lädt Cover nach, die nur als Link bekannt sind'**
   String get downloadMissingCoversHint;
 
+  /// No description provided for @googleBooksKey.
+  ///
+  /// In de, this message translates to:
+  /// **'Google-Books-API-Key'**
+  String get googleBooksKey;
+
+  /// No description provided for @googleBooksKeyNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht gesetzt (gemeinsames Kontingent)'**
+  String get googleBooksKeyNone;
+
+  /// No description provided for @googleBooksKeySet.
+  ///
+  /// In de, this message translates to:
+  /// **'Gesetzt (…{suffix})'**
+  String googleBooksKeySet(String suffix);
+
+  /// No description provided for @googleBooksKeyHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne eigenen Key teilen sich alle Nutzer ein Kontingent, das oft ausgeschöpft ist. Leer lassen, um keinen Key zu senden.'**
+  String get googleBooksKeyHint;
+
   /// No description provided for @coversDownloading.
   ///
   /// In de, this message translates to:

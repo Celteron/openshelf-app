@@ -43,9 +43,19 @@ void main() async {
   final database = AppDatabase(driftDatabase(name: 'openshelf'));
   final deps = AppDependencies(database);
 
+  // The key is baked in at build time and never lives in the repository:
+  // flutter build apk --dart-define=GOOGLE_BOOKS_API_KEY=$GOOGLE_BOOKS_API_KEY
+  final settingsCubit = SettingsCubit(
+    deps.settingsRepository,
+    defaultGoogleBooksApiKey: const String.fromEnvironment(
+      'GOOGLE_BOOKS_API_KEY',
+    ),
+  );
+  await settingsCubit.load();
+
   final aggregator = MetadataAggregatorService([
     DnbClient(),
-    GoogleBooksClient(),
+    GoogleBooksClient(apiKey: () => settingsCubit.state.googleBooksApiKey),
     OpenLibraryClient(),
   ]);
 
@@ -66,8 +76,6 @@ void main() async {
     covers: coverCache,
   );
   final lookupQueue = MetadataLookupQueue(aggregator);
-  final settingsCubit = SettingsCubit(deps.settingsRepository);
-  await settingsCubit.load();
 
   runApp(
     OpenShelfApp(
