@@ -37,7 +37,7 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 
 ## Package 5: Capture & covers
 - [X] T4-40 "+" choice sheet. (FR-R2-11)
-- [ ] T4-41 Editable staged scans, shared values on "save all". (FR-R2-12)
+- [X] T4-41 Editable staged scans, shared values on "save all". (FR-R2-12)
 - [ ] T4-42 Online cover search. (FR-R2-13)
 - [ ] T4-43 Placeholder assets, "Without cover" filter, detail actions, download result with "Show". (FR-R2-14)
 

@@ -776,5 +776,15 @@
   "addSearchTitle": "Online suchen",
   "addSearchHint": "Nach Titel oder Autor bei Open Library suchen",
   "addManualTitle": "Manuell eingeben",
-  "addManualHint": "Alle Angaben selbst ausfüllen"
+  "addManualHint": "Alle Angaben selbst ausfüllen",
+  "formatHardcover": "Hardcover",
+  "formatPaperback": "Taschenbuch",
+  "formatEbook": "E-Book",
+  "formatAudiobook": "Hörbuch",
+  "formatUnknown": "Unbekannt",
+  "editStagedTitle": "Erfasstes Buch bearbeiten",
+  "removeStaged": "Entfernen",
+  "sharedValuesTitle": "Für alle übernehmen",
+  "sharedValuesHint": "Diese Angaben bekommen alle erfassten Bücher beim Speichern.",
+  "apply": "Übernehmen"
 }

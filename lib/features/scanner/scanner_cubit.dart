@@ -12,7 +12,31 @@ class StagedBook {
   final BookMetadata? metadata;
   final bool duplicate;
 
-  const StagedBook(this.isbn13, {this.metadata, this.duplicate = false});
+  /// Fields the user changed in the staging editor; saved as user edits and
+  /// kept when a lookup finishes later.
+  final Set<String> edited;
+
+  const StagedBook(
+    this.isbn13, {
+    this.metadata,
+    this.duplicate = false,
+    this.edited = const {},
+  });
+}
+
+/// Values "save all" gives every staged book (FR-R2-12).
+class StagedDefaults {
+  final int? locationId;
+  final BookFormat? format;
+  final BookStatus status;
+  final ReceivedAs? receivedAs;
+
+  const StagedDefaults({
+    this.locationId,
+    this.format,
+    this.status = BookStatus.unread,
+    this.receivedAs,
+  });
 }
 
 sealed class ScannerState {
@@ -27,22 +51,26 @@ class ScannerActive extends ScannerState {
   final List<StagedBook> staged;
   final bool scanning;
   final bool saving;
+  final StagedDefaults shared;
 
   const ScannerActive({
     required this.staged,
     this.scanning = false,
     this.saving = false,
+    this.shared = const StagedDefaults(),
   });
 
   ScannerActive copyWith({
     List<StagedBook>? staged,
     bool? scanning,
     bool? saving,
+    StagedDefaults? shared,
   }) {
     return ScannerActive(
       staged: staged ?? this.staged,
       scanning: scanning ?? this.scanning,
       saving: saving ?? this.saving,
+      shared: shared ?? this.shared,
     );
   }
 }
@@ -59,10 +87,9 @@ class ScannerCubit extends Cubit<ScannerState> {
   void start() {
     final current = state;
     emit(
-      ScannerActive(
-        staged: current is ScannerActive ? current.staged : const [],
-        scanning: true,
-      ),
+      current is ScannerActive
+          ? current.copyWith(scanning: true)
+          : const ScannerActive(staged: [], scanning: true),
     );
   }
 
@@ -95,28 +122,97 @@ class ScannerCubit extends Cubit<ScannerState> {
     _updateMetadata(isbn13, result.metadata);
   }
 
-  void _updateMetadata(String isbn13, BookMetadata metadata) {
+  void _updateMetadata(String isbn13, BookMetadata metadata) => _replace(
+    isbn13,
+    (s) => StagedBook(
+      isbn13,
+      metadata: _keepEdits(metadata, s.metadata, s.edited),
+      edited: s.edited,
+    ),
+  );
+
+  /// Takes the user's [metadata] for the [edited] fields of a staged book.
+  void editStaged(String isbn13, BookMetadata metadata, Set<String> edited) =>
+      _replace(
+        isbn13,
+        (s) => StagedBook(
+          isbn13,
+          metadata: _keepEdits(s.metadata ?? metadata, metadata, edited),
+          edited: {...s.edited, ...edited},
+        ),
+      );
+
+  void removeStaged(String isbn13) {
     final current = state;
     if (current is! ScannerActive) return;
     emit(
       current.copyWith(
-        staged: current.staged
-            .map(
-              (s) => s.isbn13 == isbn13
-                  ? StagedBook(isbn13, metadata: metadata)
-                  : s,
-            )
-            .toList(),
+        staged: [
+          for (final s in current.staged)
+            if (s.isbn13 != isbn13) s,
+        ],
       ),
     );
   }
 
-  /// Persists all staged books (with an optional bulk location assignment) and
-  /// clears the staging shelf (US5.2/US5.3).
-  Future<void> saveAll({int? locationId}) async {
+  void setShared(StagedDefaults shared) {
+    final current = state;
+    if (current is ScannerActive) emit(current.copyWith(shared: shared));
+  }
+
+  void _replace(String isbn13, StagedBook Function(StagedBook) update) {
+    final current = state;
+    if (current is! ScannerActive) return;
+    emit(
+      current.copyWith(
+        staged: [
+          for (final s in current.staged) s.isbn13 == isbn13 ? update(s) : s,
+        ],
+      ),
+    );
+  }
+
+  /// [base] with the [edited] fields taken from [mine]: what the user typed
+  /// beats a lookup (Constitution III.2). Covers the fields of the staging
+  /// editor.
+  static BookMetadata _keepEdits(
+    BookMetadata base,
+    BookMetadata? mine,
+    Set<String> edited,
+  ) {
+    if (mine == null || edited.isEmpty) return base;
+    T pick<T>(String field, T theirs, T own) =>
+        edited.contains(field) ? own : theirs;
+    return BookMetadata(
+      isbn13: base.isbn13,
+      isbn10: base.isbn10,
+      title: pick('title', base.title, mine.title),
+      subtitle: base.subtitle,
+      authors: pick('authors', base.authors, mine.authors),
+      publisher: pick('publisher', base.publisher, mine.publisher),
+      publishedYear: pick(
+        'publishedYear',
+        base.publishedYear,
+        mine.publishedYear,
+      ),
+      pageCount: pick('pageCount', base.pageCount, mine.pageCount),
+      format: base.format,
+      language: base.language,
+      description: base.description,
+      coverUrl: base.coverUrl,
+      seriesName: base.seriesName,
+      seriesVolume: base.seriesVolume,
+    );
+  }
+
+  /// Persists all staged books with the [ScannerActive.shared] values and
+  /// clears the staging shelf (US5.2/US5.3); the shared values stay for the
+  /// next batch.
+  Future<void> saveAll() async {
     final current = state;
     if (current is! ScannerActive) return;
     emit(current.copyWith(saving: true));
+    final shared = current.shared;
 
     final companions = <BooksCompanion>[];
     for (final staged in current.staged) {
@@ -128,7 +224,7 @@ class ScannerCubit extends Cubit<ScannerState> {
               ? meta.title!
               : staged.isbn13,
           authors: meta?.authors ?? const [],
-          editedFields: const [],
+          editedFields: staged.edited.toList(),
           isbn13: Value(staged.isbn13),
           subtitle: Value(meta?.subtitle),
           publisher: Value(meta?.publisher),
@@ -137,8 +233,10 @@ class ScannerCubit extends Cubit<ScannerState> {
           language: Value(meta?.language),
           description: Value(meta?.description),
           coverUrl: Value(meta?.coverUrl),
-          locationId: Value(locationId),
-          status: const Value(BookStatus.unread),
+          locationId: Value(shared.locationId),
+          format: Value(shared.format),
+          status: Value(shared.status),
+          receivedAs: Value(shared.receivedAs),
         ),
       );
     }
@@ -147,6 +245,6 @@ class ScannerCubit extends Cubit<ScannerState> {
       await _bookRepository.insertAll(companions);
     }
 
-    emit(const ScannerActive(staged: [], scanning: false, saving: false));
+    emit(ScannerActive(staged: const [], shared: shared));
   }
 }

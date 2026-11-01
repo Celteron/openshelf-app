@@ -1385,4 +1385,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addManualHint => 'Fill in all details yourself';
+
+  @override
+  String get formatHardcover => 'Hardcover';
+
+  @override
+  String get formatPaperback => 'Paperback';
+
+  @override
+  String get formatEbook => 'E-book';
+
+  @override
+  String get formatAudiobook => 'Audiobook';
+
+  @override
+  String get formatUnknown => 'Unknown';
+
+  @override
+  String get editStagedTitle => 'Edit captured book';
+
+  @override
+  String get removeStaged => 'Remove';
+
+  @override
+  String get sharedValuesTitle => 'Apply to all';
+
+  @override
+  String get sharedValuesHint =>
+      'All captured books get these details when saved.';
+
+  @override
+  String get apply => 'Apply';
 }

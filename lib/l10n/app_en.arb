@@ -652,5 +652,15 @@
   "addSearchTitle": "Search online",
   "addSearchHint": "Search Open Library by title or author",
   "addManualTitle": "Enter manually",
-  "addManualHint": "Fill in all details yourself"
+  "addManualHint": "Fill in all details yourself",
+  "formatHardcover": "Hardcover",
+  "formatPaperback": "Paperback",
+  "formatEbook": "E-book",
+  "formatAudiobook": "Audiobook",
+  "formatUnknown": "Unknown",
+  "editStagedTitle": "Edit captured book",
+  "removeStaged": "Remove",
+  "sharedValuesTitle": "Apply to all",
+  "sharedValuesHint": "All captured books get these details when saved.",
+  "apply": "Apply"
 }

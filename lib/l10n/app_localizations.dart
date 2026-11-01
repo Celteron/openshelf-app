@@ -2335,6 +2335,66 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Alle Angaben selbst ausfüllen'**
   String get addManualHint;
+
+  /// No description provided for @formatHardcover.
+  ///
+  /// In de, this message translates to:
+  /// **'Hardcover'**
+  String get formatHardcover;
+
+  /// No description provided for @formatPaperback.
+  ///
+  /// In de, this message translates to:
+  /// **'Taschenbuch'**
+  String get formatPaperback;
+
+  /// No description provided for @formatEbook.
+  ///
+  /// In de, this message translates to:
+  /// **'E-Book'**
+  String get formatEbook;
+
+  /// No description provided for @formatAudiobook.
+  ///
+  /// In de, this message translates to:
+  /// **'Hörbuch'**
+  String get formatAudiobook;
+
+  /// No description provided for @formatUnknown.
+  ///
+  /// In de, this message translates to:
+  /// **'Unbekannt'**
+  String get formatUnknown;
+
+  /// No description provided for @editStagedTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Erfasstes Buch bearbeiten'**
+  String get editStagedTitle;
+
+  /// No description provided for @removeStaged.
+  ///
+  /// In de, this message translates to:
+  /// **'Entfernen'**
+  String get removeStaged;
+
+  /// No description provided for @sharedValuesTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Für alle übernehmen'**
+  String get sharedValuesTitle;
+
+  /// No description provided for @sharedValuesHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Angaben bekommen alle erfassten Bücher beim Speichern.'**
+  String get sharedValuesHint;
+
+  /// No description provided for @apply.
+  ///
+  /// In de, this message translates to:
+  /// **'Übernehmen'**
+  String get apply;
 }
 
 class _AppLocalizationsDelegate

@@ -23,3 +23,13 @@ String receivedAsLabel(AppLocalizations l10n, ReceivedAs value) {
     ReceivedAs.other => l10n.receivedAsOther,
   };
 }
+
+/// Localized name of a [BookFormat].
+String formatLabel(AppLocalizations l10n, BookFormat format) {
+  return switch (format) {
+    BookFormat.hardcover => l10n.formatHardcover,
+    BookFormat.paperback => l10n.formatPaperback,
+    BookFormat.ebook => l10n.formatEbook,
+    BookFormat.audiobook => l10n.formatAudiobook,
+  };
+}

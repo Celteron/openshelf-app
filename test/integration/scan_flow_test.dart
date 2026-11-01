@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openreads/data/database/app_database.dart';
@@ -19,6 +21,25 @@ class _FakeSource implements MetadataSourceStrategy {
   @override
   Future<BookMetadata?> lookupByIsbn(String isbn13) async =>
       BookMetadata(title: 'Title $isbn13', isbn13: isbn13);
+}
+
+class _GatedSource implements MetadataSourceStrategy {
+  final Future<void> gate;
+  _GatedSource(this.gate);
+
+  @override
+  MetadataSource get id => MetadataSource.dnb;
+
+  @override
+  Future<BookMetadata?> lookupByIsbn(String isbn13) async {
+    await gate;
+    return BookMetadata(
+      title: 'Online-Titel',
+      authors: const ['Online'],
+      isbn13: isbn13,
+      pageCount: 300,
+    );
+  }
 }
 
 void main() {
@@ -57,7 +78,8 @@ void main() {
     final active = cubit.state as ScannerActive;
     expect(active.staged, hasLength(3));
 
-    await cubit.saveAll(locationId: locationId);
+    cubit.setShared(StagedDefaults(locationId: locationId));
+    await cubit.saveAll();
 
     final after = cubit.state as ScannerActive;
     expect(after.staged, isEmpty);
@@ -80,5 +102,80 @@ void main() {
     final active = cubit.state as ScannerActive;
     expect(active.staged, hasLength(1));
     expect(active.staged.single.duplicate, isTrue);
+  });
+
+  group('editing the staging shelf (FR-R2-12)', () {
+    const isbn = '9783866801929';
+
+    test('an edit survives a late lookup and is saved as edited', () async {
+      final gate = Completer<void>();
+      final gated = ScannerCubit(
+        books,
+        MetadataLookupQueue(
+          MetadataAggregatorService([_GatedSource(gate.future)]),
+          minInterval: Duration.zero,
+        ),
+      );
+      addTearDown(gated.close);
+      gated.start();
+      final scanning = gated.onScanned(isbn);
+      await pumpEventQueue();
+      // The user edits while the lookup is still running.
+      gated.editStaged(
+        isbn,
+        const BookMetadata(title: 'Mein Titel', authors: ['Ich']),
+        {'title', 'authors'},
+      );
+      gate.complete();
+      await scanning;
+
+      final staged = (gated.state as ScannerActive).staged.single;
+      expect(staged.metadata!.title, 'Mein Titel');
+      expect(staged.metadata!.pageCount, 300, reason: 'the rest comes in');
+
+      await gated.saveAll();
+      final saved = (await books.searchLocal('')).single;
+      expect(saved.title, 'Mein Titel');
+      expect(saved.authors, ['Ich']);
+      expect(saved.pageCount, 300);
+      expect(saved.editedFields, containsAll(['title', 'authors']));
+    });
+
+    test('a staged book can be removed', () async {
+      cubit.start();
+      await cubit.onScanned(isbn);
+
+      cubit.removeStaged(isbn);
+
+      expect((cubit.state as ScannerActive).staged, isEmpty);
+    });
+
+    test('"save all" applies the shared values to every book', () async {
+      cubit.start();
+      await cubit.onScanned(isbn);
+      await cubit.onScanned('978-0-306-40615-7');
+
+      cubit.setShared(
+        const StagedDefaults(
+          format: BookFormat.hardcover,
+          status: BookStatus.read,
+          receivedAs: ReceivedAs.gift,
+        ),
+      );
+      await cubit.saveAll();
+
+      final saved = await books.searchLocal('');
+      expect(saved, hasLength(2));
+      for (final book in saved) {
+        expect(book.format, BookFormat.hardcover);
+        expect(book.status, BookStatus.read);
+        expect(book.receivedAs, ReceivedAs.gift);
+      }
+      expect(
+        (cubit.state as ScannerActive).shared.status,
+        BookStatus.read,
+        reason: 'kept for the next batch',
+      );
+    });
   });
 }
