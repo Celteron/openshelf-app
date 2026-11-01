@@ -39,7 +39,8 @@ class ImporterMapping extends ImporterState {
 
 class ImporterImporting extends ImporterState {
   final int processed;
-  const ImporterImporting(this.processed);
+  final int total;
+  const ImporterImporting(this.processed, this.total);
 }
 
 class ImporterDone extends ImporterState {
@@ -127,21 +128,36 @@ class ImporterCubit extends Cubit<ImporterState> {
     final current = state;
     if (current is! ImporterMapping || !current.canImport) return;
 
-    emit(const ImporterImporting(0));
     final importer = current.importer;
-    final rows = importer is CsvImporter
-        ? importer.parse(
-            current.file,
-            columnFields: {
-              for (final c in current.columns)
-                if (c.field != null) c.index: c.field!,
-            },
-          )
-        : importer.parse(current.file);
     try {
-      emit(ImporterDone(await _importService.import(rows)));
+      // Parsed up front so the progress bar knows the total; a library file
+      // of a few thousand rows fits in memory easily.
+      final rows =
+          await (importer is CsvImporter
+                  ? importer.parse(
+                      current.file,
+                      columnFields: {
+                        for (final c in current.columns)
+                          if (c.field != null) c.index: c.field!,
+                      },
+                    )
+                  : importer.parse(current.file))
+              .toList();
+      emit(ImporterImporting(0, rows.length));
+      final result = await _importService.import(
+        Stream.fromIterable(rows),
+        onProgress: (handled) => emit(ImporterImporting(handled, rows.length)),
+      );
+      emit(ImporterDone(result));
     } catch (e) {
       emit(ImporterError(e.toString()));
     }
+  }
+
+  /// Back to file selection after a result, or when the user leaves the
+  /// matcher. A running import is never interrupted.
+  void reset() {
+    if (state is ImporterImporting) return;
+    emit(const ImporterSelecting());
   }
 }

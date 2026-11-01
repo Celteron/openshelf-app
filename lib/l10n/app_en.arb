@@ -54,11 +54,9 @@
   "alreadyInLibrary": "Already in library",
   "saveAll": "Save all",
   "saving": "Saving…",
-  "importTitle": "Import",
   "chooseFile": "Choose CSV/JSON file",
   "detectedFormat": "Format: {name}",
   "importAction": "Import",
-  "rowsProcessed": "{count} rows processed",
   "importedCount": "Imported: {count}",
   "skippedCount": "Skipped: {count}",
   "updatedCount": "Updated: {count}",
@@ -614,5 +612,14 @@
   "tagSearchHint": "Search tags",
   "clearTagFilter": "Clear selection",
   "noMatchingTags": "No matching tag",
-  "removeTagFilter": "Remove “{name}”"
+  "removeTagFilter": "Remove “{name}”",
+  "importExportHint": "Import Bookstats, backups and CSV, or back up all data",
+  "exportAction": "Export",
+  "exportActionHint": "Save all data to a file, e.g. before switching phones",
+  "importRunning": "Importing …",
+  "importProgress": "{done} of {total} rows",
+  "importDoneTitle": "Import finished",
+  "importFailedTitle": "Import failed",
+  "importAgain": "New import",
+  "importFinish": "Done"
 }

@@ -3,14 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/core/constants/app_fonts.dart';
 import 'package:openreads/core/themes/app_theme.dart';
-import 'package:openreads/data/export/export_file_saver.dart';
-import 'package:openreads/data/export/export_service.dart';
 import 'package:openreads/domain/models/app_preferences.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/services/cover_sync_service.dart';
 import 'package:openreads/domain/services/data_wipe_service.dart';
 import 'package:openreads/features/common/status_label.dart';
-import 'package:openreads/features/importer/importer_screen.dart';
+import 'package:openreads/features/importer/import_export_screen.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/tags/tags_cubit.dart';
 import 'package:openreads/features/tags/tags_screen.dart';
@@ -266,33 +264,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTap: () => _editGoogleKey(state.googleBooksApiKey),
               ),
               const Divider(),
-              _section(l10n.exportLabel),
+              _section(l10n.dataSection),
               ListTile(
-                key: const ValueKey('open-import'),
-                leading: const Icon(Icons.file_download_outlined),
-                title: Text(l10n.restoreBackup),
-                subtitle: Text(l10n.restoreBackupHint),
+                key: const ValueKey('open-import-export'),
+                leading: const Icon(Icons.import_export),
+                title: Text(l10n.exportLabel),
+                subtitle: Text(l10n.importExportHint),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ImporterScreen()),
+                  MaterialPageRoute(builder: (_) => const ImportExportScreen()),
                 ),
               ),
-              ListTile(
-                key: const ValueKey('export-json'),
-                leading: const Icon(Icons.data_object),
-                title: Text(l10n.exportJson),
-                subtitle: Text(l10n.exportJsonHint),
-                onTap: () => _exportJson(),
-              ),
-              ListTile(
-                key: const ValueKey('export-csv'),
-                leading: const Icon(Icons.table_chart),
-                title: Text(l10n.exportCsv),
-                subtitle: Text(l10n.exportCsvHint),
-                onTap: () => _exportCsv(),
-              ),
-              const Divider(),
-              _section(l10n.dataSection),
               ListTile(
                 key: const ValueKey('clear-library'),
                 leading: const Icon(Icons.delete_sweep_outlined),
@@ -620,32 +602,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (_) {}
-  }
-
-  Future<void> _exportJson() async {
-    final json = await context.read<ExportService>().exportJson();
-    await _writeExport('openshelf_export.json', json);
-  }
-
-  Future<void> _exportCsv() async {
-    final csv = await context.read<ExportService>().exportBooksCsv();
-    await _writeExport('openshelf_books.csv', csv);
-  }
-
-  Future<void> _writeExport(String name, String content) async {
-    if (!mounted) return;
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final saver = context.read<ExportFileSaver>();
-    final String? path;
-    try {
-      path = await saver.save(name, content);
-    } catch (_) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.exportFailed)));
-      return;
-    }
-    if (path == null) return;
-    messenger.showSnackBar(SnackBar(content: Text('${l10n.exportDone} $path')));
   }
 }
 

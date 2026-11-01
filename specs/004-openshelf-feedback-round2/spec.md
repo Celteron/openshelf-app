@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feat/openshelf-phase1-2` (continued)
 **Created**: 2026-11-01
-**Status**: Plan approved by the product owner in chat on 2026-11-01; package 2 (slipcases) pending the data-model confirmation below
+**Status**: Approved by the product owner in chat on 2026-11-01, including the slipcase model, the cover additions and the import/export and colour findings
 
 ## 1. Background
 
@@ -20,6 +20,11 @@ First use of the sideloaded APK on the partner's phone produced ten findings:
 | R8 | Drill-down: monthly bars → books of that month → book or filtered library | Bars are not interactive |
 | R9 | "Received as" (purchase, gift, loan, …) as field and statistic | No column; the Bookstats column `Erhalten als` (Kauf, Rezensionsexemplar) is ignored |
 | R10 | Scanning several books: save all, or adjust them before saving | `ScannerCubit.saveAll` stores the staged metadata unchanged; staged items are not editable |
+| R11 | Unclear whether a cover exists online; no online cover search when editing | Placeholders look the same whether or not a lookup ran; the form offers camera and gallery only |
+| R12 | Import shows no progress and no clear "done"; a second import needs an app restart | `ImporterCubit` is app-wide and never returns to `ImporterSelecting`; `ImporterImporting.processed` is never updated because `ImportService.import` reports no progress |
+| R13 | Import and export should be one screen with two actions | Export tiles live in Settings, the importer is a separate screen |
+| R14 | Colour scheme should match the new logo (teal to petrol glass, amber ribbon) | The theme still uses the Openreads accent colours |
+| R15 | Data structures as space-saving as possible | Standing product rule from now on |
 
 ## 2. Requirements
 
@@ -28,25 +33,36 @@ First use of the sideloaded APK on the partner's phone produced ten findings:
 - **FR-R2-02** Import and export leave the bottom navigation. The Settings section "Import & export" opens the importer and holds the export actions. The bottom navigation keeps library, shelf, scan and statistics.
 - **FR-R2-03** The tag filter is a "Tags" chip at the start of the filter row (with the active count) that opens a sheet. The sheet lists all tags as wrapping chips with a search field. Active tags show as removable chips above the list; with no active tag nothing takes up space. Several active tags still narrow the list (AND).
 
-### Package 2: New book data (R7, R9)
-- **FR-R2-04** `Books` gains "received as" (`acquisition`): purchase, gift, loan, review copy, other; nullable. Schema migration with test and snapshot (Constitution II.3), editable in the form, shown in the detail view, in JSON/CSV export and restore (I.3), never overwritten by imports (III.2). The Bookstats importers map `Erhalten als` (Kauf, Geschenk, Leihe/Ausleihe, Rezensionsexemplar, anything else → other).
-- **FR-R2-05** *(Proposed, pending confirmation and an architecture review)* A slipcase is a container of volumes. The physical object (ISBN, price, received as/at, location, cover) stays on the slipcase. Every volume is a normal book with its own title, pages, status, reading data and rating. Statistics count volumes, not the slipcase; the price counts once. The slipcase's status is derived from its volumes. An existing entry can be "split into volumes". The library shows a slipcase as one entry with its volume count, expandable.
+### Package 2: Import & export (R12, R13)
+- **FR-R2-04** One "Import & export" screen, reached from Settings, offers two actions: import and export (JSON backup, CSV).
+- **FR-R2-05** The import shows a determinate progress bar (rows done of total). It ends with a clear result: success icon and counts, or the error. Both offer "New import" and "Done". Leaving the screen after a result, or while still mapping, starts the next visit fresh; a running import keeps going and its progress is shown when the screen is opened again.
 
-### Package 3: Capture (R4, R10)
-- **FR-R2-06** The library "+" opens a choice with three large options: scan ISBN, enter manually, search online.
-- **FR-R2-07** Staged scans show cover, title and author. Tapping one opens an editor before saving. "Save all" can set shared values for all staged books (location, format, status, received as).
+### Package 3: Colour scheme (R14)
+- **FR-R2-06** The default theme derives from the logo: teal/petrol as seed colour, amber as accent, in light, dark and AMOLED. Material You and the custom accent setting keep working. The product owner picks from rendered previews.
 
-### Package 4: Statistics (R6, R7, R8)
-- **FR-R2-08** The statistics screen is grouped into sections; the year filter stays on top.
-- **FR-R2-09** Averages and records ignore slipcase containers and books without the needed value (e.g. no page count). Reading time includes `Books.readingSeconds` (open item T3-25).
-- **FR-R2-10** Drill-down: tapping a month lists that month's finished books; a book opens its detail view, and "show in library" opens the library filtered to them. Status segments do the same for their status.
-- **FR-R2-11** New statistics: unread stack ("SUB") per month, books added vs. finished per month, distribution by "received as", spending per year.
+### Package 4: Book data (R7, R9, R11, R15)
+- **FR-R2-07** `Books` gains "received as": purchase, gift, loan, review copy, other; nullable. Schema migration with test and snapshot (Constitution II.3), editable in the form, shown in the detail view, in JSON/CSV export and restore (I.3), never overwritten by imports (III.2). The Bookstats importers map `Erhalten als` (Kauf, Geschenk, Leihe/Ausleihe, Rezensionsexemplar, anything else → other).
+- **FR-R2-08** `Books` remembers that an online cover search found nothing. It is cleared when a cover is set and kept out of exports, because it is device state, not user data.
+- **FR-R2-09** A slipcase is a container of volumes. The physical object (ISBN, price, received as/at, location, cover) stays on the slipcase. Every volume is a normal book with its own title, pages, status, reading data and rating. Statistics count volumes, not the slipcase; the price counts once. The slipcase's status is derived from its volumes. An existing entry can be "split into volumes". The library shows a slipcase as one entry with its volume count, expandable. An architecture review comes before implementation.
+- **FR-R2-10** Space: new columns use the most compact type that holds the information (integer codes or booleans instead of text or timestamps, nullable instead of stored defaults), with no derived columns. Cover files are stored downscaled and compressed, because they dominate the app's storage.
 
-### Package 5: Home (R3)
-- **FR-R2-12** A new first tab "Home" shows an animated donut of read / reading / unread with the total in the centre (a segment opens the filtered library), the three most recently added books, currently reading with progress, the yearly goal, a mini chart of the unread-stack trend and a row of favourites. Bottom navigation: home, library, scan, statistics, shelf.
+### Package 5: Capture & covers (R4, R10, R11)
+- **FR-R2-11** The library "+" opens a choice with three large options: scan ISBN, enter manually, search online.
+- **FR-R2-12** Staged scans show cover, title and author. Tapping one opens an editor before saving. "Save all" can set shared values for all staged books (location, format, status, received as).
+- **FR-R2-13** The cover actions offer "Search online" next to camera and gallery. It shows the covers found via the ISBN (stored URL, DNB, Google Books, Open Library) and via title and author (other editions on Open Library). The chosen cover is cached and marked as a user edit.
+- **FR-R2-14** Two grey placeholder assets: "not searched yet" and "no cover found online". The library has a "Without cover" filter chip, shown only when such books exist. The detail view offers camera, gallery and online search on a missing cover. After "Download missing covers", the result names the books without an online cover and offers "Show", which opens the filtered library.
 
-### Package 6: User-defined statistics (R6, follow-up)
-- **FR-R2-13** *(Later, own spec section once packages 1–5 ship)* Users assemble their own statistics (measure, period, chart type).
+### Package 6: Statistics (R6, R7, R8)
+- **FR-R2-15** The statistics screen is grouped into sections; the year filter stays on top.
+- **FR-R2-16** Averages and records ignore slipcase containers and books without the needed value (e.g. no page count). Reading time includes `Books.readingSeconds` (open item T3-25).
+- **FR-R2-17** Drill-down: tapping a month lists that month's finished books; a book opens its detail view, and "show in library" opens the library filtered to them. Status segments do the same for their status.
+- **FR-R2-18** New statistics: unread stack ("SUB") per month, books added vs. finished per month, distribution by "received as", spending per year.
+
+### Package 7: Home (R3)
+- **FR-R2-19** A new first tab "Home" shows an animated donut of read / reading / unread with the total in the centre (a segment opens the filtered library), the three most recently added books, currently reading with progress, the yearly goal, a mini chart of the unread-stack trend and a row of favourites. Bottom navigation: home, library, scan, statistics, shelf.
+
+### Package 8: User-defined statistics (R6, follow-up)
+- **FR-R2-20** *(Later, own spec section once packages 1–7 ship)* Users assemble their own statistics (measure, period, chart type).
 
 ## 3. Non-Goals
 - Editing or deselecting single rows in the CSV importer (only on request).
@@ -54,8 +70,8 @@ First use of the sideloaded APK on the partner's phone produced ten findings:
 - SQLite export (still open from Constitution I.3; separate change).
 
 ## 4. Constitution Check
-- I.1/I.2: everything works offline; no new network calls (online search already exists and is user-initiated).
-- I.3: every new field is part of JSON/CSV export and restore.
+- I.1/I.2: everything works offline; every network call stays tied to a user action (online cover search, download missing covers).
+- I.3: every new user-data field is part of JSON/CSV export and restore; the cover-search flag is device state.
 - II.3: schema changes come with migrations, tests and snapshots.
 - III.2: imports only fill gaps; "received as" entered by the user is never overwritten.
 - IV.2: statistics engines get unit tests.

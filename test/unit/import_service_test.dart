@@ -34,6 +34,21 @@ void main() {
   BookImport book(String title, String isbn) =>
       BookImport(title: title, isbn13: isbn, authors: const ['A']);
 
+  test('reports every handled row, skipped ones included', () async {
+    final progress = <int>[];
+
+    await service.import(
+      Stream.fromIterable([
+        ImportRow(rowNumber: 1, book: book('One', '9780000000001')),
+        const ImportRow(rowNumber: 2, error: 'broken'),
+        ImportRow(rowNumber: 3, book: book('Three', '9780000000003')),
+      ]),
+      onProgress: progress.add,
+    );
+
+    expect(progress, [1, 2, 3]);
+  });
+
   test('imports books and skips duplicates by ISBN', () async {
     await repository.insertBook(
       BooksCompanion.insert(

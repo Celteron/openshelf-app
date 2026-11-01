@@ -9,7 +9,7 @@ import 'package:openreads/data/repositories/book_repository_impl.dart';
 import 'package:openreads/domain/models/import.dart';
 import 'package:openreads/domain/services/import_service.dart';
 import 'package:openreads/features/importer/importer_cubit.dart';
-import 'package:openreads/features/importer/importer_screen.dart';
+import 'package:openreads/features/importer/import_export_screen.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
 void main() {
@@ -49,7 +49,10 @@ void main() {
         locale: const Locale('de'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: BlocProvider.value(value: cubit, child: const ImporterScreen()),
+        home: BlocProvider.value(
+          value: cubit,
+          child: const ImportExportScreen(),
+        ),
       ),
     );
     await tester.pumpAndSettle();

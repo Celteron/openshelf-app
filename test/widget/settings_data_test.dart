@@ -147,6 +147,14 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('import and export sit behind one entry', (tester) async {
+    await pump(tester);
+
+    expect(find.byKey(const ValueKey('open-import-export')), findsOneWidget);
+    expect(find.byKey(const ValueKey('export-json')), findsNothing);
+    expect(find.byKey(const ValueKey('export-csv')), findsNothing);
+  });
+
   group('Bibliothek leeren', () {
     testWidgets('offers the trash or deleting for good', (tester) async {
       await pump(tester);
@@ -240,44 +248,6 @@ void main() {
       expect(reset.wiped, 1);
       expect(settings.values, isEmpty);
       expect(find.text('Alle Daten wurden gelöscht'), findsOneWidget);
-    });
-  });
-
-  group('Export', () {
-    testWidgets('hands the JSON backup to the saver and names the place', (
-      tester,
-    ) async {
-      await pump(tester);
-      await tapTile(tester, 'export-json');
-
-      expect(saver.saved, {'openshelf_export.json': '{"books":[]}'});
-      expect(
-        find.text('Exportiert nach: /storage/Download/export'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('hands the CSV to the saver', (tester) async {
-      await pump(tester);
-      await tapTile(tester, 'export-csv');
-
-      expect(saver.saved, {'openshelf_books.csv': 'Titel\n'});
-    });
-
-    testWidgets('a cancelled save dialog shows nothing', (tester) async {
-      saver.result = null;
-      await pump(tester);
-      await tapTile(tester, 'export-json');
-
-      expect(find.byType(SnackBar), findsNothing);
-    });
-
-    testWidgets('a failing save says so instead of crashing', (tester) async {
-      saver.error = const FileSystemException('denied');
-      await pump(tester);
-      await tapTile(tester, 'export-json');
-
-      expect(find.text('Export fehlgeschlagen'), findsOneWidget);
     });
   });
 }

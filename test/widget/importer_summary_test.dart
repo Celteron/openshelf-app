@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:openreads/domain/models/import.dart';
 import 'package:openreads/domain/services/import_service.dart';
 import 'package:openreads/features/importer/importer_cubit.dart';
-import 'package:openreads/features/importer/importer_screen.dart';
+import 'package:openreads/features/importer/import_export_screen.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
 class _FakeImportService implements ImportService {
@@ -20,7 +20,7 @@ Future<void> pumpSummary(WidgetTester tester, ImportResult result) async {
       locale: const Locale('de'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: BlocProvider.value(value: cubit, child: const ImporterScreen()),
+      home: BlocProvider.value(value: cubit, child: const ImportExportScreen()),
     ),
   );
 }

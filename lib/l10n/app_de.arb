@@ -75,7 +75,6 @@
   "alreadyInLibrary": "Bereits in der Bibliothek",
   "saveAll": "Alle speichern",
   "saving": "Speichern…",
-  "importTitle": "Import",
   "chooseFile": "CSV/JSON-Datei auswählen",
   "detectedFormat": "Format: {name}",
   "@detectedFormat": {
@@ -86,14 +85,6 @@
     }
   },
   "importAction": "Importieren",
-  "rowsProcessed": "{count} Zeilen verarbeitet",
-  "@rowsProcessed": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importedCount": "Importiert: {count}",
   "@importedCount": {
     "placeholders": {
@@ -692,6 +683,25 @@
     "placeholders": {
       "name": {
         "type": "String"
+      }
+    }
+  },
+  "importExportHint": "Bookstats, Backups und CSV importieren oder alle Daten sichern",
+  "exportAction": "Exportieren",
+  "exportActionHint": "Alle Daten als Datei sichern, z. B. vor einem Handywechsel",
+  "importRunning": "Import läuft …",
+  "importProgress": "{done} von {total} Zeilen",
+  "importDoneTitle": "Import abgeschlossen",
+  "importFailedTitle": "Import fehlgeschlagen",
+  "importAgain": "Neuer Import",
+  "importFinish": "Fertig",
+  "@importProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
       }
     }
   }

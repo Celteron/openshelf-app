@@ -26,50 +26,61 @@ class ImportService {
   ImportService(this._repository, {CoverCacheService? coverCache})
     : _covers = coverCache;
 
-  Future<ImportResult> import(Stream<ImportRow> rows) async {
+  /// [onProgress] gets the number of rows handled so far, skipped ones
+  /// included, so a caller that knows the row count can show a progress bar.
+  Future<ImportResult> import(
+    Stream<ImportRow> rows, {
+    void Function(int handled)? onProgress,
+  }) async {
     final tally = _Tally();
     final pending = <ImportedBook>[];
     final extraLocations = <List<LocationRef>>[];
     final extraGoals = <GoalImport>[];
     final extraTags = <String>[];
 
+    var handled = 0;
     await for (final row in rows) {
-      // Backup rows that are not books: standalone locations and yearly goals.
-      if (row.goal != null) {
-        extraGoals.add(row.goal!);
-        continue;
-      }
-      if (row.location != null) {
-        extraLocations.add(row.location!);
-        continue;
-      }
-      if (row.tag != null) {
-        extraTags.add(row.tag!);
-        continue;
-      }
-      if (row.error != null) {
-        tally.skipped++;
-        tally.errors.add(
-          RowError(rowNumber: row.rowNumber, reason: row.error!),
-        );
-        continue;
-      }
+      // `finally` also runs on the `continue`s below: every row counts.
+      try {
+        // Backup rows that are not books: standalone locations and yearly goals.
+        if (row.goal != null) {
+          extraGoals.add(row.goal!);
+          continue;
+        }
+        if (row.location != null) {
+          extraLocations.add(row.location!);
+          continue;
+        }
+        if (row.tag != null) {
+          extraTags.add(row.tag!);
+          continue;
+        }
+        if (row.error != null) {
+          tally.skipped++;
+          tally.errors.add(
+            RowError(rowNumber: row.rowNumber, reason: row.error!),
+          );
+          continue;
+        }
 
-      final book = row.book!;
-      if (book.title == null || book.title!.trim().isEmpty) {
-        tally.skipped++;
-        tally.errors.add(
-          RowError(rowNumber: row.rowNumber, reason: 'Missing title'),
-        );
-        continue;
-      }
+        final book = row.book!;
+        if (book.title == null || book.title!.trim().isEmpty) {
+          tally.skipped++;
+          tally.errors.add(
+            RowError(rowNumber: row.rowNumber, reason: 'Missing title'),
+          );
+          continue;
+        }
 
-      pending.add(await _toImported(book, row.rowNumber));
+        pending.add(await _toImported(book, row.rowNumber));
 
-      if (pending.length >= _batchSize) {
-        final ok = await _flush(pending, tally);
-        if (!ok) return tally.result();
-        pending.clear();
+        if (pending.length >= _batchSize) {
+          final ok = await _flush(pending, tally);
+          if (!ok) return tally.result();
+          pending.clear();
+        }
+      } finally {
+        onProgress?.call(++handled);
       }
     }
 

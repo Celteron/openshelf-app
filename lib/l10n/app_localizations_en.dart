@@ -178,9 +178,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saving => 'Saving…';
 
   @override
-  String get importTitle => 'Import';
-
-  @override
   String get chooseFile => 'Choose CSV/JSON file';
 
   @override
@@ -190,11 +187,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importAction => 'Import';
-
-  @override
-  String rowsProcessed(int count) {
-    return '$count rows processed';
-  }
 
   @override
   String importedCount(int count) {
@@ -1244,4 +1236,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String removeTagFilter(String name) {
     return 'Remove “$name”';
   }
+
+  @override
+  String get importExportHint =>
+      'Import Bookstats, backups and CSV, or back up all data';
+
+  @override
+  String get exportAction => 'Export';
+
+  @override
+  String get exportActionHint =>
+      'Save all data to a file, e.g. before switching phones';
+
+  @override
+  String get importRunning => 'Importing …';
+
+  @override
+  String importProgress(int done, int total) {
+    return '$done of $total rows';
+  }
+
+  @override
+  String get importDoneTitle => 'Import finished';
+
+  @override
+  String get importFailedTitle => 'Import failed';
+
+  @override
+  String get importAgain => 'New import';
+
+  @override
+  String get importFinish => 'Done';
 }

@@ -236,6 +236,54 @@ void main() {
     });
   });
 
+  group('lifecycle', () {
+    const three =
+        '"Titel";"Autor(en)";"ISBN"\n'
+        '"Eins";"A";"9780000000001"\n'
+        '"Zwei";"A";"9780000000002"\n'
+        '"Drei";"A";"9780000000003"\n';
+
+    test('the import reports rows done out of the total', () async {
+      cubit.selectFile(
+        const ImportFile(
+          name: 'd.csv',
+          content: three,
+          type: ImportFileType.csv,
+        ),
+      );
+      final states = <ImporterState>[];
+      final sub = cubit.stream.listen(states.add);
+
+      await cubit.runImport();
+      await pumpEventQueue();
+      await sub.cancel();
+
+      final progress = states.whereType<ImporterImporting>().toList();
+      expect(progress.first.processed, 0);
+      expect(progress.map((s) => s.total).toSet(), {3});
+      expect(progress.last.processed, 3);
+      expect(states.last, isA<ImporterDone>());
+    });
+
+    test('reset starts over after a result', () async {
+      cubit.selectFile(file);
+      await cubit.runImport();
+      expect(cubit.state, isA<ImporterDone>());
+
+      cubit.reset();
+
+      expect(cubit.state, isA<ImporterSelecting>());
+    });
+
+    test('reset leaves a running import alone', () async {
+      cubit.emit(const ImporterImporting(1, 3));
+
+      cubit.reset();
+
+      expect(cubit.state, isA<ImporterImporting>());
+    });
+  });
+
   test('a failing import ends in an error instead of a spinner', () async {
     final failing = ImporterCubit(_ThrowingImportService(), defaultImporters());
     addTearDown(failing.close);
@@ -249,8 +297,10 @@ void main() {
 
 class _ThrowingImportService implements ImportService {
   @override
-  Future<ImportResult> import(Stream<ImportRow> rows) async =>
-      throw StateError('disk full');
+  Future<ImportResult> import(
+    Stream<ImportRow> rows, {
+    void Function(int processed)? onProgress,
+  }) async => throw StateError('disk full');
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;

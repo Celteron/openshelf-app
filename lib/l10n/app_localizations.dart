@@ -422,12 +422,6 @@ abstract class AppLocalizations {
   /// **'Speichern…'**
   String get saving;
 
-  /// No description provided for @importTitle.
-  ///
-  /// In de, this message translates to:
-  /// **'Import'**
-  String get importTitle;
-
   /// No description provided for @chooseFile.
   ///
   /// In de, this message translates to:
@@ -445,12 +439,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Importieren'**
   String get importAction;
-
-  /// No description provided for @rowsProcessed.
-  ///
-  /// In de, this message translates to:
-  /// **'{count} Zeilen verarbeitet'**
-  String rowsProcessed(int count);
 
   /// No description provided for @importedCount.
   ///
@@ -2107,6 +2095,60 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'„{name}“ entfernen'**
   String removeTagFilter(String name);
+
+  /// No description provided for @importExportHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Bookstats, Backups und CSV importieren oder alle Daten sichern'**
+  String get importExportHint;
+
+  /// No description provided for @exportAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Exportieren'**
+  String get exportAction;
+
+  /// No description provided for @exportActionHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Daten als Datei sichern, z. B. vor einem Handywechsel'**
+  String get exportActionHint;
+
+  /// No description provided for @importRunning.
+  ///
+  /// In de, this message translates to:
+  /// **'Import läuft …'**
+  String get importRunning;
+
+  /// No description provided for @importProgress.
+  ///
+  /// In de, this message translates to:
+  /// **'{done} von {total} Zeilen'**
+  String importProgress(int done, int total);
+
+  /// No description provided for @importDoneTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Import abgeschlossen'**
+  String get importDoneTitle;
+
+  /// No description provided for @importFailedTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Import fehlgeschlagen'**
+  String get importFailedTitle;
+
+  /// No description provided for @importAgain.
+  ///
+  /// In de, this message translates to:
+  /// **'Neuer Import'**
+  String get importAgain;
+
+  /// No description provided for @importFinish.
+  ///
+  /// In de, this message translates to:
+  /// **'Fertig'**
+  String get importFinish;
 }
 
 class _AppLocalizationsDelegate
