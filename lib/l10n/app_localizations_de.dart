@@ -1441,7 +1441,4 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get completeOnlineHint =>
       'Ohne ISBN findet die App weder Cover noch Daten. Such das Buch online, um sie zu ergänzen.';
-
-  @override
-  String get findCover => 'Cover suchen';
 }

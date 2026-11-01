@@ -360,27 +360,44 @@ class _AddBookScreenState extends State<AddBookScreen> {
   }
 
   /// Fills the form from an Open Library result or edition; returns whether
-  /// one was picked.
+  /// one was picked. A new book takes the pick as it is; a saved book only
+  /// gets its empty fields filled (FR-R2-23), so nothing the user entered is
+  /// overwritten (Constitution III.2).
   Future<bool> _searchOpenLibrary() async {
+    final authors = _parseAuthors();
     final pick = await Navigator.of(context).push<OlPick>(
       MaterialPageRoute(
-        builder: (_) => OpenLibrarySearchScreen(initialQuery: _title.text),
+        builder: (_) => OpenLibrarySearchScreen(
+          initialQuery: [
+            _title.text.trim(),
+            if (authors.isNotEmpty) authors.first,
+          ].join(' '),
+        ),
       ),
     );
     if (pick == null || !mounted) return false;
     final m = pick.metadata;
+    final fill = _isEditing;
+    void take(TextEditingController field, String? value) {
+      if (value != null && !(fill && field.text.trim().isNotEmpty)) {
+        field.text = value;
+      }
+    }
+
     setState(() {
-      _title.text = m.title ?? _title.text;
-      _subtitle.text = m.subtitle ?? _subtitle.text;
-      if (m.authors.isNotEmpty) _authors.text = m.authors.join(', ');
-      _publisher.text = m.publisher ?? _publisher.text;
-      _year.text = m.publishedYear?.toString() ?? _year.text;
-      _pages.text = m.pageCount?.toString() ?? _pages.text;
-      _language.text = m.language ?? _language.text;
-      final isbn = m.isbn13 ?? m.isbn10;
-      if (isbn != null) _isbn.text = isbn;
-      _olid = pick.olid ?? _olid;
-      if (m.coverUrl != null && m.coverUrl != _coverUrl) {
+      take(_title, m.title);
+      take(_subtitle, m.subtitle);
+      if (m.authors.isNotEmpty) take(_authors, m.authors.join(', '));
+      take(_publisher, m.publisher);
+      take(_year, m.publishedYear?.toString());
+      take(_pages, m.pageCount?.toString());
+      take(_language, m.language);
+      take(_isbn, m.isbn13 ?? m.isbn10);
+      _olid = fill ? _olid ?? pick.olid : pick.olid ?? _olid;
+      final hasCover = _coverUrl != null || _coverLocalPath != null;
+      if (m.coverUrl != null &&
+          m.coverUrl != _coverUrl &&
+          !(fill && hasCover)) {
         _coverUrl = m.coverUrl;
         _coverLocalPath = null;
       }

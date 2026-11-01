@@ -522,6 +522,87 @@ void main() {
       headers: {'content-type': 'application/json'},
     );
 
+    group('completing a saved book (FR-R2-23)', () {
+      void serveVorleser() {
+        olHttp = MockClient(
+          (_) async => ok({
+            'docs': [
+              {
+                'key': '/works/OL45W',
+                'title': 'Der Vorleser',
+                'author_name': ['Bernhard Schlink'],
+                'number_of_pages_median': 207,
+                'isbn': ['9783257229530'],
+                'publisher': ['Diogenes'],
+                'cover_i': 1234,
+              },
+            ],
+          }),
+        );
+      }
+
+      Future<void> pick(WidgetTester tester) async {
+        await tester.tap(find.byKey(const ValueKey('open-library-search')));
+        await tester.pumpAndSettle();
+        await tester.runAsync(() async {
+          await tester.tap(find.byKey(const ValueKey('ol-search')));
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+        });
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Der Vorleser'));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('searches by title and first author', (tester) async {
+        await pump(tester, book: existing());
+
+        await tester.tap(find.byKey(const ValueKey('open-library-search')));
+        await tester.pumpAndSettle();
+
+        expect(
+          tester
+              .widget<TextField>(find.byKey(const ValueKey('ol-query')))
+              .controller
+              ?.text,
+          'Bestehend Autorin',
+        );
+      });
+
+      testWidgets('fills only the empty fields and keeps what is there', (
+        tester,
+      ) async {
+        serveVorleser();
+        await pump(tester, book: existing());
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Verlag'),
+          'Eigenverlag',
+        );
+
+        await pick(tester);
+        await tester.tap(find.text('Speichern'));
+        await tester.pumpAndSettle();
+
+        final draft = books.updated.single.$2;
+        expect(draft.title, 'Bestehend');
+        expect(draft.authors, ['Autorin']);
+        expect(draft.publisher, 'Eigenverlag');
+        expect(draft.isbn13, '9783257229530');
+        expect(draft.pageCount, 207);
+        expect(draft.coverUrl, OpenLibrarySearchClient.coverUrlForId(1234));
+      });
+
+      testWidgets('keeps an existing cover', (tester) async {
+        serveVorleser();
+        await pump(tester, book: existing(coverUrl: 'https://x/c.jpg'));
+
+        await pick(tester);
+        await tester.tap(find.text('Speichern'));
+        await tester.pumpAndSettle();
+
+        expect(books.updated.single.$2.coverUrl, 'https://x/c.jpg');
+      });
+    });
+
     testWidgets('a picked result fills the form and is saved with its id', (
       tester,
     ) async {

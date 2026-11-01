@@ -92,10 +92,16 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     if (done == true) await _load();
   }
 
-  Future<void> _openEdit(BuildContext context, Book book) async {
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => AddBookScreen(book: book)));
+  Future<void> _openEdit(
+    BuildContext context,
+    Book book, {
+    bool searchOnline = false,
+  }) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AddBookScreen(book: book, searchOnline: searchOnline),
+      ),
+    );
     await _load();
   }
 
@@ -281,6 +287,19 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               title: Text(l10n.partOfSlipcase(slipcase.title)),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _openBook(slipcase.id),
+            ),
+          // Without an ISBN no lookup finds a cover or details (FR-R2-23).
+          if (book.isbn13 == null && book.isbn10 == null)
+            Card(
+              margin: const EdgeInsets.only(top: 12),
+              child: ListTile(
+                key: const ValueKey('complete-online'),
+                leading: const Icon(Icons.travel_explore),
+                title: Text(l10n.completeOnline),
+                subtitle: Text(l10n.completeOnlineHint),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _openEdit(context, book, searchOnline: true),
+              ),
             ),
           const SizedBox(height: 16),
           StreamBuilder<List<ReadingSession>>(

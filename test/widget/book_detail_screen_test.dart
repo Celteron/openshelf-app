@@ -3,15 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/data/metadata/open_library_search_client.dart';
 import 'package:openreads/domain/models/book_draft.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/domain/repositories/lending_repository.dart';
+import 'package:openreads/domain/repositories/location_repository.dart';
 import 'package:openreads/domain/repositories/notes_repository.dart';
 import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:openreads/features/lending/lending_cubit.dart';
+import 'package:openreads/features/library/add_book_screen.dart';
 import 'package:openreads/features/library/book_detail_screen.dart';
 import 'package:openreads/features/library/library_cubit.dart';
 import 'package:openreads/features/library/widgets/verification_badge.dart';
@@ -147,6 +152,15 @@ class FakeLendingRepository implements LendingRepository {
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
+/// Lets the edit form open from the detail screen.
+class _Locations implements LocationRepository {
+  @override
+  Future<List<Location>> getLocations() async => const [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
 Book sampleBook({
   double rating = 0,
   bool favorite = false,
@@ -209,6 +223,12 @@ Future<FakeBookRepository> pumpDetail(
         RepositoryProvider<BookRepository>.value(value: repo),
         RepositoryProvider<TagRepository>.value(value: FakeTagRepository(tags)),
         RepositoryProvider<NotesRepository>.value(value: FakeNotesRepository()),
+        RepositoryProvider<LocationRepository>.value(value: _Locations()),
+        RepositoryProvider<OpenLibrarySearchClient>.value(
+          value: OpenLibrarySearchClient(
+            client: MockClient((_) async => http.Response('{}', 404)),
+          ),
+        ),
         RepositoryProvider<ReadingRepository>.value(
           value: FakeReadingRepository(sessions),
         ),
@@ -720,6 +740,26 @@ void main() {
       await pumpDetail(tester, book: sampleBook(isbn10: '3442719259'));
       expect(find.text('ISBN'), findsOneWidget);
       expect(find.text('3442719259'), findsOneWidget);
+    });
+
+    testWidgets('a book without ISBN offers to complete it online', (
+      tester,
+    ) async {
+      await pumpDetail(tester);
+      expect(find.text('Online vervollständigen'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('complete-online')));
+      await tester.pump();
+      await tester.pump();
+
+      final form = tester.widget<AddBookScreen>(find.byType(AddBookScreen));
+      expect(form.searchOnline, isTrue);
+      expect(form.book?.id, 1);
+    });
+
+    testWidgets('a book with an ISBN does not offer it', (tester) async {
+      await pumpDetail(tester, book: sampleBook(isbn10: '3442719259'));
+      expect(find.byKey(const ValueKey('complete-online')), findsNothing);
     });
 
     testWidgets('the verification badge is a label, not an edit button', (

@@ -41,7 +41,7 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 - [X] T4-42 `CoverSearchScreen` (stored URL, DNB, Open Library by ISBN, other editions by title + author), "Search online" in the book form, cached download, picked cover counts as an edit, nothing found sets the cover flag + tests. (FR-R2-13)
 - [ ] T4-43 Placeholder assets, "Without cover" filter, detail actions, download result with "Show". (FR-R2-14)
 - [X] T4-44 Edit reading start/end in the book form + tests. (FR-R2-22)
-- [ ] T4-45 "Complete online" for books without ISBN + tests. (FR-R2-23)
+- [X] T4-45 "Complete online" card on the detail screen of books without ISBN opens the form with the Open Library search (title + first author); a saved book only gets its empty fields and a missing cover filled + tests. (FR-R2-23)
 
 ## Package 6: Statistics
 - [ ] T4-50 Sections, averages/records rules, reading seconds. (FR-R2-15, -16)
