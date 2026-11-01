@@ -35,13 +35,13 @@ List<String> sorted(LibrarySort sort, List<Book> books) =>
     sort.apply(books).map((b) => b.title).toList();
 
 void main() {
-  test('the default shows the most recently added book first', () {
+  test('the default sorts by title A→Z', () {
     final books = [
-      book(1, 'Alt', createdAt: DateTime(2020)),
-      book(2, 'Neu', createdAt: DateTime(2026)),
-      book(3, 'Mittel', createdAt: DateTime(2023)),
+      book(1, 'Mittel', createdAt: DateTime(2020)),
+      book(2, 'Zuletzt', createdAt: DateTime(2026)),
+      book(3, 'anfang', createdAt: DateTime(2023)),
     ];
-    expect(sorted(const LibrarySort(), books), ['Neu', 'Mittel', 'Alt']);
+    expect(sorted(const LibrarySort(), books), ['anfang', 'Mittel', 'Zuletzt']);
   });
 
   test('sorts by title case-insensitively in both directions', () {
@@ -118,16 +118,16 @@ void main() {
   });
 
   test('select flips the active field and picks a natural start otherwise', () {
-    const start = LibrarySort(); // added, descending
-    final flipped = start.select(LibrarySortField.added);
-    expect(flipped.field, LibrarySortField.added);
-    expect(flipped.ascending, isTrue);
+    const start = LibrarySort(); // title, A→Z
+    final flipped = start.select(LibrarySortField.title);
+    expect(flipped.field, LibrarySortField.title);
+    expect(flipped.ascending, isFalse);
 
-    final title = start.select(LibrarySortField.title);
-    expect(title.field, LibrarySortField.title);
-    expect(title.ascending, isTrue, reason: 'text starts A→Z');
+    final author = start.select(LibrarySortField.author);
+    expect(author.field, LibrarySortField.author);
+    expect(author.ascending, isTrue, reason: 'text starts A→Z');
 
-    final rating = title.select(LibrarySortField.rating);
+    final rating = author.select(LibrarySortField.rating);
     expect(rating.ascending, isFalse, reason: 'numbers start high→low');
   });
 
@@ -151,11 +151,13 @@ void main() {
         book(2, 'Ohne'),
         book(3, 'Lang', pages: 900),
       ];
-      expect(sorted(const LibrarySort(field: LibrarySortField.pages), books), [
-        'Lang',
-        'Kurz',
-        'Ohne',
-      ]);
+      expect(
+        sorted(
+          const LibrarySort(field: LibrarySortField.pages, ascending: false),
+          books,
+        ),
+        ['Lang', 'Kurz', 'Ohne'],
+      );
       expect(
         sorted(
           const LibrarySort(field: LibrarySortField.pages, ascending: true),
@@ -174,7 +176,10 @@ void main() {
       ];
       expect(
         sorted(
-          const LibrarySort(field: LibrarySortField.publicationYear),
+          const LibrarySort(
+            field: LibrarySortField.publicationYear,
+            ascending: false,
+          ),
           books,
         ),
         ['Neu', 'Alt', 'Unbekannt'],
@@ -188,7 +193,10 @@ void main() {
         book(3, 'C', updatedAt: DateTime(2023)),
       ];
       expect(
-        sorted(const LibrarySort(field: LibrarySortField.modified), books),
+        sorted(
+          const LibrarySort(field: LibrarySortField.modified, ascending: false),
+          books,
+        ),
         ['B', 'C', 'A'],
       );
     });

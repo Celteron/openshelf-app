@@ -61,6 +61,20 @@ void main() {
     await tester.pump();
   }
 
+  testWidgets(
+    'import lives in the settings, not in the bottom navigation',
+    variant: TargetPlatformVariant.only(TargetPlatform.linux),
+    (tester) async {
+      await pumpApp(tester);
+
+      expect(find.byType(NavigationDestination), findsNWidgets(4));
+      expect(find.byIcon(Icons.import_export), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
+
   // Linux renders the scanner without a camera, so opening the tab is safe in
   // a test.
   testWidgets(

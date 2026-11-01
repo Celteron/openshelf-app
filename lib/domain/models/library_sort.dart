@@ -58,10 +58,10 @@ class LibrarySort {
   final LibrarySortField field;
   final bool ascending;
 
-  /// Newest additions first: the default for a growing collection.
+  /// Title A→Z, like a physical shelf.
   const LibrarySort({
-    this.field = LibrarySortField.added,
-    this.ascending = false,
+    this.field = LibrarySortField.title,
+    this.ascending = true,
   });
 
   /// Selecting the active field flips the direction; a new field starts in its

@@ -4,6 +4,7 @@ import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/app_preferences.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/library_sort.dart';
+import 'package:openreads/domain/models/tag_with_count.dart';
 import 'package:openreads/domain/repositories/location_repository.dart';
 import 'package:openreads/features/library/add_book_screen.dart';
 import 'package:openreads/features/library/book_detail_screen.dart';
@@ -307,7 +308,7 @@ class _ListPane extends StatelessWidget {
           ),
         ),
         const _StatusFilterBar(),
-        const _TagFilterBar(),
+        const _ActiveTagsBar(),
         Expanded(
           child: BlocBuilder<LibraryCubit, LibraryState>(
             builder: (context, state) {
@@ -675,6 +676,7 @@ class _StatusFilterBar extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
+              const _TagFilterChip(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: FilterChip(
@@ -751,12 +753,161 @@ class _MoveToLibraryButton extends StatelessWidget {
   }
 }
 
-/// Horizontal tag chips; selecting several narrows the list (AND).
-class _TagFilterBar extends StatelessWidget {
-  const _TagFilterBar();
+/// Opens the tag sheet; shows how many tags are active. Hidden without tags.
+class _TagFilterChip extends StatelessWidget {
+  const _TagFilterChip();
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final tagsState = context.watch<TagsCubit>().state;
+    if (tagsState is! TagsLoaded || tagsState.tags.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final libraryState = context.watch<LibraryCubit>().state;
+    final active = libraryState is LibraryLoaded
+        ? libraryState.tagIds
+        : const <int>{};
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: ActionChip(
+        key: const ValueKey('tag-filter'),
+        avatar: const Icon(Icons.sell_outlined, size: 16),
+        label: Text(l10n.tagFilterLabel(active.length)),
+        backgroundColor: active.isEmpty
+            ? null
+            : Theme.of(context).colorScheme.secondaryContainer,
+        onPressed: () => _showTagSheet(context),
+      ),
+    );
+  }
+
+  void _showTagSheet(BuildContext context) {
+    final tags = context.read<TagsCubit>();
+    final library = context.read<LibraryCubit>();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: tags),
+          BlocProvider.value(value: library),
+        ],
+        child: const _TagFilterSheet(),
+      ),
+    );
+  }
+}
+
+/// All tags as wrapping chips with a search field; selecting several narrows
+/// the list (AND).
+class _TagFilterSheet extends StatefulWidget {
+  const _TagFilterSheet();
+
+  @override
+  State<_TagFilterSheet> createState() => _TagFilterSheetState();
+}
+
+class _TagFilterSheetState extends State<_TagFilterSheet> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final tagsState = context.watch<TagsCubit>().state;
+    final libraryState = context.watch<LibraryCubit>().state;
+    final tags = tagsState is TagsLoaded ? tagsState.tags : <TagWithCount>[];
+    final selected = libraryState is LibraryLoaded
+        ? libraryState.tagIds
+        : const <int>{};
+    final query = _query.trim().toLowerCase();
+    final shown = [
+      for (final entry in tags)
+        if (entry.tag.name.toLowerCase().contains(query)) entry,
+    ];
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        16 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.filterByTags,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                if (selected.isNotEmpty)
+                  TextButton(
+                    // Keeping none of the existing tags clears the filter.
+                    onPressed: () =>
+                        context.read<LibraryCubit>().retainTags(const {}),
+                    child: Text(l10n.clearTagFilter),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              key: const ValueKey('tag-search'),
+              decoration: InputDecoration(
+                hintText: l10n.tagSearchHint,
+                prefixIcon: const Icon(Icons.search),
+              ),
+              onChanged: (q) => setState(() => _query = q),
+            ),
+            const SizedBox(height: 12),
+            if (shown.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(l10n.noMatchingTags, textAlign: TextAlign.center),
+              )
+            else
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      for (final entry in shown)
+                        FilterChip(
+                          label: Text(entry.tag.name),
+                          selected: selected.contains(entry.tag.id),
+                          onSelected: (_) => context
+                              .read<LibraryCubit>()
+                              .toggleTag(entry.tag.id),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The active tags above the list, each removable; takes no space without
+/// any. Also drops filters on tags that were deleted meanwhile.
+class _ActiveTagsBar extends StatelessWidget {
+  const _ActiveTagsBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocConsumer<TagsCubit, TagsState>(
       listener: (context, tagsState) {
         if (tagsState is TagsLoaded) {
@@ -766,31 +917,37 @@ class _TagFilterBar extends StatelessWidget {
         }
       },
       builder: (context, tagsState) {
-        if (tagsState is! TagsLoaded || tagsState.tags.isEmpty) {
-          return const SizedBox.shrink();
-        }
+        if (tagsState is! TagsLoaded) return const SizedBox.shrink();
         return BlocBuilder<LibraryCubit, LibraryState>(
           builder: (context, state) {
             final selected = state is LibraryLoaded
                 ? state.tagIds
                 : const <int>{};
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (final entry in tagsState.tags)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: FilterChip(
+            final active = [
+              for (final entry in tagsState.tags)
+                if (selected.contains(entry.tag.id)) entry.tag,
+            ];
+            if (active.isEmpty) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final tag in active)
+                      InputChip(
                         avatar: const Icon(Icons.sell_outlined, size: 16),
-                        label: Text(entry.tag.name),
-                        selected: selected.contains(entry.tag.id),
-                        onSelected: (_) => context
-                            .read<LibraryCubit>()
-                            .toggleTag(entry.tag.id),
+                        label: Text(tag.name),
+                        deleteIcon: const Icon(Icons.close, size: 18),
+                        deleteButtonTooltipMessage: l10n.removeTagFilter(
+                          tag.name,
+                        ),
+                        onDeleted: () =>
+                            context.read<LibraryCubit>().toggleTag(tag.id),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             );
           },

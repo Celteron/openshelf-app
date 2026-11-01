@@ -370,28 +370,15 @@ void main() {
     test(
       'selectSort re-orders the list and flips on the active field',
       () async {
-        await addBook('Beta', rating: 2, createdAt: DateTime(2024));
-        await addBook('Alpha', rating: 5, createdAt: DateTime(2025));
+        await addBook('Beta', rating: 2, createdAt: DateTime(2025));
+        await addBook('Alpha', rating: 5, createdAt: DateTime(2024));
         await addBook('Gamma', rating: 3.5, createdAt: DateTime(2023));
         cubit.load();
         expect(await titles(), [
           'Alpha',
           'Beta',
           'Gamma',
-        ], reason: 'newest first');
-
-        cubit.selectSort(LibrarySortField.title);
-        expect(
-          (await cubit.stream.firstWhere(
-                    (s) =>
-                        s is LibraryLoaded &&
-                        s.sort.field == LibrarySortField.title,
-                  )
-                  as LibraryLoaded)
-              .books
-              .map((b) => b.title),
-          ['Alpha', 'Beta', 'Gamma'],
-        );
+        ], reason: 'title A→Z by default');
 
         cubit.selectSort(LibrarySortField.title); // flip
         expect(
@@ -402,6 +389,20 @@ void main() {
               .books
               .map((b) => b.title),
           ['Gamma', 'Beta', 'Alpha'],
+        );
+
+        cubit.selectSort(LibrarySortField.added);
+        expect(
+          (await cubit.stream.firstWhere(
+                    (s) =>
+                        s is LibraryLoaded &&
+                        s.sort.field == LibrarySortField.added,
+                  )
+                  as LibraryLoaded)
+              .books
+              .map((b) => b.title),
+          ['Beta', 'Alpha', 'Gamma'],
+          reason: 'newest first',
         );
 
         cubit.selectSort(LibrarySortField.rating);

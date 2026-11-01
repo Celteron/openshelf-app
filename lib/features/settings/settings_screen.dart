@@ -268,6 +268,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const Divider(),
               _section(l10n.exportLabel),
               ListTile(
+                key: const ValueKey('open-import'),
+                leading: const Icon(Icons.file_download_outlined),
+                title: Text(l10n.restoreBackup),
+                subtitle: Text(l10n.restoreBackupHint),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ImporterScreen()),
+                ),
+              ),
+              ListTile(
                 key: const ValueKey('export-json'),
                 leading: const Icon(Icons.data_object),
                 title: Text(l10n.exportJson),
@@ -280,16 +290,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: Text(l10n.exportCsv),
                 subtitle: Text(l10n.exportCsvHint),
                 onTap: () => _exportCsv(),
-              ),
-              ListTile(
-                key: const ValueKey('open-import'),
-                leading: const Icon(Icons.settings_backup_restore),
-                title: Text(l10n.restoreBackup),
-                subtitle: Text(l10n.restoreBackupHint),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ImporterScreen()),
-                ),
               ),
               const Divider(),
               _section(l10n.dataSection),

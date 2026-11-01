@@ -4,7 +4,6 @@
   "navLibrary": "Bibliothek",
   "navShelf": "Regal",
   "navScan": "Scannen",
-  "navImport": "Import",
   "assignLocation": "Standort zuweisen",
   "selectedCount": "{count} ausgewählt",
   "@selectedCount": {
@@ -157,7 +156,7 @@
   "themeDark": "Dunkel",
   "languageGerman": "Deutsch",
   "languageEnglish": "English",
-  "exportLabel": "Daten",
+  "exportLabel": "Import & Export",
   "exportJson": "JSON exportieren",
   "exportCsv": "CSV exportieren",
   "exportDone": "Exportiert nach:",
@@ -519,7 +518,7 @@
   "exportJsonHint": "Vollständiges Backup – lässt sich wiederherstellen",
   "exportCsvHint": "Alle Felder, kompatibel mit dem Openreads-CSV-Import",
   "restoreBackup": "Backup wiederherstellen / importieren",
-  "restoreBackupHint": "OpenShelf-Backup, Openreads, Goodreads, StoryGraph, Bookwyrm …",
+  "restoreBackupHint": "Bookstats, OpenShelf-Backup, Openreads, Goodreads, StoryGraph, Bookwyrm …",
   "sourceCode": "Quellcode",
   "reportIssue": "Fehler melden",
   "standardColors": "Standard",
@@ -672,6 +671,26 @@
   "@saveFailed": {
     "placeholders": {
       "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tagFilterLabel": "{count, plural, =0{Tags} other{Tags ({count})}}",
+  "@tagFilterLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filterByTags": "Nach Tags filtern",
+  "tagSearchHint": "Tag suchen",
+  "clearTagFilter": "Auswahl aufheben",
+  "noMatchingTags": "Kein passender Tag",
+  "removeTagFilter": "„{name}“ entfernen",
+  "@removeTagFilter": {
+    "placeholders": {
+      "name": {
         "type": "String"
       }
     }

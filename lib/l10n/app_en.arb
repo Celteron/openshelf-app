@@ -4,7 +4,6 @@
   "navLibrary": "Library",
   "navShelf": "Shelf",
   "navScan": "Scan",
-  "navImport": "Import",
   "assignLocation": "Assign location",
   "selectedCount": "{count} selected",
   "chooseLocation": "Choose location",
@@ -98,7 +97,7 @@
   "themeDark": "Dark",
   "languageGerman": "Deutsch",
   "languageEnglish": "English",
-  "exportLabel": "Data",
+  "exportLabel": "Import & export",
   "exportJson": "Export JSON",
   "exportCsv": "Export CSV",
   "exportDone": "Exported to:",
@@ -453,7 +452,7 @@
   "exportJsonHint": "Full backup – can be restored",
   "exportCsvHint": "All fields, compatible with the Openreads CSV import",
   "restoreBackup": "Restore backup / import",
-  "restoreBackupHint": "OpenShelf backup, Openreads, Goodreads, StoryGraph, Bookwyrm …",
+  "restoreBackupHint": "Bookstats, OpenShelf backup, Openreads, Goodreads, StoryGraph, Bookwyrm …",
   "sourceCode": "Source code",
   "reportIssue": "Report an issue",
   "standardColors": "Standard",
@@ -609,5 +608,11 @@
         "type": "String"
       }
     }
-  }
+  },
+  "tagFilterLabel": "{count, plural, =0{Tags} other{Tags ({count})}}",
+  "filterByTags": "Filter by tags",
+  "tagSearchHint": "Search tags",
+  "clearTagFilter": "Clear selection",
+  "noMatchingTags": "No matching tag",
+  "removeTagFilter": "Remove “{name}”"
 }

@@ -135,6 +135,7 @@ Future<FakeBookRepository> pumpLibrary(
   WidgetTester tester, {
   List<Book>? seed,
   FakeSettingsRepository? settings,
+  List<Tag> tagList = const [Tag(id: 1, name: 'Krimi')],
 }) async {
   final books = FakeBookRepository(
     seed ??
@@ -144,12 +145,9 @@ Future<FakeBookRepository> pumpLibrary(
           book(3, 'Wunsch', BookStatus.wishlist),
         ],
   );
-  final tags = FakeTagRepository(
-    [const Tag(id: 1, name: 'Krimi')],
-    {
-      1: {1},
-    },
-  );
+  final tags = FakeTagRepository(tagList, {
+    1: {1},
+  });
   await tester.pumpWidget(
     MultiBlocProvider(
       providers: [
@@ -176,20 +174,91 @@ Future<FakeBookRepository> pumpLibrary(
 /// library action (Phase 2, US-C / US-E). Query semantics against the real
 /// database are covered by `library_cubit_test.dart`.
 void main() {
-  testWidgets('tag chips narrow the list and can be cleared', (tester) async {
-    await pumpLibrary(tester);
-    expect(find.text('Alpha'), findsOneWidget);
-    expect(find.text('Beta'), findsOneWidget);
+  group('tag filter', () {
+    Future<void> openSheet(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('tag-filter')));
+      await tester.pumpAndSettle();
+    }
 
-    await tester.tap(find.widgetWithText(FilterChip, 'Krimi'));
-    await tester.pumpAndSettle();
-    expect(find.text('Alpha'), findsOneWidget);
-    expect(find.text('Beta'), findsNothing);
-    expect(find.text('Wunsch'), findsNothing);
+    Future<void> closeSheet(WidgetTester tester) async {
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+    }
 
-    await tester.tap(find.widgetWithText(FilterChip, 'Krimi'));
-    await tester.pumpAndSettle();
-    expect(find.text('Beta'), findsOneWidget);
+    testWidgets('picking a tag in the sheet narrows the list', (tester) async {
+      await pumpLibrary(tester);
+      expect(find.text('Beta'), findsOneWidget);
+
+      await openSheet(tester);
+      await tester.tap(find.widgetWithText(FilterChip, 'Krimi'));
+      await tester.pumpAndSettle();
+      await closeSheet(tester);
+
+      expect(find.text('Alpha'), findsOneWidget);
+      expect(find.text('Beta'), findsNothing);
+      expect(find.text('Wunsch'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('tag-filter')),
+          matching: find.text('Tags (1)'),
+        ),
+        findsOneWidget,
+        reason: 'the chip shows how many tags are active',
+      );
+    });
+
+    testWidgets('an active tag shows above the list and can be removed', (
+      tester,
+    ) async {
+      await pumpLibrary(tester);
+      expect(find.byType(InputChip), findsNothing, reason: 'no empty row');
+
+      await openSheet(tester);
+      await tester.tap(find.widgetWithText(FilterChip, 'Krimi'));
+      await tester.pumpAndSettle();
+      await closeSheet(tester);
+
+      final active = find.widgetWithText(InputChip, 'Krimi');
+      expect(active, findsOneWidget);
+      await tester.tap(
+        find.descendant(of: active, matching: find.byIcon(Icons.close)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(InputChip), findsNothing);
+      expect(find.text('Beta'), findsOneWidget);
+    });
+
+    testWidgets('the search narrows the tags in the sheet', (tester) async {
+      await pumpLibrary(
+        tester,
+        tagList: const [
+          Tag(id: 1, name: 'Krimi'),
+          Tag(id: 2, name: 'Fantasy'),
+          Tag(id: 3, name: 'Kriegsroman'),
+        ],
+      );
+      await openSheet(tester);
+      expect(find.byType(FilterChip), findsAtLeastNWidgets(3));
+
+      await tester.enterText(find.byKey(const ValueKey('tag-search')), 'kri');
+      await tester.pumpAndSettle();
+
+      final sheet = find.byType(BottomSheet);
+      FinderBase<Element> chip(String name) => find.descendant(
+        of: sheet,
+        matching: find.widgetWithText(FilterChip, name),
+      );
+      expect(chip('Krimi'), findsOneWidget);
+      expect(chip('Kriegsroman'), findsOneWidget);
+      expect(chip('Fantasy'), findsNothing);
+    });
+
+    testWidgets('without tags there is no tag filter', (tester) async {
+      await pumpLibrary(tester, tagList: const []);
+
+      expect(find.byKey(const ValueKey('tag-filter')), findsNothing);
+    });
   });
 
   testWidgets('status chips use localized labels and filter', (tester) async {
@@ -284,7 +353,7 @@ void main() {
       }
     });
 
-    testWidgets('sorts by title and flips direction on a second pick', (
+    testWidgets('starts sorted by title and flips direction on a pick', (
       tester,
     ) async {
       await pumpLibrary(
@@ -295,12 +364,13 @@ void main() {
           book(3, 'Alpha', BookStatus.read),
         ],
       );
-
-      await pick(tester, 'Titel');
       expect(shownTitles(tester), ['Alpha', 'Beta', 'Gamma']);
 
       await pick(tester, 'Titel');
       expect(shownTitles(tester), ['Gamma', 'Beta', 'Alpha']);
+
+      await pick(tester, 'Titel');
+      expect(shownTitles(tester), ['Alpha', 'Beta', 'Gamma']);
     });
 
     testWidgets('sorts by rating with the best book first', (tester) async {

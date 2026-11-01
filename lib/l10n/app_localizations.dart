@@ -122,12 +122,6 @@ abstract class AppLocalizations {
   /// **'Scannen'**
   String get navScan;
 
-  /// No description provided for @navImport.
-  ///
-  /// In de, this message translates to:
-  /// **'Import'**
-  String get navImport;
-
   /// No description provided for @assignLocation.
   ///
   /// In de, this message translates to:
@@ -605,7 +599,7 @@ abstract class AppLocalizations {
   /// No description provided for @exportLabel.
   ///
   /// In de, this message translates to:
-  /// **'Daten'**
+  /// **'Import & Export'**
   String get exportLabel;
 
   /// No description provided for @exportJson.
@@ -1619,7 +1613,7 @@ abstract class AppLocalizations {
   /// No description provided for @restoreBackupHint.
   ///
   /// In de, this message translates to:
-  /// **'OpenShelf-Backup, Openreads, Goodreads, StoryGraph, Bookwyrm …'**
+  /// **'Bookstats, OpenShelf-Backup, Openreads, Goodreads, StoryGraph, Bookwyrm …'**
   String get restoreBackupHint;
 
   /// No description provided for @sourceCode.
@@ -2077,6 +2071,42 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Das Buch konnte nicht gespeichert werden: {error}'**
   String saveFailed(String error);
+
+  /// No description provided for @tagFilterLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =0{Tags} other{Tags ({count})}}'**
+  String tagFilterLabel(int count);
+
+  /// No description provided for @filterByTags.
+  ///
+  /// In de, this message translates to:
+  /// **'Nach Tags filtern'**
+  String get filterByTags;
+
+  /// No description provided for @tagSearchHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Tag suchen'**
+  String get tagSearchHint;
+
+  /// No description provided for @clearTagFilter.
+  ///
+  /// In de, this message translates to:
+  /// **'Auswahl aufheben'**
+  String get clearTagFilter;
+
+  /// No description provided for @noMatchingTags.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein passender Tag'**
+  String get noMatchingTags;
+
+  /// No description provided for @removeTagFilter.
+  ///
+  /// In de, this message translates to:
+  /// **'„{name}“ entfernen'**
+  String removeTagFilter(String name);
 }
 
 class _AppLocalizationsDelegate

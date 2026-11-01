@@ -21,9 +21,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navScan => 'Scan';
 
   @override
-  String get navImport => 'Import';
-
-  @override
   String get assignLocation => 'Assign location';
 
   @override
@@ -282,7 +279,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
-  String get exportLabel => 'Data';
+  String get exportLabel => 'Import & export';
 
   @override
   String get exportJson => 'Export JSON';
@@ -898,7 +895,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restoreBackupHint =>
-      'OpenShelf backup, Openreads, Goodreads, StoryGraph, Bookwyrm …';
+      'Bookstats, OpenShelf backup, Openreads, Goodreads, StoryGraph, Bookwyrm …';
 
   @override
   String get sourceCode => 'Source code';
@@ -1218,5 +1215,33 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String saveFailed(String error) {
     return 'The book could not be saved: $error';
+  }
+
+  @override
+  String tagFilterLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tags ($count)',
+      zero: 'Tags',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get filterByTags => 'Filter by tags';
+
+  @override
+  String get tagSearchHint => 'Search tags';
+
+  @override
+  String get clearTagFilter => 'Clear selection';
+
+  @override
+  String get noMatchingTags => 'No matching tag';
+
+  @override
+  String removeTagFilter(String name) {
+    return 'Remove “$name”';
   }
 }

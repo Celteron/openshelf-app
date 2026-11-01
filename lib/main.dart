@@ -22,7 +22,6 @@ import 'package:openreads/domain/services/import_service.dart';
 import 'package:openreads/domain/services/metadata_aggregator_service.dart';
 import 'package:openreads/domain/services/metadata_lookup_queue.dart';
 import 'package:openreads/features/importer/importer_cubit.dart';
-import 'package:openreads/features/importer/importer_screen.dart';
 import 'package:openreads/features/lending/lending_cubit.dart';
 import 'package:openreads/features/library/library_cubit.dart';
 import 'package:openreads/features/library/library_screen.dart';
@@ -238,7 +237,6 @@ class _HomeShellState extends State<HomeShell> {
       else
         const SizedBox.shrink(),
       const StatisticsScreen(),
-      const ImporterScreen(),
     ];
 
     return Scaffold(
@@ -262,10 +260,6 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(
             icon: const Icon(Icons.bar_chart),
             label: AppLocalizations.of(context).navStats,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.import_export),
-            label: AppLocalizations.of(context).navImport,
           ),
         ],
       ),
