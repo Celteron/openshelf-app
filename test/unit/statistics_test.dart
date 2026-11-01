@@ -34,6 +34,7 @@ Book _book(
     currentPage: 0,
     finishedAt: finishedAt,
     isFavorite: false,
+    coverNotFound: false,
     review: null,
     description: null,
     coverUrl: null,

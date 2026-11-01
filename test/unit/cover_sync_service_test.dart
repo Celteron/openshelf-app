@@ -39,6 +39,7 @@ Book book(int id, {String? isbn13, String? url, String? local}) => Book(
   editedFields: const [],
   currentPage: 0,
   isFavorite: false,
+  coverNotFound: false,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
 );

@@ -27,6 +27,7 @@ Book book(
   currentPage: currentPage,
   editedFields: const [],
   isFavorite: false,
+  coverNotFound: false,
   createdAt: createdAt ?? DateTime(2026),
   updatedAt: updatedAt ?? DateTime(2026),
 );

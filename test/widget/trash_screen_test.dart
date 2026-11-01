@@ -63,6 +63,7 @@ Book book(int id, String title) => Book(
   editedFields: const [],
   currentPage: 0,
   isFavorite: false,
+  coverNotFound: false,
   deletedAt: DateTime(2026, 4, 1),
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),

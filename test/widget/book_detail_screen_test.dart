@@ -155,6 +155,7 @@ Book sampleBook({
   readingSeconds: readingSeconds,
   editedFields: const [],
   isFavorite: favorite,
+  coverNotFound: false,
   createdAt: DateTime(2026, 1, 15),
   updatedAt: DateTime(2026, 2, 20),
 );

@@ -127,6 +127,7 @@ Book book(
   editedFields: const [],
   currentPage: 0,
   isFavorite: favorite,
+  coverNotFound: false,
   createdAt: createdAt ?? DateTime(2026),
   updatedAt: DateTime(2026),
 );

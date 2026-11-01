@@ -105,6 +105,7 @@ Book existing({
   editedFields: const [],
   currentPage: 0,
   isFavorite: false,
+  coverNotFound: false,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
 );

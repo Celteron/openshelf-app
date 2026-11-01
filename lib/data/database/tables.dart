@@ -17,6 +17,17 @@ class StringListConverter extends TypeConverter<List<String>, String> {
   String toSql(List<String> value) => jsonEncode(value);
 }
 
+/// Stores [ReceivedAs] by its pinned code, see [ReceivedAs.code].
+class ReceivedAsConverter extends TypeConverter<ReceivedAs, int> {
+  const ReceivedAsConverter();
+
+  @override
+  ReceivedAs fromSql(int fromDb) => ReceivedAs.fromCode(fromDb);
+
+  @override
+  int toSql(ReceivedAs value) => value.code;
+}
+
 @TableIndex(name: 'idx_books_isbn10', columns: {#isbn10})
 @TableIndex(name: 'idx_books_location', columns: {#locationId})
 @TableIndex(name: 'idx_books_status', columns: {#status})
@@ -86,6 +97,25 @@ class Books extends Table {
   /// Reading time entered without any dated session (e.g. imported from a
   /// source that only knows a total). Added to the sessions' time (schema v5).
   IntColumn get readingSeconds => integer().nullable()();
+
+  /// How the book was received, as a pinned code (schema v6): at most
+  /// one byte instead of text.
+  IntColumn get receivedAs =>
+      integer().map(const ReceivedAsConverter()).nullable()();
+
+  /// Every online source answered "no cover" (schema v6). Device state: never
+  /// exported or imported; cleared when a cover is set or URL/ISBN change.
+  BoolColumn get coverNotFound =>
+      boolean().withDefault(const Constant(false))();
+
+  /// The slipcase this book is a volume of (schema v6, ADR-0003). A book with
+  /// volumes is a slipcase; one level only, enforced by the repository.
+  @ReferenceName('volumes')
+  IntColumn get parentId => integer().nullable().references(
+    Books,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }

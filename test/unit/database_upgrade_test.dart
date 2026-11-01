@@ -7,29 +7,31 @@ import 'package:openreads/domain/models/enums.dart';
 
 import '../generated_migrations/schema.dart';
 
-/// Upgrades to the current schema (v5) from every earlier version, checked
+/// Upgrades to the current schema (v6) from every earlier version, checked
 /// against the committed schema dumps in `drift_schemas/` with drift's
 /// `SchemaVerifier` (Constitution Article II.3 / IV.2).
 ///
 /// v1 → v2 added reading progress, notes, tags, goals, favourite and review;
 /// v2 → v3 added the Open Library id and the trash (`deleted_at`);
 /// v3 → v4 added genre, price (cents) and the received date;
-/// v4 → v5 added the manually entered reading time (`reading_seconds`).
+/// v4 → v5 added the manually entered reading time (`reading_seconds`);
+/// v5 → v6 added "received as", the cover-search flag and the slipcase link
+/// (`received_as`, `cover_not_found`, `parent_id`).
 void main() {
   late SchemaVerifier verifier;
 
   setUpAll(() => verifier = SchemaVerifier(GeneratedHelper()));
 
-  test('the current schema version is 5', () {
-    expect(AppDatabase(NativeDatabase.memory()).schemaVersion, 5);
+  test('the current schema version is 6', () {
+    expect(AppDatabase(NativeDatabase.memory()).schemaVersion, 6);
   });
 
-  group('v1 → v5', () {
-    test('produces exactly the v5 schema', () async {
+  group('v1 → v6', () {
+    test('produces exactly the v6 schema', () async {
       final schema = await verifier.schemaAt(1);
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 5);
+      await verifier.migrateAndValidate(db, 6);
     });
 
     test('preserves every Phase 1 row and defaults the new columns', () async {
@@ -57,7 +59,7 @@ void main() {
 
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 5);
+      await verifier.migrateAndValidate(db, 6);
 
       final book = await db.select(db.books).getSingle();
       expect(book.title, 'Der Vorleser');
@@ -87,12 +89,12 @@ void main() {
     });
   });
 
-  group('v2 → v5', () {
-    test('produces exactly the v5 schema', () async {
+  group('v2 → v6', () {
+    test('produces exactly the v6 schema', () async {
       final schema = await verifier.schemaAt(2);
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 5);
+      await verifier.migrateAndValidate(db, 6);
     });
 
     test(
@@ -132,7 +134,7 @@ void main() {
 
         final db = AppDatabase(schema.newConnection());
         addTearDown(db.close);
-        await verifier.migrateAndValidate(db, 5);
+        await verifier.migrateAndValidate(db, 6);
 
         final book = await db.select(db.books).getSingle();
         expect(book.title, 'Der Vorleser');
@@ -167,7 +169,7 @@ void main() {
       ''');
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 5);
+      await verifier.migrateAndValidate(db, 6);
 
       await (db.update(
         db.books,
@@ -176,12 +178,12 @@ void main() {
       expect((await db.select(db.books).getSingle()).deletedAt, DateTime(2026));
     });
   });
-  group('v3 → v5', () {
-    test('produces exactly the v5 schema', () async {
+  group('v3 → v6', () {
+    test('produces exactly the v6 schema', () async {
       final schema = await verifier.schemaAt(3);
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 5);
+      await verifier.migrateAndValidate(db, 6);
     });
 
     test('keeps every book and leaves genre, price and date empty', () async {
@@ -196,7 +198,7 @@ void main() {
       ''');
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 5);
+      await verifier.migrateAndValidate(db, 6);
 
       final book = await db.select(db.books).getSingle();
       expect(book.title, 'Der Vorleser');
@@ -218,7 +220,7 @@ void main() {
       ''');
         final db = AppDatabase(schema.newConnection());
         addTearDown(db.close);
-        await verifier.migrateAndValidate(db, 5);
+        await verifier.migrateAndValidate(db, 6);
 
         await (db.update(db.books)).write(
           BooksCompanion(
@@ -237,12 +239,12 @@ void main() {
     );
   });
 
-  group('v4 → v5', () {
-    test('produces exactly the v5 schema', () async {
+  group('v4 → v6', () {
+    test('produces exactly the v6 schema', () async {
       final schema = await verifier.schemaAt(4);
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 5);
+      await verifier.migrateAndValidate(db, 6);
     });
 
     test('keeps genre, price and date; reading time starts empty', () async {
@@ -257,7 +259,7 @@ void main() {
       ''');
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 5);
+      await verifier.migrateAndValidate(db, 6);
 
       final book = await db.select(db.books).getSingle();
       expect((book.genre, book.priceCents), ('Krimi', 1290));
@@ -268,6 +270,113 @@ void main() {
         db.books,
       )).write(const BooksCompanion(readingSeconds: Value(19800)));
       expect((await db.select(db.books).getSingle()).readingSeconds, 19800);
+    });
+  });
+
+  group('v5 → v6', () {
+    test('produces exactly the v6 schema', () async {
+      final schema = await verifier.schemaAt(5);
+      final db = AppDatabase(schema.newConnection());
+      addTearDown(db.close);
+      await verifier.migrateAndValidate(db, 6);
+    });
+
+    test('keeps every v5 value; the new columns start empty', () async {
+      final schema = await verifier.schemaAt(5);
+      schema.rawDatabase.execute('''
+        INSERT INTO books
+          (id, title, authors, status, rating, edited_fields, current_page,
+           is_favorite, genre, price_cents, received_at, reading_seconds,
+           created_at, updated_at)
+        VALUES
+          (1, 'Buch', '["A"]', 'read', 4.5, '[]', 120, 1, 'Krimi', 1290,
+           1700000000, 19800, 1700000000, 1700000000);
+      ''');
+      final db = AppDatabase(schema.newConnection());
+      addTearDown(db.close);
+      await verifier.migrateAndValidate(db, 6);
+
+      final book = await db.select(db.books).getSingle();
+      expect(
+        (book.title, book.rating, book.currentPage, book.isFavorite),
+        ('Buch', 4.5, 120, true),
+      );
+      expect(
+        (book.genre, book.priceCents, book.readingSeconds),
+        ('Krimi', 1290, 19800),
+      );
+      expect(book.receivedAs, isNull);
+      expect(book.coverNotFound, isFalse);
+      expect(book.parentId, isNull);
+    });
+
+    test('stores "received as" as its pinned code', () async {
+      final db = AppDatabase(NativeDatabase.memory());
+      addTearDown(db.close);
+      for (final value in ReceivedAs.values) {
+        await db.delete(db.books).go();
+        await db
+            .into(db.books)
+            .insert(
+              BooksCompanion.insert(
+                title: 'B',
+                authors: const [],
+                editedFields: const [],
+                receivedAs: Value(value),
+              ),
+            );
+        final raw = await db
+            .customSelect('SELECT received_as FROM books')
+            .getSingle();
+        expect(raw.read<int>('received_as'), value.code);
+        expect((await db.select(db.books).getSingle()).receivedAs, value);
+      }
+    });
+
+    test(
+      'a volume needs an existing slipcase and survives its deletion',
+      () async {
+        final db = AppDatabase(NativeDatabase.memory());
+        addTearDown(db.close);
+        Future<int> add(String title, {int? parent}) => db
+            .into(db.books)
+            .insert(
+              BooksCompanion.insert(
+                title: title,
+                authors: const [],
+                editedFields: const [],
+                parentId: Value(parent),
+              ),
+            );
+
+        await expectLater(add('Waise', parent: 999), throwsA(anything));
+
+        final box = await add('Schuber');
+        await add('Band 1', parent: box);
+        await add('Band 2', parent: box);
+        await (db.delete(db.books)..where((b) => b.id.equals(box))).go();
+
+        final volumes = await db.select(db.books).get();
+        expect(volumes.map((b) => b.title), ['Band 1', 'Band 2']);
+        expect(volumes.map((b) => b.parentId), [null, null]);
+      },
+    );
+
+    test('volumes without an ISBN do not collide', () async {
+      final db = AppDatabase(NativeDatabase.memory());
+      addTearDown(db.close);
+      for (final title in ['Band 1', 'Band 2']) {
+        await db
+            .into(db.books)
+            .insert(
+              BooksCompanion.insert(
+                title: title,
+                authors: const [],
+                editedFields: const [],
+              ),
+            );
+      }
+      expect(await db.select(db.books).get(), hasLength(2));
     });
   });
 }

@@ -35,6 +35,7 @@ Book book({
   currentPage: 0,
   finishedAt: finishedAt,
   isFavorite: false,
+  coverNotFound: false,
   createdAt: createdAt ?? DateTime(2020),
   updatedAt: DateTime(2020),
 );

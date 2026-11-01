@@ -955,6 +955,44 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  @override
+  late final GeneratedColumnWithTypeConverter<ReceivedAs?, int> receivedAs =
+      GeneratedColumn<int>(
+        'received_as',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      ).withConverter<ReceivedAs?>($BooksTable.$converterreceivedAsn);
+  static const VerificationMeta _coverNotFoundMeta = const VerificationMeta(
+    'coverNotFound',
+  );
+  @override
+  late final GeneratedColumn<bool> coverNotFound = GeneratedColumn<bool>(
+    'cover_not_found',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("cover_not_found" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _parentIdMeta = const VerificationMeta(
+    'parentId',
+  );
+  @override
+  late final GeneratedColumn<int> parentId = GeneratedColumn<int>(
+    'parent_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES books (id) ON DELETE SET NULL',
+    ),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1012,6 +1050,9 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     priceCents,
     receivedAt,
     readingSeconds,
+    receivedAs,
+    coverNotFound,
+    parentId,
     createdAt,
     updatedAt,
   ];
@@ -1200,6 +1241,21 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         ),
       );
     }
+    if (data.containsKey('cover_not_found')) {
+      context.handle(
+        _coverNotFoundMeta,
+        coverNotFound.isAcceptableOrUnknown(
+          data['cover_not_found']!,
+          _coverNotFoundMeta,
+        ),
+      );
+    }
+    if (data.containsKey('parent_id')) {
+      context.handle(
+        _parentIdMeta,
+        parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1355,6 +1411,20 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         DriftSqlType.int,
         data['${effectivePrefix}reading_seconds'],
       ),
+      receivedAs: $BooksTable.$converterreceivedAsn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}received_as'],
+        ),
+      ),
+      coverNotFound: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}cover_not_found'],
+      )!,
+      parentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}parent_id'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1389,6 +1459,10 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   );
   static TypeConverter<List<String>, String> $convertereditedFields =
       const StringListConverter();
+  static TypeConverter<ReceivedAs, int> $converterreceivedAs =
+      const ReceivedAsConverter();
+  static TypeConverter<ReceivedAs?, int?> $converterreceivedAsn =
+      NullAwareTypeConverter.wrap($converterreceivedAs);
 }
 
 class Book extends DataClass implements Insertable<Book> {
@@ -1447,6 +1521,18 @@ class Book extends DataClass implements Insertable<Book> {
   /// Reading time entered without any dated session (e.g. imported from a
   /// source that only knows a total). Added to the sessions' time (schema v5).
   final int? readingSeconds;
+
+  /// How the book was received, as a pinned code (schema v6): at most
+  /// one byte instead of text.
+  final ReceivedAs? receivedAs;
+
+  /// Every online source answered "no cover" (schema v6). Device state: never
+  /// exported or imported; cleared when a cover is set or URL/ISBN change.
+  final bool coverNotFound;
+
+  /// The slipcase this book is a volume of (schema v6, ADR-0003). A book with
+  /// volumes is a slipcase; one level only, enforced by the repository.
+  final int? parentId;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Book({
@@ -1481,6 +1567,9 @@ class Book extends DataClass implements Insertable<Book> {
     this.priceCents,
     this.receivedAt,
     this.readingSeconds,
+    this.receivedAs,
+    required this.coverNotFound,
+    this.parentId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1580,6 +1669,15 @@ class Book extends DataClass implements Insertable<Book> {
     if (!nullToAbsent || readingSeconds != null) {
       map['reading_seconds'] = Variable<int>(readingSeconds);
     }
+    if (!nullToAbsent || receivedAs != null) {
+      map['received_as'] = Variable<int>(
+        $BooksTable.$converterreceivedAsn.toSql(receivedAs),
+      );
+    }
+    map['cover_not_found'] = Variable<bool>(coverNotFound);
+    if (!nullToAbsent || parentId != null) {
+      map['parent_id'] = Variable<int>(parentId);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1662,6 +1760,13 @@ class Book extends DataClass implements Insertable<Book> {
       readingSeconds: readingSeconds == null && nullToAbsent
           ? const Value.absent()
           : Value(readingSeconds),
+      receivedAs: receivedAs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(receivedAs),
+      coverNotFound: Value(coverNotFound),
+      parentId: parentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentId),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1710,6 +1815,9 @@ class Book extends DataClass implements Insertable<Book> {
       priceCents: serializer.fromJson<int?>(json['priceCents']),
       receivedAt: serializer.fromJson<DateTime?>(json['receivedAt']),
       readingSeconds: serializer.fromJson<int?>(json['readingSeconds']),
+      receivedAs: serializer.fromJson<ReceivedAs?>(json['receivedAs']),
+      coverNotFound: serializer.fromJson<bool>(json['coverNotFound']),
+      parentId: serializer.fromJson<int?>(json['parentId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1755,6 +1863,9 @@ class Book extends DataClass implements Insertable<Book> {
       'priceCents': serializer.toJson<int?>(priceCents),
       'receivedAt': serializer.toJson<DateTime?>(receivedAt),
       'readingSeconds': serializer.toJson<int?>(readingSeconds),
+      'receivedAs': serializer.toJson<ReceivedAs?>(receivedAs),
+      'coverNotFound': serializer.toJson<bool>(coverNotFound),
+      'parentId': serializer.toJson<int?>(parentId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1792,6 +1903,9 @@ class Book extends DataClass implements Insertable<Book> {
     Value<int?> priceCents = const Value.absent(),
     Value<DateTime?> receivedAt = const Value.absent(),
     Value<int?> readingSeconds = const Value.absent(),
+    Value<ReceivedAs?> receivedAs = const Value.absent(),
+    bool? coverNotFound,
+    Value<int?> parentId = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Book(
@@ -1834,6 +1948,9 @@ class Book extends DataClass implements Insertable<Book> {
     readingSeconds: readingSeconds.present
         ? readingSeconds.value
         : this.readingSeconds,
+    receivedAs: receivedAs.present ? receivedAs.value : this.receivedAs,
+    coverNotFound: coverNotFound ?? this.coverNotFound,
+    parentId: parentId.present ? parentId.value : this.parentId,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1896,6 +2013,13 @@ class Book extends DataClass implements Insertable<Book> {
       readingSeconds: data.readingSeconds.present
           ? data.readingSeconds.value
           : this.readingSeconds,
+      receivedAs: data.receivedAs.present
+          ? data.receivedAs.value
+          : this.receivedAs,
+      coverNotFound: data.coverNotFound.present
+          ? data.coverNotFound.value
+          : this.coverNotFound,
+      parentId: data.parentId.present ? data.parentId.value : this.parentId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1935,6 +2059,9 @@ class Book extends DataClass implements Insertable<Book> {
           ..write('priceCents: $priceCents, ')
           ..write('receivedAt: $receivedAt, ')
           ..write('readingSeconds: $readingSeconds, ')
+          ..write('receivedAs: $receivedAs, ')
+          ..write('coverNotFound: $coverNotFound, ')
+          ..write('parentId: $parentId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1974,6 +2101,9 @@ class Book extends DataClass implements Insertable<Book> {
     priceCents,
     receivedAt,
     readingSeconds,
+    receivedAs,
+    coverNotFound,
+    parentId,
     createdAt,
     updatedAt,
   ]);
@@ -2012,6 +2142,9 @@ class Book extends DataClass implements Insertable<Book> {
           other.priceCents == this.priceCents &&
           other.receivedAt == this.receivedAt &&
           other.readingSeconds == this.readingSeconds &&
+          other.receivedAs == this.receivedAs &&
+          other.coverNotFound == this.coverNotFound &&
+          other.parentId == this.parentId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -2048,6 +2181,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
   final Value<int?> priceCents;
   final Value<DateTime?> receivedAt;
   final Value<int?> readingSeconds;
+  final Value<ReceivedAs?> receivedAs;
+  final Value<bool> coverNotFound;
+  final Value<int?> parentId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const BooksCompanion({
@@ -2082,6 +2218,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.priceCents = const Value.absent(),
     this.receivedAt = const Value.absent(),
     this.readingSeconds = const Value.absent(),
+    this.receivedAs = const Value.absent(),
+    this.coverNotFound = const Value.absent(),
+    this.parentId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -2117,6 +2256,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.priceCents = const Value.absent(),
     this.receivedAt = const Value.absent(),
     this.readingSeconds = const Value.absent(),
+    this.receivedAs = const Value.absent(),
+    this.coverNotFound = const Value.absent(),
+    this.parentId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : title = Value(title),
@@ -2154,6 +2296,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Expression<int>? priceCents,
     Expression<DateTime>? receivedAt,
     Expression<int>? readingSeconds,
+    Expression<int>? receivedAs,
+    Expression<bool>? coverNotFound,
+    Expression<int>? parentId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -2189,6 +2334,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
       if (priceCents != null) 'price_cents': priceCents,
       if (receivedAt != null) 'received_at': receivedAt,
       if (readingSeconds != null) 'reading_seconds': readingSeconds,
+      if (receivedAs != null) 'received_as': receivedAs,
+      if (coverNotFound != null) 'cover_not_found': coverNotFound,
+      if (parentId != null) 'parent_id': parentId,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -2226,6 +2374,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Value<int?>? priceCents,
     Value<DateTime?>? receivedAt,
     Value<int?>? readingSeconds,
+    Value<ReceivedAs?>? receivedAs,
+    Value<bool>? coverNotFound,
+    Value<int?>? parentId,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
@@ -2261,6 +2412,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
       priceCents: priceCents ?? this.priceCents,
       receivedAt: receivedAt ?? this.receivedAt,
       readingSeconds: readingSeconds ?? this.readingSeconds,
+      receivedAs: receivedAs ?? this.receivedAs,
+      coverNotFound: coverNotFound ?? this.coverNotFound,
+      parentId: parentId ?? this.parentId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -2372,6 +2526,17 @@ class BooksCompanion extends UpdateCompanion<Book> {
     if (readingSeconds.present) {
       map['reading_seconds'] = Variable<int>(readingSeconds.value);
     }
+    if (receivedAs.present) {
+      map['received_as'] = Variable<int>(
+        $BooksTable.$converterreceivedAsn.toSql(receivedAs.value),
+      );
+    }
+    if (coverNotFound.present) {
+      map['cover_not_found'] = Variable<bool>(coverNotFound.value);
+    }
+    if (parentId.present) {
+      map['parent_id'] = Variable<int>(parentId.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2415,6 +2580,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
           ..write('priceCents: $priceCents, ')
           ..write('receivedAt: $receivedAt, ')
           ..write('readingSeconds: $readingSeconds, ')
+          ..write('receivedAs: $receivedAs, ')
+          ..write('coverNotFound: $coverNotFound, ')
+          ..write('parentId: $parentId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -4496,6 +4664,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         'books',
         limitUpdateKind: UpdateKind.delete,
       ),
+      result: [TableUpdate('books', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'books',
+        limitUpdateKind: UpdateKind.delete,
+      ),
       result: [TableUpdate('lending', kind: UpdateKind.delete)],
     ),
     WritePropagation(
@@ -5207,6 +5382,9 @@ typedef $$BooksTableCreateCompanionBuilder =
       Value<int?> priceCents,
       Value<DateTime?> receivedAt,
       Value<int?> readingSeconds,
+      Value<ReceivedAs?> receivedAs,
+      Value<bool> coverNotFound,
+      Value<int?> parentId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -5243,6 +5421,9 @@ typedef $$BooksTableUpdateCompanionBuilder =
       Value<int?> priceCents,
       Value<DateTime?> receivedAt,
       Value<int?> readingSeconds,
+      Value<ReceivedAs?> receivedAs,
+      Value<bool> coverNotFound,
+      Value<int?> parentId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -5279,6 +5460,23 @@ final class $$BooksTableReferences
       $_db.seriesTable,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_seriesIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $BooksTable _parentIdTable(_$AppDatabase db) =>
+      db.books.createAlias('books__parent_id__books__id');
+
+  $$BooksTableProcessedTableManager? get parentId {
+    final $_column = $_itemColumn<int>('parent_id');
+    if ($_column == null) return null;
+    final manager = $$BooksTableTableManager(
+      $_db,
+      $_db.books,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_parentIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -5519,6 +5717,17 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnWithTypeConverterFilters<ReceivedAs?, ReceivedAs, int> get receivedAs =>
+      $composableBuilder(
+        column: $table.receivedAs,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get coverNotFound => $composableBuilder(
+    column: $table.coverNotFound,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
@@ -5566,6 +5775,29 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
           }) => $$SeriesTableTableFilterComposer(
             $db: $db,
             $table: $db.seriesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$BooksTableFilterComposer get parentId {
+    final $$BooksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.parentId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableFilterComposer(
+            $db: $db,
+            $table: $db.books,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5830,6 +6062,16 @@ class $$BooksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get receivedAs => $composableBuilder(
+    column: $table.receivedAs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get coverNotFound => $composableBuilder(
+    column: $table.coverNotFound,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -5877,6 +6119,29 @@ class $$BooksTableOrderingComposer
           }) => $$SeriesTableTableOrderingComposer(
             $db: $db,
             $table: $db.seriesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$BooksTableOrderingComposer get parentId {
+    final $$BooksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.parentId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableOrderingComposer(
+            $db: $db,
+            $table: $db.books,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6009,6 +6274,17 @@ class $$BooksTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumnWithTypeConverter<ReceivedAs?, int> get receivedAs =>
+      $composableBuilder(
+        column: $table.receivedAs,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<bool> get coverNotFound => $composableBuilder(
+    column: $table.coverNotFound,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -6052,6 +6328,29 @@ class $$BooksTableAnnotationComposer
           }) => $$SeriesTableTableAnnotationComposer(
             $db: $db,
             $table: $db.seriesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$BooksTableAnnotationComposer get parentId {
+    final $$BooksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.parentId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.books,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6178,6 +6477,7 @@ class $$BooksTableTableManager
           PrefetchHooks Function({
             bool locationId,
             bool seriesId,
+            bool parentId,
             bool lendingRefs,
             bool readingSessionsRefs,
             bool bookNotesRefs,
@@ -6228,6 +6528,9 @@ class $$BooksTableTableManager
                 Value<int?> priceCents = const Value.absent(),
                 Value<DateTime?> receivedAt = const Value.absent(),
                 Value<int?> readingSeconds = const Value.absent(),
+                Value<ReceivedAs?> receivedAs = const Value.absent(),
+                Value<bool> coverNotFound = const Value.absent(),
+                Value<int?> parentId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => BooksCompanion(
@@ -6262,6 +6565,9 @@ class $$BooksTableTableManager
                 priceCents: priceCents,
                 receivedAt: receivedAt,
                 readingSeconds: readingSeconds,
+                receivedAs: receivedAs,
+                coverNotFound: coverNotFound,
+                parentId: parentId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -6298,6 +6604,9 @@ class $$BooksTableTableManager
                 Value<int?> priceCents = const Value.absent(),
                 Value<DateTime?> receivedAt = const Value.absent(),
                 Value<int?> readingSeconds = const Value.absent(),
+                Value<ReceivedAs?> receivedAs = const Value.absent(),
+                Value<bool> coverNotFound = const Value.absent(),
+                Value<int?> parentId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => BooksCompanion.insert(
@@ -6332,6 +6641,9 @@ class $$BooksTableTableManager
                 priceCents: priceCents,
                 receivedAt: receivedAt,
                 readingSeconds: readingSeconds,
+                receivedAs: receivedAs,
+                coverNotFound: coverNotFound,
+                parentId: parentId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -6347,6 +6659,7 @@ class $$BooksTableTableManager
               ({
                 locationId = false,
                 seriesId = false,
+                parentId = false,
                 lendingRefs = false,
                 readingSessionsRefs = false,
                 bookNotesRefs = false,
@@ -6398,6 +6711,19 @@ class $$BooksTableTableManager
                                         ._seriesIdTable(db),
                                     referencedColumn: $$BooksTableReferences
                                         ._seriesIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (parentId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.parentId,
+                                    referencedTable: $$BooksTableReferences
+                                        ._parentIdTable(db),
+                                    referencedColumn: $$BooksTableReferences
+                                        ._parentIdTable(db)
                                         .id,
                                   )
                                   as T;
@@ -6502,6 +6828,7 @@ typedef $$BooksTableProcessedTableManager =
       PrefetchHooks Function({
         bool locationId,
         bool seriesId,
+        bool parentId,
         bool lendingRefs,
         bool readingSessionsRefs,
         bool bookNotesRefs,

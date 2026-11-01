@@ -21,7 +21,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -56,6 +56,12 @@ class AppDatabase extends _$AppDatabase {
       if (from < 5) {
         // v5: reading time entered without a dated session.
         await m.addColumn(books, books.readingSeconds);
+      }
+      if (from < 6) {
+        // v6 (feedback round 2): received as, cover-search flag, slipcases.
+        await m.addColumn(books, books.receivedAs);
+        await m.addColumn(books, books.coverNotFound);
+        await m.addColumn(books, books.parentId);
       }
     },
     beforeOpen: (details) async {

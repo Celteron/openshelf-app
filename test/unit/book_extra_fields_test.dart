@@ -85,6 +85,7 @@ void main() {
       editedFields: const [],
       currentPage: 0,
       isFavorite: false,
+      coverNotFound: false,
       createdAt: DateTime(2020),
       updatedAt: DateTime(2020),
     );
