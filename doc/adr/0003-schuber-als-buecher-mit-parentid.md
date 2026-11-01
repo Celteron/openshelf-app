@@ -37,7 +37,7 @@ Option A, mit genau einer Ebene. Die Tiefe erzwingt das Repository: Der Elternte
 
 ## Konsequenzen
 - **Speicher:** eine nullable INTEGER-Spalte. Bei NULL kostet sie nur das Header-Byte.
-- Status-, Standort- und Suchfilter der Bibliothek wandern teilweise aus SQL in die Dart-Gruppierung (`LibraryEntry = SingleBook | Slipcase`). Bei rund 800 Büchern ist das unkritisch.
+- Der Statusfilter der Bibliothek wandert aus SQL in die Dart-Gruppierung (`ShelfPartition.entries`). Der Bibliotheks-State führt die Einträge (Einzelbücher und Schuber) plus eine Map der Bände je Schuber. Ein eigener sealed Typ `LibraryEntry` hätte dasselbe ausgedrückt, aber Auswahl, Grid und Master-Detail umgebaut. Bei rund 800 Büchern ist die Gruppierung in Dart unkritisch.
 - Jede Lese-Statistik muss über `ShelfPartition` laufen.
 - Fremde CSV-Formate kennen die Beziehung nicht. Dort erscheinen Schuber und Bände als Bücher.
 
