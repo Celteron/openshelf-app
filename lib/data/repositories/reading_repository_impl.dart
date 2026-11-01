@@ -60,6 +60,10 @@ class ReadingRepositoryImpl implements ReadingRepository {
   Future<void> deleteSession(int sessionId) => _dao.delete(sessionId);
 
   @override
+  Future<void> setReadingDates(int bookId, {DateTime? start, DateTime? end}) =>
+      _dao.setDates(bookId, start: start, end: end);
+
+  @override
   Future<void> setCurrentPage(int bookId, int page) =>
       _dao.setCurrentPage(bookId, page);
 }

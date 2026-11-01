@@ -41,5 +41,12 @@ abstract class ReadingRepository {
 
   Future<void> deleteSession(int sessionId);
 
+  /// Sets when reading a book started and ended, as shown on its detail page
+  /// (spec 004 FR-R2-22): [start] moves the earliest session's start, [end]
+  /// the latest finished session's end and the book's finish date. A book
+  /// without sessions gets one dated session without reading time. `null`
+  /// leaves that side as it is; reading times never change.
+  Future<void> setReadingDates(int bookId, {DateTime? start, DateTime? end});
+
   Future<void> setCurrentPage(int bookId, int page);
 }

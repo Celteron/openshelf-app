@@ -16,6 +16,7 @@ import 'package:openreads/domain/models/book_metadata.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/domain/repositories/location_repository.dart';
+import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:openreads/domain/services/metadata_aggregator_service.dart';
 import 'package:openreads/features/library/add_book_screen.dart';
@@ -63,6 +64,25 @@ class _Tags implements TagRepository {
   @override
   Future<void> setBookTags(int bookId, Set<int> tagIds) async =>
       assigned.add((bookId, tagIds));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _Reading implements ReadingRepository {
+  List<ReadingSession> sessions = const [];
+  final dates = <(int, DateTime?, DateTime?)>[];
+
+  @override
+  Stream<List<ReadingSession>> watchSessions(int bookId) =>
+      Stream.value(sessions);
+
+  @override
+  Future<void> setReadingDates(
+    int bookId, {
+    DateTime? start,
+    DateTime? end,
+  }) async => dates.add((bookId, start, end));
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -116,6 +136,7 @@ void main() {
   late Directory dir;
   late _Books books;
   late _Tags tags;
+  late _Reading reading;
   late _Picker picker;
   late FakeSettingsRepository settings;
   late CoverCacheService cache;
@@ -125,6 +146,7 @@ void main() {
     dir = Directory.systemTemp.createTempSync('add_book_test');
     books = _Books();
     tags = _Tags();
+    reading = _Reading();
     picker = _Picker();
     settings = FakeSettingsRepository();
     cache = CoverCacheService(
@@ -156,6 +178,7 @@ void main() {
         providers: [
           RepositoryProvider<LocationRepository>.value(value: _Locations()),
           RepositoryProvider<TagRepository>.value(value: tags),
+          RepositoryProvider<ReadingRepository>.value(value: reading),
           RepositoryProvider<CoverCacheService>.value(value: cache),
           RepositoryProvider<OpenLibrarySearchClient>.value(
             value: OpenLibrarySearchClient(client: olHttp),
@@ -687,6 +710,46 @@ void main() {
       );
       expect(find.textContaining('no such column: genre'), findsOneWidget);
       expect(find.widgetWithText(TextField, 'Neu'), findsOneWidget);
+    });
+  });
+  group('reading dates (FR-R2-22)', () {
+    testWidgets('start and end show and can be changed', (tester) async {
+      reading.sessions = [
+        ReadingSession(
+          id: 1,
+          bookId: 5,
+          startedAt: DateTime(2024, 3, 1, 20),
+          endedAt: DateTime(2024, 3, 8, 21),
+          durationSeconds: 3600,
+          startPage: 0,
+        ),
+      ];
+      await pump(tester, book: existing());
+
+      final dates = MaterialLocalizations.of(
+        tester.element(find.byType(AddBookScreen)),
+      );
+      expect(find.text(dates.formatMediumDate(DateTime(2024, 3, 1))), findsOne);
+      expect(find.text(dates.formatMediumDate(DateTime(2024, 3, 8))), findsOne);
+
+      await tester.tap(find.byKey(const ValueKey('reading-end-field')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('12'));
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      expect(reading.dates, [(5, null, DateTime(2024, 3, 12))]);
+    });
+
+    testWidgets('unchanged dates are left alone', (tester) async {
+      await pump(tester, book: existing());
+
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      expect(reading.dates, isEmpty);
     });
   });
 }

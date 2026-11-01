@@ -54,6 +54,9 @@ First use of the sideloaded APK on the partner's phone produced ten findings:
 - **FR-R2-13** The cover actions offer "Search online" next to camera and gallery. It shows the covers found via the ISBN (stored URL, DNB, Google Books, Open Library) and via title and author (other editions on Open Library). The chosen cover is cached and marked as a user edit.
 - **FR-R2-14** Two grey placeholder assets: "not searched yet" and "no cover found online". The library has a "Without cover" filter chip, shown only when such books exist. The detail view offers camera, gallery and online search on a missing cover. After "Download missing covers", the result names the books without an online cover and offers "Show", which opens the filtered library.
 
+- **FR-R2-22** *(Feedback during package 5)* The book form shows "reading start" and "reading end" (as the detail page derives them from the sessions) and lets the user change them: the earliest session's start and the latest finished session's end move, the end also sets the finish date; a book without sessions gets one dated session without reading time. Reading times never change.
+- **FR-R2-23** *(Feedback during package 5)* A book entered by hand without ISBN can be completed online from its detail page and its form: a search by title and author (Open Library) whose pick fills only empty fields, adds the ISBN and cover, and never overwrites what the user entered.
+
 ### Package 6: Statistics (R6, R7, R8)
 - **FR-R2-15** The statistics screen is grouped into sections; the year filter stays on top.
 - **FR-R2-16** Averages and records ignore slipcase containers and books without the needed value (e.g. no page count). Reading time includes `Books.readingSeconds` (open item T3-25).

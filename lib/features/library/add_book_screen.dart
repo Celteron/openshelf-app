@@ -10,7 +10,9 @@ import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/book_draft.dart';
 import 'package:openreads/domain/models/book_metadata.dart';
 import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/reading_stats.dart';
 import 'package:openreads/domain/repositories/location_repository.dart';
+import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/features/common/widgets/book_cover.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
@@ -62,6 +64,11 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
   bool get _isEditing => widget.book != null;
 
+  /// Reading start and end as the detail page shows them (from the sessions),
+  /// and what the form started with, to save only real changes (FR-R2-22).
+  ReadingRepository? _reading;
+  DateTime? _readStart, _readEnd, _initialStart, _initialEnd;
+
   @override
   void initState() {
     super.initState();
@@ -95,12 +102,32 @@ class _AddBookScreenState extends State<AddBookScreen> {
         _status = defaults.defaultStatus;
       }
     }
+    _reading = _readingRepository;
+    if (widget.book case final book?) _loadReadingDates(book.id);
     if (widget.searchOnline) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final picked = await _searchOpenLibrary();
         if (!picked && mounted) Navigator.of(context).pop();
       });
     }
+  }
+
+  ReadingRepository? get _readingRepository {
+    try {
+      return context.read<ReadingRepository>();
+    } catch (_) {
+      return null; // not provided (isolated widget tests)
+    }
+  }
+
+  Future<void> _loadReadingDates(int bookId) async {
+    final sessions = await _reading?.watchSessions(bookId).first;
+    if (sessions == null || !mounted) return;
+    final summary = ReadingSummary.compute(sessions);
+    setState(() {
+      _readStart = _initialStart = summary.startedAt;
+      _readEnd = _initialEnd = summary.finishedAt;
+    });
   }
 
   SettingsState? get _settings {
@@ -324,11 +351,16 @@ class _AddBookScreenState extends State<AddBookScreen> {
       .toList();
 
   Future<void> _pickReceivedAt() async {
+    final picked = await _pickDate(_receivedAt);
+    if (picked != null && mounted) setState(() => _receivedAt = picked);
+  }
+
+  Future<DateTime?> _pickDate(DateTime? value) {
     final now = DateTime.now();
     final first = DateTime(1900);
     final last = DateTime(now.year + 1);
-    final current = _receivedAt ?? now;
-    final picked = await showDatePicker(
+    final current = value ?? now;
+    return showDatePicker(
       context: context,
       // An imported date outside the range would trip the picker's assert.
       initialDate: current.isBefore(first)
@@ -339,8 +371,10 @@ class _AddBookScreenState extends State<AddBookScreen> {
       firstDate: first,
       lastDate: last,
     );
-    if (picked != null && mounted) setState(() => _receivedAt = picked);
   }
+
+  bool _sameDay(DateTime? a, DateTime? b) =>
+      a == null || b == null ? a == b : DateUtils.isSameDay(a, b);
 
   Future<void> _save() async {
     final priceText = _price.text.trim();
@@ -387,14 +421,23 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
     final cubit = context.read<LibraryCubit>();
     try {
+      final int id;
       if (_isEditing) {
-        await cubit.updateBook(widget.book!.id, draft);
+        id = widget.book!.id;
+        await cubit.updateBook(id, draft);
       } else {
-        final id = await cubit.addBook(draft);
+        id = await cubit.addBook(draft);
         final defaultTags = _settings?.defaultTagIds ?? const <int>{};
         if (defaultTags.isNotEmpty && mounted) {
           await context.read<TagRepository>().setBookTags(id, defaultTags);
         }
+      }
+      // After the book: a new end date must win over the finish date a
+      // status change to "read" sets.
+      final start = _sameDay(_readStart, _initialStart) ? null : _readStart;
+      final end = _sameDay(_readEnd, _initialEnd) ? null : _readEnd;
+      if (start != null || end != null) {
+        await _reading?.setReadingDates(id, start: start, end: end);
       }
     } catch (e) {
       // Stay on the form so nothing typed is lost, and say why.
@@ -528,6 +571,20 @@ class _AddBookScreenState extends State<AddBookScreen> {
             labelOf: (s) => statusLabel(l10n, s),
             onChanged: (v) => setState(() => _status = v),
           ),
+          if (_reading != null) ...[
+            _dateField(
+              key: 'reading-start-field',
+              label: l10n.readingStartedLabel,
+              value: _readStart,
+              onPick: (d) => _readStart = d,
+            ),
+            _dateField(
+              key: 'reading-end-field',
+              label: l10n.readingFinishedLabel,
+              value: _readEnd,
+              onPick: (d) => _readEnd = d,
+            ),
+          ],
           _locationDropdown(),
           const SizedBox(height: 8),
           Padding(
@@ -578,6 +635,35 @@ class _AddBookScreenState extends State<AddBookScreen> {
       ),
     );
   }
+
+  /// A date that is set, not cleared: the reading dates come from sessions,
+  /// which the form moves but never deletes.
+  Widget _dateField({
+    required String key,
+    required String label,
+    required DateTime? value,
+    required ValueChanged<DateTime> onPick,
+  }) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: InkWell(
+      key: ValueKey(key),
+      onTap: () async {
+        final picked = await _pickDate(value);
+        if (picked != null && mounted) setState(() => onPick(picked));
+      },
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          suffixIcon: const Icon(Icons.calendar_today_outlined),
+        ),
+        child: Text(
+          value == null
+              ? ''
+              : MaterialLocalizations.of(context).formatMediumDate(value),
+        ),
+      ),
+    ),
+  );
 
   Widget _locationDropdown() {
     final l10n = AppLocalizations.of(context);
