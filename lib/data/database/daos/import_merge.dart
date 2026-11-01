@@ -180,11 +180,17 @@ class BookMatchIndex {
     books.forEach(put);
   }
 
+  final Set<int> _slipcases = {};
+
   Book? operator [](int id) => _byId[id];
+
+  /// Whether some book points to [id] as its slipcase.
+  bool hasVolumes(int id) => _slipcases.contains(id);
 
   /// Adds a book, or refreshes it after it was updated.
   void put(Book book) {
     _byId[book.id] = book;
+    if (book.parentId case final parent?) _slipcases.add(parent);
     final isbn13 = book.isbn13;
     if (isbn13 != null) _byIsbn13[isbn13] = book.id;
     final isbn10 = book.isbn10;

@@ -13,7 +13,10 @@ class ExportService {
   ExportService(this._db);
 
   Future<String> exportJson() async {
-    final books = await _db.select(_db.books).get();
+    // By id, so a slipcase comes before its volumes (import order).
+    final books = await (_db.select(
+      _db.books,
+    )..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
     final locations = await _db.select(_db.locations).get();
     final series = await _db.select(_db.seriesTable).get();
     final lending = await _db.select(_db.lending).get();
@@ -108,7 +111,10 @@ class ExportService {
   /// lending status. Lossless in full only as JSON; the CSV flattens notes and
   /// sessions into single cells.
   Future<String> exportBooksCsv() async {
-    final books = await _db.select(_db.books).get();
+    // By id, so a slipcase comes before its volumes (import order).
+    final books = await (_db.select(
+      _db.books,
+    )..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
     final locations = {
       for (final l in await _db.select(_db.locations).get()) l.id: l,
     };

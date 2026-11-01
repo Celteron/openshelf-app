@@ -99,6 +99,7 @@ void main() {
     final first = (await books.getBook(ids.first))!;
     expect(first.review, 'Toll');
     expect(first.readingSeconds, 3600);
+    expect(first.currentPage, 1184, reason: 'the place in the box');
     expect((await db.select(db.readingSessions).get()).map((s) => s.bookId), [
       ids.first,
     ]);

@@ -786,5 +786,13 @@
   "removeStaged": "Entfernen",
   "sharedValuesTitle": "Für alle übernehmen",
   "sharedValuesHint": "Diese Angaben bekommen alle erfassten Bücher beim Speichern.",
-  "apply": "Übernehmen"
+  "apply": "Übernehmen",
+  "pageCount": "{count} Seiten",
+  "@pageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

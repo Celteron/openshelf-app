@@ -135,17 +135,41 @@ class BooksDao {
 
         final existing = index.find(incoming);
         if (existing == null) {
+          // The first volume of a book makes it a slipcase: its reading data
+          // goes to that volume, as on a split (ADR-0003). The volume's own
+          // satellites are then merged, so data carried by both is kept once.
+          final becomesSlipcase =
+              parentId != null && !index.hasVolumes(parentId);
           final bookId = await db.into(db.books).insert(incoming);
+          if (becomesSlipcase) {
+            await _handOverReadingData(
+              index[parentId]!,
+              bookId,
+              DateTime.now(),
+            );
+            index.put((await getById(parentId))!);
+          }
           index.put((await getById(bookId))!);
-          await _addSatellites(bookId, item, context);
+          await _addSatellites(bookId, item, context, merging: becomesSlipcase);
           remember(item, bookId);
           inserted++;
           continue;
         }
         remember(item, existing.id);
+        if (item.parentSourceKey != null && existing.parentId != parentId) {
+          // Matched (by ISBN) to a book outside that slipcase: the relation
+          // is not applied, which the user should know.
+          orphanRows.add(item.rowNumber);
+        }
 
+        // A slipcase's reading data lives on its volumes; an older export
+        // (from before the split) must not bring it back or double it.
+        final slipcase = index.hasVolumes(existing.id);
         var changed = false;
-        final patch = mergeMissingFields(existing, incoming);
+        final patch = mergeMissingFields(
+          existing,
+          slipcase ? _withoutReadingData(incoming) : incoming,
+        );
         if (patch != null) {
           await update(existing.id, patch);
           index.put((await getById(existing.id))!);
@@ -156,6 +180,7 @@ class BooksDao {
           item,
           context,
           merging: true,
+          readingData: !slipcase,
         );
         changed ? updated++ : unchanged++;
       }
@@ -216,6 +241,7 @@ class BooksDao {
     ImportedBook item,
     ImportContext context, {
     bool merging = false,
+    bool readingData = true,
   }) async {
     var added = false;
 
@@ -244,7 +270,7 @@ class BooksDao {
               n.content.trim(),
           }
         : <String>{};
-    for (final note in item.notes) {
+    for (final note in readingData ? item.notes : const <NoteImport>[]) {
       if (!knownNotes.add(note.content.trim())) continue;
       await db
           .into(db.bookNotes)
@@ -278,7 +304,8 @@ class BooksDao {
               ),
           }
         : <(int, int?)>{};
-    for (final reading in item.readings) {
+    for (final reading
+        in readingData ? item.readings : const <ReadingImport>[]) {
       final startedAt =
           reading.startedAt ?? reading.finishedAt ?? DateTime.now();
       // A session always ends, unless an exact restore says it was running:
@@ -369,16 +396,21 @@ class BooksDao {
         .write(const BooksCompanion(deletedAt: Value<DateTime?>(null)));
   }
 
-  /// Permanently deletes a book, a slipcase with its trashed volumes;
-  /// sessions, notes, tag links and lending records go with it (foreign-key
-  /// cascade).
-  Future<int> purge(int id) =>
-      (db.delete(db.books)..where(
-            (t) =>
-                t.id.equals(id) |
-                (t.parentId.equals(id) & t.deletedAt.isNotNull()),
-          ))
-          .go();
+  /// Permanently deletes a book, a slipcase with the volumes trashed with it
+  /// (the trash shows them as one entry); sessions, notes, tag links and
+  /// lending records go with it (foreign-key cascade). Volumes trashed on
+  /// their own become single books in the trash.
+  Future<int> purge(int id) => db.transaction(() async {
+    final at = (await getById(id))?.deletedAt;
+    return (db.delete(db.books)..where(
+          (t) =>
+              t.id.equals(id) |
+              (at == null
+                  ? const Constant(false)
+                  : t.parentId.equals(id) & t.deletedAt.equals(at)),
+        ))
+        .go();
+  });
 
   Future<List<Book>> getVolumes(int id) =>
       (db.select(db.books)
@@ -405,7 +437,7 @@ class BooksDao {
     if (volume != null) throw StateError('Book $id is already split');
 
     final ids = <int>[];
-    for (final (i, v) in volumes.indexed) {
+    for (final v in volumes) {
       ids.add(
         await db
             .into(db.books)
@@ -423,9 +455,6 @@ class BooksDao {
                 status: Value(box.status),
                 finishedAt: Value(box.finishedAt),
                 rating: Value(box.rating),
-                // Reading data moves along with the sessions.
-                review: Value(i == 0 ? box.review : null),
-                readingSeconds: Value(i == 0 ? box.readingSeconds : null),
                 editedFields: const ['title', 'pageCount'],
                 parentId: Value(id),
                 createdAt: Value(box.createdAt),
@@ -434,15 +463,36 @@ class BooksDao {
             ),
       );
     }
-    final first = ids.first;
-    await (db.update(db.readingSessions)..where((t) => t.bookId.equals(id)))
-        .write(ReadingSessionsCompanion(bookId: Value(first)));
-    await (db.update(db.bookNotes)..where((t) => t.bookId.equals(id))).write(
-      BookNotesCompanion(bookId: Value(first)),
+    await _handOverReadingData(box, ids.first, now);
+    return ids;
+  });
+
+  /// Makes [box] a slipcase: its sessions and notes move to [volumeId], which
+  /// also gets its review, reading time and current page where it has none;
+  /// then the slipcase's reading fields are cleared, since its status comes
+  /// from the volumes (ADR-0003).
+  Future<void> _handOverReadingData(
+    Book box,
+    int volumeId,
+    DateTime now,
+  ) async {
+    await (db.update(db.readingSessions)..where((t) => t.bookId.equals(box.id)))
+        .write(ReadingSessionsCompanion(bookId: Value(volumeId)));
+    await (db.update(db.bookNotes)..where((t) => t.bookId.equals(box.id)))
+        .write(BookNotesCompanion(bookId: Value(volumeId)));
+    final volume = (await getById(volumeId))!;
+    await update(
+      volumeId,
+      BooksCompanion(
+        review: Value(volume.review ?? box.review),
+        readingSeconds: Value(volume.readingSeconds ?? box.readingSeconds),
+        currentPage: Value(
+          volume.currentPage == 0 ? box.currentPage : volume.currentPage,
+        ),
+      ),
     );
-    // The slipcase is the physical object now; its status comes from the
-    // volumes.
-    await (db.update(db.books)..where((t) => t.id.equals(id))).write(
+    await update(
+      box.id,
       BooksCompanion(
         status: const Value(BookStatus.unread),
         rating: const Value(0),
@@ -453,8 +503,18 @@ class BooksDao {
         updatedAt: Value(now),
       ),
     );
-    return ids;
-  });
+  }
+
+  /// [book] without the fields a slipcase does not keep.
+  static BooksCompanion _withoutReadingData(BooksCompanion book) =>
+      book.copyWith(
+        status: const Value.absent(),
+        rating: const Value.absent(),
+        finishedAt: const Value.absent(),
+        review: const Value.absent(),
+        readingSeconds: const Value.absent(),
+        currentPage: const Value.absent(),
+      );
 
   /// Trashes every active book and returns how many.
   Future<int> trashAll(DateTime at) =>

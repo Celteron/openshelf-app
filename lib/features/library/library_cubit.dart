@@ -201,7 +201,14 @@ class LibraryCubit extends Cubit<LibraryState> {
             .listen(
               (data) {
                 final (books, all, spans) = data;
-                final shelf = ShelfPartition.of(all);
+                // Both streams fire on a write, `all` possibly second: the
+                // filtered rows are newer, so they win over `all`'s copies.
+                final shelf = ShelfPartition.of(
+                  {
+                    for (final b in all) b.id: b,
+                    for (final b in books) b.id: b,
+                  }.values,
+                );
                 final years = {
                   for (final b in books)
                     if (b.status == BookStatus.read && !shelf.isSlipcase(b.id))

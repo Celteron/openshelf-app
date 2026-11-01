@@ -418,8 +418,7 @@ class _VolumesSection extends StatelessWidget {
             subtitle: Text(
               [
                 statusLabel(l10n, volume.status),
-                if (volume.pageCount case final pages?)
-                  '$pages ${l10n.volumePagesLabel}',
+                if (volume.pageCount case final pages?) l10n.pageCount(pages),
               ].join(' · '),
             ),
             trailing: const Icon(Icons.chevron_right),

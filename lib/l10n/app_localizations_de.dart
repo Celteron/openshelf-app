@@ -1419,4 +1419,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get apply => 'Übernehmen';
+
+  @override
+  String pageCount(int count) {
+    return '$count Seiten';
+  }
 }

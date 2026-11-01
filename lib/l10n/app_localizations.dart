@@ -2395,6 +2395,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Übernehmen'**
   String get apply;
+
+  /// No description provided for @pageCount.
+  ///
+  /// In de, this message translates to:
+  /// **'{count} Seiten'**
+  String pageCount(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -95,4 +95,17 @@ void main() {
 
     expect((await deletedAt()).keys, [single]);
   });
+
+  test('purging a slipcase keeps a volume trashed on its own', () async {
+    await books.deleteBook(vol1);
+    // Deletion times are stored to the second.
+    await Future<void>.delayed(const Duration(milliseconds: 1100));
+    await books.deleteBook(box);
+
+    await books.purgeBook(box);
+
+    final left = await deletedAt();
+    expect(left.keys, unorderedEquals([vol1, single]));
+    expect(left[vol1], isNotNull, reason: 'still in the trash, now alone');
+  });
 }

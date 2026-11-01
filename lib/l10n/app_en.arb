@@ -662,5 +662,6 @@
   "removeStaged": "Remove",
   "sharedValuesTitle": "Apply to all",
   "sharedValuesHint": "All captured books get these details when saved.",
-  "apply": "Apply"
+  "apply": "Apply",
+  "pageCount": "{count} pages"
 }

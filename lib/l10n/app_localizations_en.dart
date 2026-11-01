@@ -1416,4 +1416,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get apply => 'Apply';
+
+  @override
+  String pageCount(int count) {
+    return '$count pages';
+  }
 }
