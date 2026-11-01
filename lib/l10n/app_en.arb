@@ -642,5 +642,9 @@
   "splitVolumesFailed": "Splitting failed",
   "volumesTitle": "Volumes",
   "volumesReadProgress": "{read} of {total} read",
-  "partOfSlipcase": "Part of “{title}”"
+  "partOfSlipcase": "Part of “{title}”",
+  "volumeCount": "{count, plural, =1{1 volume} other{{count} volumes}}",
+  "trashedWithVolumes": "with {count, plural, =1{1 volume} other{{count} volumes}}",
+  "showVolumes": "Show volumes",
+  "hideVolumes": "Hide volumes"
 }

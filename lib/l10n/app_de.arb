@@ -752,5 +752,23 @@
         "type": "String"
       }
     }
-  }
+  },
+  "volumeCount": "{count, plural, =1{1 Band} other{{count} Bände}}",
+  "@volumeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashedWithVolumes": "mit {count, plural, =1{1 Band} other{{count} Bänden}}",
+  "@trashedWithVolumes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "showVolumes": "Bände anzeigen",
+  "hideVolumes": "Bände ausblenden"
 }

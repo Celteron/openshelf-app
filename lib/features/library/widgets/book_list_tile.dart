@@ -16,6 +16,9 @@ class BookListTile extends StatelessWidget {
   final VoidCallback? onLongPress;
   final Widget? trailing;
 
+  /// An extra line under the authors, e.g. a slipcase's volume count.
+  final String? note;
+
   const BookListTile({
     super.key,
     required this.book,
@@ -25,11 +28,15 @@ class BookListTile extends StatelessWidget {
     this.onTap,
     this.onLongPress,
     this.trailing,
+    this.note,
   });
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = book.authors.join(', ');
+    final subtitle = [
+      book.authors.join(', '),
+      if (compact && note != null) note,
+    ].join(' · ');
     return ListTile(
       key: ValueKey('book-tile:${book.id}'),
       dense: compact,
@@ -47,6 +54,8 @@ class BookListTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+                if (note case final text?)
+                  Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
                 if (book.rating > 0)
                   RatingBadge(rating: book.rating, display: ratingDisplay),
               ],

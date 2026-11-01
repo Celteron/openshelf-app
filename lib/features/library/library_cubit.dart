@@ -6,6 +6,7 @@ import 'package:openreads/domain/models/book_draft.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/goal_progress.dart';
 import 'package:openreads/domain/models/library_sort.dart';
+import 'package:openreads/domain/models/shelf_partition.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
@@ -24,7 +25,11 @@ class LibraryLoading extends LibraryState {
 }
 
 class LibraryLoaded extends LibraryState {
+  /// The entries: single books and slipcases (ADR-0003).
   final List<Book> books;
+
+  /// The volumes of every slipcase in [books], by slipcase id.
+  final Map<int, List<Book>> volumes;
   final String query;
   final BookStatus? statusFilter;
   final int? locationId;
@@ -45,6 +50,7 @@ class LibraryLoaded extends LibraryState {
 
   const LibraryLoaded({
     required this.books,
+    this.volumes = const {},
     this.query = '',
     this.statusFilter,
     this.locationId,
@@ -153,11 +159,13 @@ class LibraryCubit extends Cubit<LibraryState> {
 
   void _subscribe() {
     _subscription?.cancel();
+    // The status is filtered in Dart: a slipcase's status comes from its
+    // volumes, which the whole library is needed for.
     final books = _repository.watchBooks(
       query: _query,
-      status: _status,
       locationId: _locationId,
     );
+    final all = _repository.watchBooks();
     final tags = _tags;
     final filtered = (_tagIds.isEmpty || tags == null)
         ? books
@@ -170,6 +178,7 @@ class LibraryCubit extends Cubit<LibraryState> {
             ],
           );
 
+    final status = _status;
     final favoritesOnly = _favoritesOnly;
     final sort = _sort;
     final year = _year;
@@ -178,17 +187,24 @@ class LibraryCubit extends Cubit<LibraryState> {
         Stream.value(const <int, ReadingSpan>{});
 
     _subscription =
-        Rx.combineLatest2<
+        Rx.combineLatest3<
+              List<Book>,
               List<Book>,
               Map<int, ReadingSpan>,
-              (List<Book>, Map<int, ReadingSpan>)
-            >(filtered, sessions, (books, spans) => (books, spans))
+              (List<Book>, List<Book>, Map<int, ReadingSpan>)
+            >(
+              filtered,
+              all,
+              sessions,
+              (books, all, spans) => (books, all, spans),
+            )
             .listen(
               (data) {
-                final (books, spans) = data;
+                final (books, all, spans) = data;
+                final shelf = ShelfPartition.of(all);
                 final years = {
                   for (final b in books)
-                    if (b.status == BookStatus.read)
+                    if (b.status == BookStatus.read && !shelf.isSlipcase(b.id))
                       (b.finishedAt ?? b.createdAt).year,
                 }.toList()..sort((a, b) => b.compareTo(a));
                 Iterable<Book> visible = books;
@@ -198,11 +214,19 @@ class LibraryCubit extends Cubit<LibraryState> {
                     (b) => GoalProgress.countsForYear(b, year),
                   );
                 }
+                final entries = shelf.entries(
+                  sort.apply(visible, spans: spans),
+                  status: status,
+                );
                 emit(
                   LibraryLoaded(
-                    books: sort.apply(visible, spans: spans),
+                    books: entries,
+                    volumes: {
+                      for (final e in entries)
+                        if (shelf.isSlipcase(e.id)) e.id: shelf.volumesOf(e.id),
+                    },
                     query: _query,
-                    statusFilter: _status,
+                    statusFilter: status,
                     locationId: _locationId,
                     tagIds: _tagIds,
                     favoritesOnly: favoritesOnly,

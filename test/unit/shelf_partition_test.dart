@@ -3,21 +3,26 @@ import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/shelf_partition.dart';
 
-Book _book(int id, {int? parentId, BookStatus status = BookStatus.unread}) =>
-    Book(
-      id: id,
-      title: 'B$id',
-      authors: const ['A'],
-      status: status,
-      rating: 0,
-      parentId: parentId,
-      editedFields: const [],
-      currentPage: 0,
-      isFavorite: false,
-      coverNotFound: false,
-      createdAt: DateTime(2026),
-      updatedAt: DateTime(2026),
-    );
+Book _book(
+  int id, {
+  int? parentId,
+  BookStatus status = BookStatus.unread,
+  DateTime? deletedAt,
+}) => Book(
+  id: id,
+  title: 'B$id',
+  deletedAt: deletedAt,
+  authors: const ['A'],
+  status: status,
+  rating: 0,
+  parentId: parentId,
+  editedFields: const [],
+  currentPage: 0,
+  isFavorite: false,
+  coverNotFound: false,
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
 
 void main() {
   group('ShelfPartition (ADR-0003)', () {
@@ -91,6 +96,54 @@ void main() {
       expect(of([u, dnf]), u);
       expect(of([u, w]), u);
       expect(of([]), u);
+    });
+  });
+
+  group('shelf entries (library grouping)', () {
+    final single = _book(1, status: BookStatus.read);
+    final box = _book(2);
+    final read = _book(3, parentId: 2, status: BookStatus.read);
+    final unread = _book(4, parentId: 2);
+    final shelf = ShelfPartition.of([single, box, read, unread]);
+
+    test('a slipcase is one entry wherever its members match', () {
+      expect(shelf.entries([unread, single, box, read]), [box, single]);
+    });
+
+    test('a matching volume brings its slipcase', () {
+      // E.g. the search hit a volume title only.
+      expect(shelf.entries([read]), [box]);
+    });
+
+    test('status filters judge a slipcase by its volumes', () {
+      expect(shelf.entries([single, box], status: BookStatus.read), [
+        single,
+        box,
+      ], reason: 'one volume is read');
+      expect(shelf.entries([single, box], status: BookStatus.reading), [
+        box,
+      ], reason: 'read and unread volumes: the slipcase is being read');
+      expect(shelf.entries([single, box], status: BookStatus.dnf), isEmpty);
+    });
+
+    test('single books keep their own status', () {
+      expect(shelf.entries([single], status: BookStatus.unread), isEmpty);
+    });
+  });
+
+  group('trash grouping', () {
+    final at = DateTime(2026, 5, 1);
+    final box = _book(2, deletedAt: at);
+    final withBox = _book(3, parentId: 2, deletedAt: at);
+    final earlier = _book(4, parentId: 2, deletedAt: DateTime(2026, 4, 1));
+    final other = _book(5, deletedAt: at);
+
+    test('volumes trashed with their slipcase hide behind it', () {
+      final grouped = groupTrash([box, withBox, earlier, other]);
+
+      expect(grouped.map((e) => e.book.id), [2, 4, 5]);
+      expect(grouped.first.volumes, [withBox]);
+      expect(grouped[1].volumes, isEmpty, reason: 'trashed on its own');
     });
   });
 }

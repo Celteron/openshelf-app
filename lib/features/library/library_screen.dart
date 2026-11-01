@@ -325,6 +325,7 @@ class _ListPane extends StatelessWidget {
                       a.ratingDisplay != b.ratingDisplay,
                   builder: (context, settings) => _BookCollection(
                     books: state.books,
+                    volumes: state.volumes,
                     displayType: settings.displayType,
                     ratingDisplay: settings.ratingDisplay,
                     selectedIds: selectedIds,
@@ -508,9 +509,11 @@ class _SelectionBar extends StatelessWidget {
   }
 }
 
-/// The library as a list, compact list, grid or detailed grid.
-class _BookCollection extends StatelessWidget {
+/// The library as a list, compact list, grid or detailed grid. A slipcase
+/// shows its volume count; in the lists it expands to its volumes.
+class _BookCollection extends StatefulWidget {
   final List<Book> books;
+  final Map<int, List<Book>> volumes;
   final LibraryDisplayType displayType;
   final RatingDisplay ratingDisplay;
   final Set<int> selectedIds;
@@ -519,6 +522,7 @@ class _BookCollection extends StatelessWidget {
 
   const _BookCollection({
     required this.books,
+    required this.volumes,
     required this.displayType,
     required this.ratingDisplay,
     required this.selectedIds,
@@ -527,9 +531,19 @@ class _BookCollection extends StatelessWidget {
   });
 
   @override
+  State<_BookCollection> createState() => _BookCollectionState();
+}
+
+class _BookCollectionState extends State<_BookCollection> {
+  final _expanded = <int>{};
+
+  @override
   Widget build(BuildContext context) {
-    if (displayType.isGrid) {
-      final detailed = displayType == LibraryDisplayType.detailedGrid;
+    final l10n = AppLocalizations.of(context);
+    final books = widget.books;
+    final volumes = widget.volumes;
+    if (widget.displayType.isGrid) {
+      final detailed = widget.displayType == LibraryDisplayType.detailedGrid;
       return GridView.builder(
         key: const ValueKey('book-grid'),
         padding: const EdgeInsets.all(8),
@@ -542,34 +556,88 @@ class _BookCollection extends StatelessWidget {
         itemCount: books.length,
         itemBuilder: (context, index) {
           final book = books[index];
+          final count = volumes[book.id]?.length;
           return BookGridTile(
             book: book,
             detailed: detailed,
-            ratingDisplay: ratingDisplay,
-            selected: selectedIds.contains(book.id),
-            onTap: () => onTapBook(book.id),
-            onLongPress: () => onLongPressBook(book.id),
+            ratingDisplay: widget.ratingDisplay,
+            selected: widget.selectedIds.contains(book.id),
+            badge: count == null ? null : l10n.volumeCount(count),
+            onTap: () => widget.onTapBook(book.id),
+            onLongPress: () => widget.onLongPressBook(book.id),
           );
         },
       );
     }
+    final compact = widget.displayType == LibraryDisplayType.compactList;
+    // Expanded slipcases are followed by their volumes, indented.
+    final rows = <(Book, {bool isVolume})>[
+      for (final book in books) ...[
+        (book, isVolume: false),
+        if (_expanded.contains(book.id))
+          for (final volume in volumes[book.id] ?? const <Book>[])
+            (volume, isVolume: true),
+      ],
+    ];
     return ListView.builder(
       key: const ValueKey('book-list'),
-      itemCount: books.length,
+      itemCount: rows.length,
       itemBuilder: (context, index) {
-        final book = books[index];
-        return BookListTile(
+        final (book, :isVolume) = rows[index];
+        final ownVolumes = volumes[book.id];
+        final tile = BookListTile(
           book: book,
-          compact: displayType == LibraryDisplayType.compactList,
-          ratingDisplay: ratingDisplay,
-          selected: selectedIds.contains(book.id),
-          trailing: book.status == BookStatus.wishlist
+          compact: compact || isVolume,
+          ratingDisplay: widget.ratingDisplay,
+          selected: widget.selectedIds.contains(book.id),
+          note: ownVolumes == null ? null : _slipcaseNote(l10n, ownVolumes),
+          trailing: ownVolumes != null
+              ? _ExpandButton(
+                  slipcaseId: book.id,
+                  expanded: _expanded.contains(book.id),
+                  onPressed: () => setState(() {
+                    if (!_expanded.remove(book.id)) _expanded.add(book.id);
+                  }),
+                )
+              : book.status == BookStatus.wishlist
               ? _MoveToLibraryButton(bookId: book.id)
               : null,
-          onTap: () => onTapBook(book.id),
-          onLongPress: () => onLongPressBook(book.id),
+          onTap: () => widget.onTapBook(book.id),
+          onLongPress: () => widget.onLongPressBook(book.id),
         );
+        return isVolume
+            ? Padding(padding: const EdgeInsets.only(left: 32), child: tile)
+            : tile;
       },
+    );
+  }
+
+  static String _slipcaseNote(AppLocalizations l10n, List<Book> volumes) {
+    final read = volumes.where((v) => v.status == BookStatus.read).length;
+    return '${l10n.volumeCount(volumes.length)} · '
+        '${l10n.volumesReadProgress(read, volumes.length)}';
+  }
+}
+
+class _ExpandButton extends StatelessWidget {
+  final int slipcaseId;
+  final bool expanded;
+  final VoidCallback onPressed;
+
+  const _ExpandButton({
+    required this.slipcaseId,
+    required this.expanded,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return IconButton(
+      key: ValueKey('expand:$slipcaseId'),
+      icon: Icon(expanded ? Icons.expand_less : Icons.expand_more),
+      tooltip: expanded ? l10n.hideVolumes : l10n.showVolumes,
+      onPressed: onPressed,
     );
   }
 }

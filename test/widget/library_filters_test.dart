@@ -660,4 +660,50 @@ void main() {
 
     expect(books.trashed, [3], reason: 'hidden books are never touched');
   });
+
+  group('slipcases (ADR-0003)', () {
+    final seed = [
+      book(1, 'Alpha', BookStatus.unread),
+      book(10, 'Schuber', BookStatus.unread),
+      book(
+        11,
+        'Band Eins',
+        BookStatus.read,
+      ).copyWith(parentId: const Value(10)),
+      book(
+        12,
+        'Band Zwei',
+        BookStatus.unread,
+      ).copyWith(parentId: const Value(10)),
+    ];
+
+    testWidgets('a slipcase is one entry that expands to its volumes', (
+      tester,
+    ) async {
+      await pumpLibrary(tester, seed: [...seed]);
+
+      expect(find.byKey(const ValueKey('book-tile:10')), findsOneWidget);
+      expect(find.byKey(const ValueKey('book-tile:11')), findsNothing);
+      expect(find.text('2 Bände · 1 von 2 gelesen'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('expand:10')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('book-tile:11')), findsOneWidget);
+      expect(find.byKey(const ValueKey('book-tile:12')), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('expand:10')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('book-tile:11')), findsNothing);
+    });
+
+    testWidgets('the grid marks a slipcase with its volume count', (
+      tester,
+    ) async {
+      final settings = FakeSettingsRepository()..values['displayType'] = 'grid';
+      await pumpLibrary(tester, seed: [...seed], settings: settings);
+
+      expect(find.byType(BookGridTile), findsNWidgets(2));
+      expect(find.text('2 Bände'), findsOneWidget);
+    });
+  });
 }

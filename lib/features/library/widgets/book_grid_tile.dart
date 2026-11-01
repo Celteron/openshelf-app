@@ -15,6 +15,9 @@ class BookGridTile extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
+  /// A short label on the cover, e.g. a slipcase's volume count.
+  final String? badge;
+
   const BookGridTile({
     super.key,
     required this.book,
@@ -23,6 +26,7 @@ class BookGridTile extends StatelessWidget {
     this.ratingDisplay = RatingDisplay.bar,
     this.onTap,
     this.onLongPress,
+    this.badge,
   });
 
   @override
@@ -70,6 +74,26 @@ class BookGridTile extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                      ),
+                    ),
+                  if (badge case final label?)
+                    Positioned(
+                      top: 4,
+                      left: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: scheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          label,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(color: scheme.onSecondaryContainer),
                         ),
                       ),
                     ),

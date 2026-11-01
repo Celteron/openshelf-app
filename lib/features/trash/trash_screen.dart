@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/features/library/widgets/book_list_tile.dart';
+import 'package:openreads/domain/models/shelf_partition.dart';
 import 'package:openreads/features/trash/trash_cubit.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
@@ -109,9 +110,14 @@ class _TrashScreenState extends State<TrashScreen> {
           }
           return ListView(
             children: [
-              for (final book in state.books)
+              // Restoring or purging a slipcase takes the volumes trashed with
+              // it along, so they are not offered on their own.
+              for (final (:book, :volumes) in groupTrash(state.books))
                 BookListTile(
                   book: book,
+                  note: volumes.isEmpty
+                      ? null
+                      : l10n.trashedWithVolumes(volumes.length),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

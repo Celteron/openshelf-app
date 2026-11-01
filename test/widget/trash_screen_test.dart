@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -162,5 +163,19 @@ void main() {
 
     expect(repo.emptied, 1);
     expect(find.text('Der Papierkorb ist leer'), findsOneWidget);
+  });
+
+  testWidgets('volumes trashed with their slipcase sit behind it', (
+    tester,
+  ) async {
+    await pump(tester, [
+      book(10, 'Schuber'),
+      book(11, 'Band Eins').copyWith(parentId: const Value(10)),
+      book(12, 'Band Zwei').copyWith(parentId: const Value(10)),
+    ]);
+
+    expect(find.text('Schuber'), findsOneWidget);
+    expect(find.text('Band Eins'), findsNothing);
+    expect(find.text('mit 2 Bänden'), findsOneWidget);
   });
 }

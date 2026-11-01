@@ -2275,6 +2275,30 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Teil von „{title}“'**
   String partOfSlipcase(String title);
+
+  /// No description provided for @volumeCount.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Band} other{{count} Bände}}'**
+  String volumeCount(int count);
+
+  /// No description provided for @trashedWithVolumes.
+  ///
+  /// In de, this message translates to:
+  /// **'mit {count, plural, =1{1 Band} other{{count} Bänden}}'**
+  String trashedWithVolumes(int count);
+
+  /// No description provided for @showVolumes.
+  ///
+  /// In de, this message translates to:
+  /// **'Bände anzeigen'**
+  String get showVolumes;
+
+  /// No description provided for @hideVolumes.
+  ///
+  /// In de, this message translates to:
+  /// **'Bände ausblenden'**
+  String get hideVolumes;
 }
 
 class _AppLocalizationsDelegate

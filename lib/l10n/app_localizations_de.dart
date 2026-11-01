@@ -1341,4 +1341,32 @@ class AppLocalizationsDe extends AppLocalizations {
   String partOfSlipcase(String title) {
     return 'Teil von „$title“';
   }
+
+  @override
+  String volumeCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Bände',
+      one: '1 Band',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashedWithVolumes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Bänden',
+      one: '1 Band',
+    );
+    return 'mit $_temp0';
+  }
+
+  @override
+  String get showVolumes => 'Bände anzeigen';
+
+  @override
+  String get hideVolumes => 'Bände ausblenden';
 }

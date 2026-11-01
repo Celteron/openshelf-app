@@ -33,7 +33,7 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 - [X] T4-3A Trash semantics for containers and volumes + tests. (FR-R2-09)
 - [X] T4-3B "Split into volumes" (repository + UI) + tests. (FR-R2-09)
 - [X] T4-3C Import/export of the relation, scoped duplicate matching + tests. (FR-R2-09)
-- [ ] T4-3D Library grouping (`LibraryEntry`), expandable slipcase entry + tests. (FR-R2-09)
+- [X] T4-3D Library grouping (slipcase entries with `volumes` map instead of a sealed `LibraryEntry`: same expressiveness, no churn in selection/grid), expandable slipcase entry, grouped trash + tests. (FR-R2-09)
 
 ## Package 5: Capture & covers
 - [ ] T4-40 "+" choice sheet. (FR-R2-11)
