@@ -1,17 +1,12 @@
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
-import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
+import 'package:openreads/data/cover/cover_compaction.dart';
 
 enum CoverPickSource { gallery, camera }
-
-/// Width kept for a cover; matches what [ImagePickerCoverPicker] asks the
-/// platform for.
-const _maxCoverWidth = 1200;
 
 /// Lets the user choose a cover image. An interface so screens and tests do not
 /// depend on a platform plugin.
@@ -39,8 +34,10 @@ class ImagePickerCoverPicker implements CoverPicker {
       source: source == CoverPickSource.camera
           ? ImageSource.camera
           : ImageSource.gallery,
-      maxWidth: _maxCoverWidth.toDouble(),
-      imageQuality: 85,
+      // The platform scales cheaply; CoverCacheService compacts on store.
+      maxWidth: coverMaxWidth.toDouble(),
+      maxHeight: coverMaxHeight.toDouble(),
+      imageQuality: 90,
     );
     return file?.readAsBytes();
   }
@@ -78,9 +75,8 @@ class ScannerCoverPicker implements CoverPicker {
 
     final file = File(path);
     try {
-      final bytes = await file.readAsBytes();
-      // Decoding a full-resolution scan takes long enough to drop frames.
-      return await Isolate.run(() => shrinkCover(bytes));
+      // Stored through CoverCacheService, which compacts it.
+      return await file.readAsBytes();
     } finally {
       // The scanner leaves its JPEG in the app cache; the cover is kept by the
       // caller, so the photo itself must not pile up.
@@ -111,21 +107,4 @@ Future<String?> scanCoverWithMlKit() async {
   } finally {
     await scanner.close();
   }
-}
-
-/// Scales [bytes] down to [_maxCoverWidth] as a JPEG. Small images and bytes
-/// that are not an image are returned unchanged.
-Uint8List shrinkCover(Uint8List bytes) {
-  final img.Image? image;
-  try {
-    image = img.decodeImage(bytes);
-  } catch (_) {
-    // Some decoders throw on truncated data instead of returning null.
-    return bytes;
-  }
-  if (image == null || image.width <= _maxCoverWidth) return bytes;
-  return img.encodeJpg(
-    img.copyResize(image, width: _maxCoverWidth),
-    quality: 85,
-  );
 }

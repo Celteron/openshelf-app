@@ -162,10 +162,14 @@ class ImportService {
     String? coverLocalPath;
     final coverBytes = book.coverBytes;
     if (coverBytes != null && coverBytes.isNotEmpty && _covers != null) {
-      coverLocalPath = await _covers.saveCover(
-        'import-${DateTime.now().microsecondsSinceEpoch}-$rowNumber',
-        coverBytes,
-      );
+      try {
+        coverLocalPath = await _covers.saveCover(
+          'import-${DateTime.now().microsecondsSinceEpoch}-$rowNumber',
+          coverBytes,
+        );
+      } on FormatException {
+        // A broken cover in a backup must not cost the book itself.
+      }
     }
 
     final companion = BooksCompanion.insert(

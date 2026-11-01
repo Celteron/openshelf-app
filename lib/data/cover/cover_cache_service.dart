@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:openreads/data/cover/cover_compaction.dart';
 
 /// Keeps book covers on disk (`<base>/covers/<key>.jpg`) so they stay available
 /// offline (Constitution Article III.3).
@@ -65,6 +68,10 @@ class CoverCacheService {
   CoverCacheService({http.Client? client, required Directory baseDirectory})
     : _client = client ?? http.Client(),
       _baseDirectory = baseDirectory;
+
+  /// Every write goes through [compactCover], off the UI isolate.
+  static Future<Uint8List?> _compact(Uint8List bytes) =>
+      Isolate.run(() => compactCover(bytes));
 
   Directory get _coversDir => Directory('${_baseDirectory.path}/covers');
 
@@ -144,7 +151,9 @@ class CoverCacheService {
           (contentType != null && !contentType.startsWith('image/'))) {
         return const CoverMissing();
       }
-      return CoverFound(await _write(key, response.bodyBytes));
+      final compact = await _compact(response.bodyBytes);
+      if (compact == null) return const CoverMissing(); // not decodable
+      return CoverFound(await _store(key, compact));
     } catch (_) {
       return const CoverUnavailable();
     } finally {
@@ -152,8 +161,13 @@ class CoverCacheService {
     }
   }
 
-  /// Stores user-supplied image bytes under [key] and returns the path.
-  Future<String> saveCover(String key, List<int> bytes) => _write(key, bytes);
+  /// Stores user-supplied image bytes under [key], compacted, and returns the
+  /// path. Throws a [FormatException] when the bytes are not an image.
+  Future<String> saveCover(String key, List<int> bytes) async {
+    final compact = await _compact(Uint8List.fromList(bytes));
+    if (compact == null) throw const FormatException('Not an image');
+    return _store(key, compact);
+  }
 
   /// Deletes a cached/manual cover file; missing files are ignored.
   Future<void> deleteFile(String? path) async {
@@ -182,7 +196,7 @@ class CoverCacheService {
     } catch (_) {}
   }
 
-  Future<String> _write(String key, List<int> bytes) async {
+  Future<String> _store(String key, List<int> bytes) async {
     await _coversDir.create(recursive: true);
     final file = _file(key);
     await file.writeAsBytes(bytes, flush: true);

@@ -267,9 +267,11 @@ void main() {
     tester,
   ) async {
     final cache = service();
-    final path = await tester.runAsync(
-      () => cache.saveCover('broken', List.filled(500, 7)),
-    );
+    // E.g. a file truncated by a full disk; saveCover itself rejects junk.
+    final file = File('${dir.path}/covers/broken.jpg')
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(List.filled(500, 7));
+    final path = file.path;
 
     await pump(
       tester,

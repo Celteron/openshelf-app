@@ -20,27 +20,6 @@ class _Fallback implements CoverPicker {
 }
 
 void main() {
-  group('shrinkCover', () {
-    test('scales a wide photo down to 1200 px, keeping the aspect', () {
-      final out = img.decodeImage(shrinkCover(jpeg(2400, 3600)))!;
-
-      expect(out.width, 1200);
-      expect(out.height, 1800);
-    });
-
-    test('leaves a small image untouched', () {
-      final small = jpeg(600, 900);
-
-      expect(shrinkCover(small), same(small));
-    });
-
-    test('passes bytes it cannot decode through unchanged', () {
-      final junk = Uint8List.fromList([0, 1, 2, 3]);
-
-      expect(shrinkCover(junk), same(junk));
-    });
-  });
-
   group('ScannerCoverPicker', () {
     late Directory dir;
     late _Fallback fallback;
@@ -57,9 +36,10 @@ void main() {
     }
 
     test(
-      'the camera goes through the scanner and shrinks the result',
+      'the camera goes through the scanner; storing compacts it later',
       () async {
-        final path = scanned(jpeg(2400, 3600));
+        final photo = jpeg(2400, 3600);
+        final path = scanned(photo);
         final picker = ScannerCoverPicker(
           fallback: fallback,
           scan: () async => path,
@@ -67,7 +47,7 @@ void main() {
 
         final bytes = await picker.pick(CoverPickSource.camera);
 
-        expect(img.decodeImage(bytes!)!.width, 1200);
+        expect(bytes, photo);
         expect(fallback.requested, isEmpty);
         expect(File(path).existsSync(), isFalse, reason: 'scan cleaned up');
       },

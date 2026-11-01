@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:image/image.dart' as img;
 import 'package:openreads/data/cover/cover_cache_service.dart';
 
 import '../helpers/test_images.dart';
@@ -351,6 +352,52 @@ void main() {
 
       expect(await service.findAny('k', ['https://a']), isA<CoverFound>());
       expect(calls, 0);
+    });
+  });
+
+  group('compact storage (ADR-0004)', () {
+    test('a large download is stored inside 720×1080', () async {
+      final service = serviceFor(
+        (_) async => http.Response.bytes(
+          img.encodeJpg(img.Image(width: 1600, height: 2400)),
+          200,
+          headers: {'content-type': 'image/jpeg'},
+        ),
+      );
+
+      final path = await service.downloadAndCache('k', 'https://x/c.jpg');
+      final stored = img.decodeImage(File(path!).readAsBytesSync())!;
+
+      expect((stored.width, stored.height), (720, 1080));
+    });
+
+    test('a download that is no image counts as no cover', () async {
+      final service = serviceFor(
+        (_) async => http.Response.bytes(
+          List.filled(5000, 7),
+          200,
+          headers: {'content-type': 'image/jpeg'},
+        ),
+      );
+
+      expect(await service.findAny('k', ['https://x']), isA<CoverMissing>());
+      expect(Directory('${dir.path}/covers').existsSync(), isFalse);
+    });
+
+    test('saveCover compacts user photos and rejects non-images', () async {
+      final service = serviceFor((_) async => http.Response('', 404));
+
+      final path = await service.saveCover(
+        'k',
+        img.encodeJpg(img.Image(width: 3000, height: 4000)),
+      );
+      final stored = img.decodeImage(File(path).readAsBytesSync())!;
+      expect((stored.width, stored.height), (720, 960), reason: 'width bound');
+
+      expect(
+        service.saveCover('x', List.filled(500, 7)),
+        throwsA(isA<FormatException>()),
+      );
     });
   });
 
