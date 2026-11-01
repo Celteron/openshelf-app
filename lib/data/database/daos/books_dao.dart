@@ -305,21 +305,49 @@ class BooksDao {
     return added;
   }
 
-  /// Moves books to the trash. Idempotent: an already trashed book keeps its
-  /// original deletion time.
+  /// Moves books to the trash, a slipcase together with its volumes (same
+  /// time, so a restore can tell them from volumes trashed earlier).
+  /// Idempotent: an already trashed book keeps its original deletion time.
   Future<void> trash(List<int> ids, DateTime at) =>
-      (db.update(db.books)..where((t) => t.id.isIn(ids) & t.deletedAt.isNull()))
+      (db.update(db.books)..where(
+            (t) =>
+                (t.id.isIn(ids) | t.parentId.isIn(ids)) & t.deletedAt.isNull(),
+          ))
           .write(BooksCompanion(deletedAt: Value(at)));
 
-  Future<void> restore(int id) =>
-      (db.update(db.books)..where((t) => t.id.equals(id))).write(
-        const BooksCompanion(deletedAt: Value<DateTime?>(null)),
-      );
+  /// Restores a book. A volume brings its slipcase back (an active volume
+  /// needs an active slipcase); a slipcase brings back the volumes trashed
+  /// with it.
+  Future<void> restore(int id) => db.transaction(() async {
+    final book = await getById(id);
+    if (book == null) return;
+    final parentId = book.parentId;
+    if (parentId != null) await _restoreWithVolumes(parentId);
+    await _restoreWithVolumes(id);
+  });
 
-  /// Permanently deletes a book; sessions, notes, tag links and lending
-  /// records go with it (foreign-key cascade).
+  Future<void> _restoreWithVolumes(int id) async {
+    final book = await getById(id);
+    final at = book?.deletedAt;
+    if (at == null) return;
+    await (db.update(db.books)..where(
+          (t) =>
+              t.id.equals(id) |
+              (t.parentId.equals(id) & t.deletedAt.equals(at)),
+        ))
+        .write(const BooksCompanion(deletedAt: Value<DateTime?>(null)));
+  }
+
+  /// Permanently deletes a book, a slipcase with its trashed volumes;
+  /// sessions, notes, tag links and lending records go with it (foreign-key
+  /// cascade).
   Future<int> purge(int id) =>
-      (db.delete(db.books)..where((t) => t.id.equals(id))).go();
+      (db.delete(db.books)..where(
+            (t) =>
+                t.id.equals(id) |
+                (t.parentId.equals(id) & t.deletedAt.isNotNull()),
+          ))
+          .go();
 
   /// Trashes every active book and returns how many.
   Future<int> trashAll(DateTime at) =>
