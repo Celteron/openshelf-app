@@ -545,4 +545,28 @@ void main() {
 
     expect(find.text('1 ausgewählt'), findsOneWidget);
   });
+
+  testWidgets('a filter change drops selected books that are now hidden', (
+    tester,
+  ) async {
+    final books = await pumpLibrary(tester);
+    await tester.longPress(find.text('Alpha'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('select-all')));
+    await tester.pumpAndSettle();
+    expect(find.text('3 ausgewählt'), findsOneWidget);
+
+    final chip = find.widgetWithText(FilterChip, 'Wunschliste');
+    await tester.ensureVisible(chip);
+    await tester.tap(chip);
+    await tester.pumpAndSettle();
+    expect(find.text('1 ausgewählt'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('bulk-delete')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'In den Papierkorb'));
+    await tester.pumpAndSettle();
+
+    expect(books.trashed, [3], reason: 'hidden books are never touched');
+  });
 }

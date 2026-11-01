@@ -6,6 +6,7 @@ import 'package:openreads/core/dependency_injection.dart';
 import 'package:openreads/core/themes/app_theme.dart';
 import 'package:openreads/data/cover/cover_cache_service.dart';
 import 'package:openreads/data/cover/cover_picker.dart';
+import 'package:openreads/data/export/export_file_saver.dart';
 import 'package:openreads/domain/services/cover_sync_service.dart';
 import 'package:openreads/domain/services/data_wipe_service.dart';
 import 'package:openreads/features/trash/trash_cubit.dart';
@@ -94,6 +95,7 @@ class OpenShelfApp extends StatelessWidget {
   final CoverSyncService coverSync;
   final DataWipeService dataWipe;
   final CoverPicker coverPicker;
+  final ExportFileSaver exportFileSaver;
 
   OpenShelfApp({
     super.key,
@@ -107,7 +109,9 @@ class OpenShelfApp extends StatelessWidget {
     required this.coverSync,
     required this.dataWipe,
     CoverPicker? coverPicker,
-  }) : coverPicker = coverPicker ?? ImagePickerCoverPicker();
+    ExportFileSaver? exportFileSaver,
+  }) : coverPicker = coverPicker ?? ImagePickerCoverPicker(),
+       exportFileSaver = exportFileSaver ?? PlatformExportFileSaver();
 
   @override
   Widget build(BuildContext context) {
@@ -129,6 +133,7 @@ class OpenShelfApp extends StatelessWidget {
         RepositoryProvider.value(value: coverSync),
         RepositoryProvider.value(value: dataWipe),
         RepositoryProvider<CoverPicker>.value(value: coverPicker),
+        RepositoryProvider<ExportFileSaver>.value(value: exportFileSaver),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -208,6 +213,8 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
+  static const _scannerIndex = 2;
+
   int _index = 0;
 
   @override
@@ -215,7 +222,13 @@ class _HomeShellState extends State<HomeShell> {
     final screens = [
       const LibraryScreen(),
       const LocationTreeScreen(),
-      const ScannerScreen(),
+      // Built only while its tab is open: the IndexedStack would otherwise
+      // start the camera (and its permission prompt) at app launch and keep it
+      // running in the background. Staged scans live in the ScannerCubit.
+      if (_index == _scannerIndex)
+        const ScannerScreen()
+      else
+        const SizedBox.shrink(),
       const StatisticsScreen(),
       const ImporterScreen(),
     ];

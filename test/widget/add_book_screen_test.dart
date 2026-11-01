@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -70,11 +70,13 @@ class _Tags implements TagRepository {
 
 class _Picker implements CoverPicker {
   Uint8List? next;
+  Object? error;
   final requested = <CoverPickSource>[];
 
   @override
   Future<Uint8List?> pick(CoverPickSource source) async {
     requested.add(source);
+    if (error != null) throw error!;
     return next;
   }
 }
@@ -282,6 +284,17 @@ void main() {
       });
 
       expect(picker.requested, [CoverPickSource.camera]);
+    });
+
+    testWidgets('a denied camera says so and keeps the form', (tester) async {
+      picker.error = PlatformException(code: 'camera_access_denied');
+      await pump(tester);
+
+      await tester.tap(find.byKey(const ValueKey('cover-camera')));
+      await tester.pump();
+
+      expect(find.text('Bild konnte nicht geladen werden'), findsOneWidget);
+      expect(find.byKey(const ValueKey('cover-placeholder')), findsOneWidget);
     });
 
     testWidgets('cancelling the picker changes nothing', (tester) async {

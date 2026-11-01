@@ -62,9 +62,25 @@ class _LibraryScreenState extends State<LibraryScreen> {
     setState(() => _selectedIds.addAll(state.books.map((b) => b.id)));
   }
 
+  /// Keeps the selection within the shown books, so a bulk action after a
+  /// filter or search change never touches books the user cannot see.
+  void _pruneSelection(LibraryState state) {
+    if (state is! LibraryLoaded || _selectedIds.isEmpty) return;
+    final shown = {for (final b in state.books) b.id};
+    if (_selectedIds.every(shown.contains)) return;
+    setState(() => _selectedIds.retainWhere(shown.contains));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    return BlocListener<LibraryCubit, LibraryState>(
+      listener: (_, state) => _pruneSelection(state),
+      child: _buildScaffold(context, l10n),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, AppLocalizations l10n) {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),

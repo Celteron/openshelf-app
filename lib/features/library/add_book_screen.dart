@@ -188,12 +188,22 @@ class _AddBookScreenState extends State<AddBookScreen> {
     final picker = _picker;
     final cache = _coverCache;
     if (picker == null || cache == null) return;
-    final bytes = await picker.pick(source);
-    if (bytes == null || !mounted) return;
-    final path = await cache.saveCover(
-      'manual-${DateTime.now().microsecondsSinceEpoch}',
-      bytes,
-    );
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = AppLocalizations.of(context).coverPickFailed;
+    final String path;
+    try {
+      final bytes = await picker.pick(source);
+      if (bytes == null || !mounted) return;
+      path = await cache.saveCover(
+        'manual-${DateTime.now().microsecondsSinceEpoch}',
+        bytes,
+      );
+    } catch (_) {
+      // E.g. camera or photo access denied, or storage full: keep the form as
+      // it is.
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+      return;
+    }
     if (!mounted) return;
     setState(() => _coverLocalPath = path);
   }

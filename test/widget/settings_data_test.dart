@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openreads/data/cover/cover_cache_service.dart';
 import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/data/export/export_file_saver.dart';
+import 'package:openreads/data/export/export_service.dart';
 import 'package:openreads/domain/models/tag_with_count.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/domain/repositories/data_reset_repository.dart';
@@ -56,6 +58,27 @@ class _Reset implements DataResetRepository {
   Future<void> deleteAllData() async => wiped++;
 }
 
+class _Export extends Fake implements ExportService {
+  @override
+  Future<String> exportJson() async => '{"books":[]}';
+
+  @override
+  Future<String> exportBooksCsv() async => 'Titel\n';
+}
+
+class _Saver implements ExportFileSaver {
+  final saved = <String, String>{};
+  String? result = '/storage/Download/export';
+  Object? error;
+
+  @override
+  Future<String?> save(String fileName, String content) async {
+    if (error != null) throw error!;
+    saved[fileName] = content;
+    return result;
+  }
+}
+
 /// The "Daten" section of the settings screen: empty the library (trash or for
 /// good) and delete all local data (spec 003 FR-F1-11/12).
 void main() {
@@ -63,8 +86,10 @@ void main() {
   late _Books books;
   late _Reset reset;
   late FakeSettingsRepository settings;
+  late _Saver saver;
 
   setUp(() {
+    saver = _Saver();
     dir = Directory.systemTemp.createTempSync('settings_data_test');
     books = _Books();
     reset = _Reset();
@@ -94,6 +119,8 @@ void main() {
           RepositoryProvider<BookRepository>.value(value: books),
           RepositoryProvider.value(value: CoverSyncService(books, cache)),
           RepositoryProvider.value(value: service),
+          RepositoryProvider<ExportService>.value(value: _Export()),
+          RepositoryProvider<ExportFileSaver>.value(value: saver),
         ],
         child: MultiBlocProvider(
           providers: [
@@ -213,6 +240,44 @@ void main() {
       expect(reset.wiped, 1);
       expect(settings.values, isEmpty);
       expect(find.text('Alle Daten wurden gelöscht'), findsOneWidget);
+    });
+  });
+
+  group('Export', () {
+    testWidgets('hands the JSON backup to the saver and names the place', (
+      tester,
+    ) async {
+      await pump(tester);
+      await tapTile(tester, 'export-json');
+
+      expect(saver.saved, {'openshelf_export.json': '{"books":[]}'});
+      expect(
+        find.text('Exportiert nach: /storage/Download/export'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('hands the CSV to the saver', (tester) async {
+      await pump(tester);
+      await tapTile(tester, 'export-csv');
+
+      expect(saver.saved, {'openshelf_books.csv': 'Titel\n'});
+    });
+
+    testWidgets('a cancelled save dialog shows nothing', (tester) async {
+      saver.result = null;
+      await pump(tester);
+      await tapTile(tester, 'export-json');
+
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('a failing save says so instead of crashing', (tester) async {
+      saver.error = const FileSystemException('denied');
+      await pump(tester);
+      await tapTile(tester, 'export-json');
+
+      expect(find.text('Export fehlgeschlagen'), findsOneWidget);
     });
   });
 }

@@ -626,6 +626,12 @@ abstract class AppLocalizations {
   /// **'Exportiert nach:'**
   String get exportDone;
 
+  /// No description provided for @exportFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Export fehlgeschlagen'**
+  String get exportFailed;
+
   /// No description provided for @appInfoLabel.
   ///
   /// In de, this message translates to:
@@ -1189,6 +1195,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Cover entfernen'**
   String get coverRemove;
+
+  /// No description provided for @coverPickFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Bild konnte nicht geladen werden'**
+  String get coverPickFailed;
 
   /// No description provided for @sortModified.
   ///

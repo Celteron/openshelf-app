@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/core/constants/app_fonts.dart';
 import 'package:openreads/core/themes/app_theme.dart';
+import 'package:openreads/data/export/export_file_saver.dart';
 import 'package:openreads/data/export/export_service.dart';
 import 'package:openreads/domain/models/app_preferences.dart';
 import 'package:openreads/domain/models/enums.dart';
@@ -18,7 +17,6 @@ import 'package:openreads/features/tags/tags_screen.dart';
 import 'package:openreads/features/trash/trash_screen.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const _sourceCodeUrl = 'https://github.com/Celteron/openshelf-app';
@@ -263,12 +261,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const Divider(),
               _section(l10n.exportLabel),
               ListTile(
+                key: const ValueKey('export-json'),
                 leading: const Icon(Icons.data_object),
                 title: Text(l10n.exportJson),
                 subtitle: Text(l10n.exportJsonHint),
                 onTap: () => _exportJson(),
               ),
               ListTile(
+                key: const ValueKey('export-csv'),
                 leading: const Icon(Icons.table_chart),
                 title: Text(l10n.exportCsv),
                 subtitle: Text(l10n.exportCsvHint),
@@ -603,17 +603,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _writeExport(String name, String content) async {
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/$name');
-    await file.writeAsString(content);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${AppLocalizations.of(context).exportDone} ${file.path}',
-        ),
-      ),
-    );
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final saver = context.read<ExportFileSaver>();
+    final String? path;
+    try {
+      path = await saver.save(name, content);
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.exportFailed)));
+      return;
+    }
+    if (path == null) return;
+    messenger.showSnackBar(SnackBar(content: Text('${l10n.exportDone} $path')));
   }
 }
 

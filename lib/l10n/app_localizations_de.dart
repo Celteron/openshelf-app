@@ -295,6 +295,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get exportDone => 'Exportiert nach:';
 
   @override
+  String get exportFailed => 'Export fehlgeschlagen';
+
+  @override
   String get appInfoLabel => 'App-Info';
 
   @override
@@ -652,6 +655,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get coverRemove => 'Cover entfernen';
+
+  @override
+  String get coverPickFailed => 'Bild konnte nicht geladen werden';
 
   @override
   String get sortModified => 'Geändert am';
