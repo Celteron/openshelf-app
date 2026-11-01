@@ -56,6 +56,7 @@ First use of the sideloaded APK on the partner's phone produced ten findings:
 
 - **FR-R2-22** *(Feedback during package 5)* The book form shows "reading start" and "reading end" (as the detail page derives them from the sessions) and lets the user change them: the earliest session's start and the latest finished session's end move, the end also sets the finish date; a book without sessions gets one dated session without reading time. Reading times never change.
 - **FR-R2-23** *(Feedback during package 5)* A book entered by hand without ISBN can be completed online from its detail page and its form: a search by title and author (Open Library) whose pick fills only empty fields, adds the ISBN and cover, and never overwrites what the user entered.
+- **FR-R2-24** *(Feedback during package 6)* Numbers are grouped by the app language ("12.345 Seiten" / "12,345 pages"). Reading time is only time actually read (sessions plus time entered by hand, never the span between start and finish date); overviews such as records show long durations in days, details in hours, minutes and seconds.
 
 ### Package 6: Statistics (R6, R7, R8)
 - **FR-R2-15** The statistics screen is grouped into sections; the year filter stays on top.

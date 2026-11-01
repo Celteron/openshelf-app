@@ -178,4 +178,21 @@ void main() {
     expect(state.statistics.reading.totalSeconds, 3600);
     expect(state.statistics.fastestBook!.name, 'Alt');
   });
+
+  test('manual reading time counts for its year only (FR-R2-16)', () async {
+    final old = await addRead('Alt', DateTime(2024, 3, 1), 100);
+    final fresh = await addRead('Neu', DateTime(2026, 2, 1), 300);
+    for (final (id, seconds) in [(old, 1800), (fresh, 7200)]) {
+      await (db.update(db.books)..where((b) => b.id.equals(id))).write(
+        BooksCompanion(readingSeconds: Value(seconds)),
+      );
+    }
+    cubit.load();
+    final all = await next((s) => s.statistics.reading.totalSeconds > 0);
+    expect(all.statistics.reading.totalSeconds, 9000);
+
+    cubit.selectYear(2024);
+    final state = await next((s) => s.statistics.year == 2024);
+    expect(state.statistics.reading.totalSeconds, 1800);
+  });
 }

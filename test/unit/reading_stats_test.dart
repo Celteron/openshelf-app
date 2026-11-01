@@ -54,6 +54,14 @@ void main() {
       expect(stats.pagesPerHour, closeTo(40, 1e-9));
     });
 
+    test('manual reading time adds to the total, not to the speed', () {
+      final stats = ReadingStats.compute([
+        session(seconds: 3600, startPage: 0, endPage: 30),
+      ], manualSeconds: 1800);
+      expect(stats.totalSeconds, 5400);
+      expect(stats.pagesPerHour, closeTo(30, 1e-9));
+    });
+
     test('ignores running sessions', () {
       final stats = ReadingStats.compute([
         session(ended: false, endPage: null),

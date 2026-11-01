@@ -128,7 +128,14 @@ class StatisticsCubit extends Cubit<StatisticsState> {
                   books: books,
                   now: _now(),
                 ),
-          reading: ReadingStats.compute(sessions),
+          reading: ReadingStats.compute(
+            sessions,
+            manualSeconds: [
+              for (final b in ShelfPartition.of(books).readable)
+                if (scopeIds == null || scopeIds.contains(b.id))
+                  b.readingSeconds ?? 0,
+            ].fold(0, (sum, s) => sum + s),
+          ),
           year: year,
           sessions: sessions,
         ),

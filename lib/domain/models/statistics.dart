@@ -1,7 +1,6 @@
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/goal_progress.dart';
-import 'package:openreads/domain/models/library_sort.dart';
 import 'package:openreads/domain/models/reading_stats.dart';
 import 'package:openreads/domain/models/shelf_partition.dart';
 
@@ -171,7 +170,6 @@ class BookStatistics {
         if ((b.pageCount ?? 0) > 0) b,
     ];
     final sessionList = sessions.toList();
-    final spans = readingSpans(sessionList);
     final secondsByBook = <int, int>{};
     for (final s in sessionList) {
       secondsByBook[s.bookId] =
@@ -179,17 +177,9 @@ class BookStatistics {
     }
     final timed = <(Book, int)>[];
     for (final b in finished) {
-      var seconds = secondsByBook[b.id] ?? 0;
-      if (seconds <= 0) {
-        // No tracked time: fall back to the span between first start and last
-        // end (legacy start/finish dates).
-        final span = spans[b.id];
-        final start = span?.firstStart;
-        final end = span?.lastEnd;
-        if (start != null && end != null) {
-          seconds = end.difference(start).inSeconds;
-        }
-      }
+      // Actual reading time only: tracked sessions plus time entered by hand
+      // (FR-R2-16); the span between start and finish date is no reading.
+      final seconds = (secondsByBook[b.id] ?? 0) + (b.readingSeconds ?? 0);
       if (seconds > 0) timed.add((b, seconds));
     }
 

@@ -44,7 +44,8 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 - [X] T4-45 "Complete online" card on the detail screen of books without ISBN opens the form with the Open Library search (title + first author); a saved book only gets its empty fields and a missing cover filled + tests. (FR-R2-23)
 
 ## Package 6: Statistics
-- [ ] T4-50 Sections, averages/records rules, reading seconds. (FR-R2-15, -16)
+- [ ] T4-50 Sections, averages/records rules, reading seconds. (FR-R2-15, -16) — done: manual reading time in totals and records, no date-span fallback.
+- [ ] T4-53 Locale number grouping, duration display in days / h min s. (FR-R2-24)
 - [ ] T4-51 Drill-down month/status → books → library filter. (FR-R2-17)
 - [ ] T4-52 Unread stack, added vs. finished, received-as distribution, spending per year. (FR-R2-18)
 

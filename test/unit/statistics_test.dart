@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
@@ -224,6 +225,23 @@ void main() {
       ),
     ];
 
+    test(
+      'manual reading time counts for the reading-time records (FR-R2-16)',
+      () {
+        final timed = [
+          _book(
+            1,
+            status: BookStatus.read,
+            title: 'Manuell',
+          ).copyWith(readingSeconds: const Value(7200)),
+          _book(2, status: BookStatus.read, title: 'Ohne Zeit'),
+        ];
+        final stats = BookStatistics.compute(timed, const []);
+        expect(stats.averageReadingTime, const Duration(hours: 2));
+        expect(stats.fastestBook!.name, 'Manuell');
+      },
+    );
+
     test('average rating counts rated finished books only', () {
       final stats = BookStatistics.compute(books, const []);
       expect(stats.averageRating, 4.5);
@@ -292,18 +310,18 @@ void main() {
       expect(stats.averageReadingTime, const Duration(seconds: 10800));
     });
 
-    test('without tracked time the span of the dates is used', () {
+    test('dates without reading time are no reading time', () {
       final stats = BookStatistics.compute(
         books,
         const [],
         sessions: [
-          // Legacy reading: start and finish date, no duration.
+          // Only a start and a finish date, nothing actually timed.
           session(3, DateTime(2026, 1, 1), DateTime(2026, 1, 3), 0),
         ],
       );
 
-      expect(stats.fastestBook!.name, 'Mittel');
-      expect(stats.fastestBook!.count, const Duration(days: 2).inSeconds);
+      expect(stats.fastestBook, isNull);
+      expect(stats.averageReadingTime, isNull);
     });
 
     test('unfinished books never count for records', () {

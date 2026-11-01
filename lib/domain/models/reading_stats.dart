@@ -44,9 +44,15 @@ class ReadingStats {
   double? get pagesPerHour =>
       _speedSeconds <= 0 ? null : _speedPages / (_speedSeconds / 3600.0);
 
-  factory ReadingStats.compute(Iterable<ReadingSession> sessions) {
+  /// [manualSeconds] is reading time entered without sessions
+  /// (`Books.readingSeconds`): it counts for the total, but has no pages, so
+  /// not for the speed.
+  factory ReadingStats.compute(
+    Iterable<ReadingSession> sessions, {
+    int manualSeconds = 0,
+  }) {
     var count = 0;
-    var seconds = 0;
+    var seconds = math.max(0, manualSeconds);
     var pages = 0;
     var speedSeconds = 0;
     var speedPages = 0;
