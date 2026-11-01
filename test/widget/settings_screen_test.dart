@@ -347,7 +347,7 @@ void main() {
 
       await tester.tap(find.byKey(const ValueKey('default-format')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('hardcover').last);
+      await tester.tap(find.text('Hardcover').last);
       await tester.pumpAndSettle();
       expect(cubit.state.defaultFormat, BookFormat.hardcover);
 

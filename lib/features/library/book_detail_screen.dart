@@ -787,7 +787,10 @@ class _MetadataTable extends StatelessWidget {
       (l10n.yearLabel, book.publishedYear?.toString()),
       (l10n.pagesLabel, book.pageCount?.toString()),
       (l10n.languageLabel, book.language),
-      (l10n.formatLabel, book.format?.name),
+      (
+        l10n.formatLabel,
+        book.format == null ? null : formatLabel(l10n, book.format!),
+      ),
       (l10n.seriesVolumeLabel, book.seriesVolume?.toString()),
       (l10n.olidLabel, book.olid),
       (l10n.priceLabel, price == null ? null : formatPriceCents(price, locale)),

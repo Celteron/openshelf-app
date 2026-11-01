@@ -630,6 +630,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
             label: l10n.fieldFormat,
             value: _format,
             items: BookFormat.values,
+            labelOf: (f) => formatLabel(l10n, f),
             onChanged: (v) => setState(() => _format = v),
           ),
           _dropdown<BookStatus>(

@@ -601,7 +601,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('bulk-format')));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('hardcover'));
+      await tester.tap(find.text('Hardcover'));
       await tester.pumpAndSettle();
 
       expect(repo.formatChanges, hasLength(1));

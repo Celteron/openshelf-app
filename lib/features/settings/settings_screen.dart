@@ -199,7 +199,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: state.defaultFormat,
                   items: [
                     for (final f in BookFormat.values)
-                      DropdownMenuItem(value: f, child: Text(f.name)),
+                      DropdownMenuItem(
+                        value: f,
+                        child: Text(formatLabel(l10n, f)),
+                      ),
                   ],
                   onChanged: (v) {
                     if (v != null) cubit.setDefaultFormat(v);

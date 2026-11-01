@@ -204,7 +204,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           for (final f in BookFormat.values)
             SimpleDialogOption(
               onPressed: () => Navigator.pop(dialogContext, f),
-              child: Text(f.name),
+              child: Text(formatLabel(l10n, f)),
             ),
         ],
       ),
