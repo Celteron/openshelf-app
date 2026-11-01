@@ -84,6 +84,7 @@ class BookRepositoryImpl implements BookRepository {
       genre: Value(draft.genre),
       priceCents: Value(draft.priceCents),
       receivedAt: Value(draft.receivedAt),
+      receivedAs: Value(draft.receivedAs),
       readingSeconds: Value(draft.readingSeconds),
     );
   }

@@ -41,6 +41,7 @@ class ColumnMapper {
   static const fieldGenre = 'genre';
   static const fieldPrice = 'price';
   static const fieldReceivedAt = 'receivedAt';
+  static const fieldReceivedAs = 'receivedAs';
   static const fieldDurationHours = 'durationHours';
   static const fieldDurationMinutes = 'durationMinutes';
   static const fieldReadingSeconds = 'readingSeconds';

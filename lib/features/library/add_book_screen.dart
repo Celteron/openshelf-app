@@ -49,6 +49,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
   final _genre = TextEditingController();
   final _price = TextEditingController();
   DateTime? _receivedAt;
+  ReceivedAs? _receivedAs;
   bool _priceInvalid = false;
   BookFormat _format = BookFormat.paperback;
   BookStatus _status = BookStatus.unread;
@@ -78,6 +79,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
       _genre.text = book.genre ?? '';
       _price.text = priceInputText(book.priceCents);
       _receivedAt = book.receivedAt;
+      _receivedAs = book.receivedAs;
       _format = book.format ?? BookFormat.paperback;
       _status = book.status;
       _rating = book.rating;
@@ -368,6 +370,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
       genre: _genre.text.trim().isEmpty ? null : _genre.text.trim(),
       priceCents: priceCents,
       receivedAt: _receivedAt,
+      receivedAs: _receivedAs,
       editedFields: _isEditing ? _editedFields() : const {},
     );
 
@@ -481,6 +484,15 @@ class _AddBookScreenState extends State<AddBookScreen> {
             ),
           ),
           _receivedAtField(l10n),
+          _dropdown<ReceivedAs?>(
+            key: const ValueKey('received-as'),
+            label: l10n.fieldReceivedAs,
+            value: _receivedAs,
+            items: const [null, ...ReceivedAs.values],
+            labelOf: (r) =>
+                r == null ? l10n.receivedAsUnknown : receivedAsLabel(l10n, r),
+            onChanged: (v) => setState(() => _receivedAs = v),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: TextField(
@@ -591,6 +603,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
   }
 
   Widget _dropdown<T>({
+    Key? key,
     required String label,
     required T value,
     required List<T> items,
@@ -598,6 +611,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
     String Function(T)? labelOf,
   }) {
     return Padding(
+      key: key,
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: InputDecorator(
         decoration: InputDecoration(labelText: label),
@@ -614,9 +628,8 @@ class _AddBookScreenState extends State<AddBookScreen> {
                   ),
                 ),
             ],
-            onChanged: (v) {
-              if (v != null) onChanged(v);
-            },
+            // For a nullable T, `null` is a real choice ("unknown").
+            onChanged: (v) => onChanged(v as T),
           ),
         ),
       ),

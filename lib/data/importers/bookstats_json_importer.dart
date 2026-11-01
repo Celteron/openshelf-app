@@ -100,6 +100,7 @@ class BookstatsJsonImporter implements BookImporter {
       genre: parseGenre(_pick(map, const ['genre'])),
       priceCents: _pickPriceCents(map),
       receivedAt: parseDate(_pick(map, const ['erhalten am'])),
+      receivedAs: parseReceivedAs(_pick(map, const ['erhalten als'])),
       tags: parseTags(
         [
           _pick(map, const ['genre']),

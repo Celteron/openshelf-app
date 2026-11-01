@@ -20,7 +20,7 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 ## Package 4a: Book data and covers
 - [X] T4-30 `ReceivedAs` enum with pinned codes + converter + tests. (FR-R2-07, -10)
 - [X] T4-31 Schema v6: `received_as`, `cover_not_found`, `parent_id`; migration tests v1..v5 → v6, snapshot, helpers. (FR-R2-07..10)
-- [ ] T4-32 "Received as" data flow: merge, JSON/CSV export and restore, Bookstats mapping, form, detail, l10n. (FR-R2-07)
+- [X] T4-32 "Received as" data flow: merge, JSON/CSV export and restore, Bookstats mapping, form, detail, l10n. (FR-R2-07)
 - [ ] T4-33 `CoverFetch` result (found / not found / failed) + tests. (FR-R2-08)
 - [ ] T4-34 Cover flag: set by "download missing covers", cleared by the repository, no passive lookup when set + tests. (FR-R2-08)
 - [ ] T4-35 `compactCover` in every cover write, scanner shrink removed + tests. (FR-R2-10)

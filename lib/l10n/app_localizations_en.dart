@@ -1079,6 +1079,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'durationHours': 'Reading time (hours)',
       'durationMinutes': 'Reading time (minutes)',
       'readingSeconds': 'Reading time (seconds)',
+      'receivedAs': 'Received as',
       'other': '$field',
     });
     return '$_temp0';
@@ -1273,4 +1274,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importPathHint => '/path/to/file.csv';
+
+  @override
+  String get fieldReceivedAs => 'Received as';
+
+  @override
+  String get receivedAsUnknown => 'Unknown';
+
+  @override
+  String get receivedAsPurchase => 'Purchase';
+
+  @override
+  String get receivedAsGift => 'Gift';
+
+  @override
+  String get receivedAsLoan => 'Loan';
+
+  @override
+  String get receivedAsReviewCopy => 'Review copy';
+
+  @override
+  String get receivedAsOther => 'Other';
 }

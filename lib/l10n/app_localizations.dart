@@ -1865,7 +1865,7 @@ abstract class AppLocalizations {
   /// No description provided for @importFieldName.
   ///
   /// In de, this message translates to:
-  /// **'{field, select, title{Titel} subtitle{Untertitel} authors{Autor(en)} isbn{ISBN} isbn13{ISBN-13} isbn10{ISBN-10} publisher{Verlag} publishedYear{Erscheinungsjahr} pageCount{Seitenzahl} format{Format} language{Sprache} description{Beschreibung} rating{Bewertung} status{Lesestatus} seriesName{Reihe} seriesVolume{Band} favorite{Favorit} review{Rezension} notes{Notizen} tags{Tags} startDate{Lesebeginn} finishDate{Leseende} readings{Lesungen} dateAdded{Hinzugefügt am} olid{Open-Library-ID} quotes{Zitate} currentPage{Aktuelle Seite} finishedAt{Beendet am} location{Standort} borrower{Verleihen an} lentAt{Verliehen am} expectedReturn{Rückgabe bis} lendingStatus{Verleihstatus} coverUrl{Cover-URL} dateModified{Geändert am} genre{Genre} price{Preis} receivedAt{Erhalten am} durationHours{Lesedauer (Stunden)} durationMinutes{Lesedauer (Minuten)} readingSeconds{Lesezeit (Sekunden)} other{{field}}}'**
+  /// **'{field, select, title{Titel} subtitle{Untertitel} authors{Autor(en)} isbn{ISBN} isbn13{ISBN-13} isbn10{ISBN-10} publisher{Verlag} publishedYear{Erscheinungsjahr} pageCount{Seitenzahl} format{Format} language{Sprache} description{Beschreibung} rating{Bewertung} status{Lesestatus} seriesName{Reihe} seriesVolume{Band} favorite{Favorit} review{Rezension} notes{Notizen} tags{Tags} startDate{Lesebeginn} finishDate{Leseende} readings{Lesungen} dateAdded{Hinzugefügt am} olid{Open-Library-ID} quotes{Zitate} currentPage{Aktuelle Seite} finishedAt{Beendet am} location{Standort} borrower{Verleihen an} lentAt{Verliehen am} expectedReturn{Rückgabe bis} lendingStatus{Verleihstatus} coverUrl{Cover-URL} dateModified{Geändert am} genre{Genre} price{Preis} receivedAt{Erhalten am} durationHours{Lesedauer (Stunden)} durationMinutes{Lesedauer (Minuten)} readingSeconds{Lesezeit (Sekunden)} receivedAs{Erhalten als} other{{field}}}'**
   String importFieldName(String field);
 
   /// No description provided for @importIgnoreColumn.
@@ -2161,6 +2161,48 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'/pfad/zur/datei.csv'**
   String get importPathHint;
+
+  /// No description provided for @fieldReceivedAs.
+  ///
+  /// In de, this message translates to:
+  /// **'Erhalten als'**
+  String get fieldReceivedAs;
+
+  /// No description provided for @receivedAsUnknown.
+  ///
+  /// In de, this message translates to:
+  /// **'Unbekannt'**
+  String get receivedAsUnknown;
+
+  /// No description provided for @receivedAsPurchase.
+  ///
+  /// In de, this message translates to:
+  /// **'Kauf'**
+  String get receivedAsPurchase;
+
+  /// No description provided for @receivedAsGift.
+  ///
+  /// In de, this message translates to:
+  /// **'Geschenk'**
+  String get receivedAsGift;
+
+  /// No description provided for @receivedAsLoan.
+  ///
+  /// In de, this message translates to:
+  /// **'Leihe'**
+  String get receivedAsLoan;
+
+  /// No description provided for @receivedAsReviewCopy.
+  ///
+  /// In de, this message translates to:
+  /// **'Rezensionsexemplar'**
+  String get receivedAsReviewCopy;
+
+  /// No description provided for @receivedAsOther.
+  ///
+  /// In de, this message translates to:
+  /// **'Sonstiges'**
+  String get receivedAsOther;
 }
 
 class _AppLocalizationsDelegate

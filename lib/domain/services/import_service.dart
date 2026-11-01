@@ -187,6 +187,7 @@ class ImportService {
       genre: Value(_blankToNull(book.genre)),
       priceCents: Value(book.priceCents),
       receivedAt: Value(book.receivedAt),
+      receivedAs: Value(book.receivedAs),
       readingSeconds: Value(book.readingSeconds),
       metadataSource: Value(book.metadataSource),
       seriesVolume: Value(book.seriesVolume),

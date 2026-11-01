@@ -12,3 +12,14 @@ String statusLabel(AppLocalizations l10n, BookStatus status) {
     BookStatus.reReading => l10n.statusReReading,
   };
 }
+
+/// Localized name of a [ReceivedAs] value (spec 004 FR-R2-07).
+String receivedAsLabel(AppLocalizations l10n, ReceivedAs value) {
+  return switch (value) {
+    ReceivedAs.purchase => l10n.receivedAsPurchase,
+    ReceivedAs.gift => l10n.receivedAsGift,
+    ReceivedAs.loan => l10n.receivedAsLoan,
+    ReceivedAs.reviewCopy => l10n.receivedAsReviewCopy,
+    ReceivedAs.other => l10n.receivedAsOther,
+  };
+}

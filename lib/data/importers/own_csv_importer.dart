@@ -69,6 +69,7 @@ class OwnCsvImporter extends OpenreadsCsvImporter {
     ColumnMapper.fieldReview: ['review', 'my_review', 'rezension'],
     ColumnMapper.fieldPrice: ['price', 'preis'],
     ColumnMapper.fieldReceivedAt: ['received_at', 'received', 'erhalten am'],
+    ColumnMapper.fieldReceivedAs: ['received_as', 'erhalten als'],
     ColumnMapper.fieldDateAdded: [
       'date_added',
       'date added',

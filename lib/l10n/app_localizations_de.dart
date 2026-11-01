@@ -1082,6 +1082,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'durationHours': 'Lesedauer (Stunden)',
       'durationMinutes': 'Lesedauer (Minuten)',
       'readingSeconds': 'Lesezeit (Sekunden)',
+      'receivedAs': 'Erhalten als',
       'other': '$field',
     });
     return '$_temp0';
@@ -1276,4 +1277,25 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get importPathHint => '/pfad/zur/datei.csv';
+
+  @override
+  String get fieldReceivedAs => 'Erhalten als';
+
+  @override
+  String get receivedAsUnknown => 'Unbekannt';
+
+  @override
+  String get receivedAsPurchase => 'Kauf';
+
+  @override
+  String get receivedAsGift => 'Geschenk';
+
+  @override
+  String get receivedAsLoan => 'Leihe';
+
+  @override
+  String get receivedAsReviewCopy => 'Rezensionsexemplar';
+
+  @override
+  String get receivedAsOther => 'Sonstiges';
 }

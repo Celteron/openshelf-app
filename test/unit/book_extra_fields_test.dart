@@ -36,11 +36,13 @@ void main() {
           genre: 'Krimi',
           priceCents: 1290,
           receivedAt: DateTime(2025, 12, 24),
+          receivedAs: ReceivedAs.gift,
           readingSeconds: 19800,
         ),
       );
       final book = (await repository.getBook(id))!;
       expect(book.readingSeconds, 19800);
+      expect(book.receivedAs, ReceivedAs.gift);
       expect(
         (book.genre, book.priceCents, book.receivedAt),
         ('Krimi', 1290, DateTime(2025, 12, 24)),
@@ -54,6 +56,7 @@ void main() {
           authors: ['A'],
           genre: 'Krimi',
           priceCents: 500,
+          receivedAs: ReceivedAs.loan,
         ),
       );
       await repository.updateBookDraft(
@@ -63,6 +66,7 @@ void main() {
       final book = (await repository.getBook(id))!;
       expect(book.genre, 'Thriller');
       expect(book.priceCents, isNull, reason: 'cleared by the user');
+      expect(book.receivedAs, isNull, reason: 'cleared by the user');
     });
   });
 
@@ -71,6 +75,7 @@ void main() {
       String? genre,
       int? priceCents,
       DateTime? receivedAt,
+      ReceivedAs? receivedAs,
       int? readingSeconds,
     }) => Book(
       id: 1,
@@ -79,6 +84,7 @@ void main() {
       genre: genre,
       priceCents: priceCents,
       receivedAt: receivedAt,
+      receivedAs: receivedAs,
       readingSeconds: readingSeconds,
       status: BookStatus.unread,
       rating: 0,
@@ -97,6 +103,7 @@ void main() {
       genre: const Value('Fantasy'),
       priceCents: const Value(999),
       receivedAt: Value(DateTime(2024, 5, 1)),
+      receivedAs: const Value(ReceivedAs.purchase),
     );
 
     test('fills empty genre, price and received date', () {
@@ -104,6 +111,7 @@ void main() {
       expect(patch.genre.value, 'Fantasy');
       expect(patch.priceCents.value, 999);
       expect(patch.receivedAt.value, DateTime(2024, 5, 1));
+      expect(patch.receivedAs.value, ReceivedAs.purchase);
     });
 
     test('fills an empty reading time but keeps an existing one', () {
@@ -127,6 +135,7 @@ void main() {
           genre: 'Krimi',
           priceCents: 0,
           receivedAt: DateTime(2020, 1, 1),
+          receivedAs: ReceivedAs.gift,
         ),
         incoming(),
       );
@@ -143,6 +152,7 @@ void main() {
         genre: 'Krimi',
         priceCents: 1290,
         receivedAt: DateTime(2025, 12, 24),
+        receivedAs: ReceivedAs.reviewCopy,
         readingSeconds: 19800,
       ),
     );
@@ -155,6 +165,12 @@ void main() {
       expect(book['priceCents'], 1290);
       expect(book['receivedAt'], startsWith('2025-12-24'));
       expect(book['readingSeconds'], 19800);
+      expect(book['receivedAs'], 'reviewCopy');
+      expect(
+        book.containsKey('coverNotFound'),
+        isFalse,
+        reason: 'device state',
+      );
     });
 
     test('CSV export contains genre, price and received_at', () async {
@@ -165,6 +181,9 @@ void main() {
       expect(header, contains('price'));
       expect(header, contains('received_at'));
       expect(header, contains('reading_seconds'));
+      expect(header, contains('received_as'));
+      expect(header, isNot(contains('cover_not_found')));
+      expect(csv, contains('reviewCopy'));
       expect(csv, contains('12.90'));
       expect(csv, contains('Krimi'));
     });
@@ -194,6 +213,7 @@ void main() {
         (book.genre, book.priceCents, book.receivedAt, book.readingSeconds),
         ('Krimi', 1290, DateTime(2025, 12, 24), 19800),
       );
+      expect(book.receivedAs, ReceivedAs.reviewCopy);
     });
 
     test('CSV export round-trips the fields', () async {
@@ -210,6 +230,7 @@ void main() {
         (book.genre, book.priceCents, book.receivedAt, book.readingSeconds),
         ('Krimi', 1290, DateTime(2025, 12, 24), 19800),
       );
+      expect(book.receivedAs, ReceivedAs.reviewCopy);
     });
   });
 }

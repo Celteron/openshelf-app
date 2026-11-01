@@ -30,6 +30,7 @@ class BookDraft {
   final String? genre;
   final int? priceCents;
   final DateTime? receivedAt;
+  final ReceivedAs? receivedAs;
 
   /// Reading time entered without a dated session, in seconds.
   final int? readingSeconds;
@@ -62,6 +63,7 @@ class BookDraft {
     this.genre,
     this.priceCents,
     this.receivedAt,
+    this.receivedAs,
     this.readingSeconds,
     this.editedFields = const {},
   });

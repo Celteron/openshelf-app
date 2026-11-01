@@ -568,6 +568,12 @@ class _MetadataTable extends StatelessWidget {
         l10n.receivedAtLabel,
         book.receivedAt == null ? null : _date(context, book.receivedAt!),
       ),
+      (
+        l10n.fieldReceivedAs,
+        book.receivedAs == null
+            ? null
+            : receivedAsLabel(l10n, book.receivedAs!),
+      ),
       (l10n.dateAddedLabel, _date(context, book.createdAt)),
       (l10n.dateModifiedLabel, _date(context, book.updatedAt)),
       (

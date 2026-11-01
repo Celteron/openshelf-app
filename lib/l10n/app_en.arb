@@ -532,7 +532,7 @@
   "fieldReceivedAt": "Received on",
   "invalidPrice": "Enter a valid price, e.g. 12.90",
   "clearDate": "Clear date",
-  "importFieldName": "{field, select, title{Title} subtitle{Subtitle} authors{Author(s)} isbn{ISBN} isbn13{ISBN-13} isbn10{ISBN-10} publisher{Publisher} publishedYear{Year published} pageCount{Page count} format{Format} language{Language} description{Description} rating{Rating} status{Reading status} seriesName{Series} seriesVolume{Volume} favorite{Favourite} review{Review} notes{Notes} tags{Tags} startDate{Reading started} finishDate{Reading finished} readings{Readings} dateAdded{Added on} olid{Open Library ID} quotes{Quotes} currentPage{Current page} finishedAt{Finished on} location{Location} borrower{Lent to} lentAt{Lent on} expectedReturn{Return by} lendingStatus{Lending status} coverUrl{Cover URL} dateModified{Modified on} genre{Genre} price{Price} receivedAt{Received on} durationHours{Reading time (hours)} durationMinutes{Reading time (minutes)} readingSeconds{Reading time (seconds)} other{{field}}}",
+  "importFieldName": "{field, select, title{Title} subtitle{Subtitle} authors{Author(s)} isbn{ISBN} isbn13{ISBN-13} isbn10{ISBN-10} publisher{Publisher} publishedYear{Year published} pageCount{Page count} format{Format} language{Language} description{Description} rating{Rating} status{Reading status} seriesName{Series} seriesVolume{Volume} favorite{Favourite} review{Review} notes{Notes} tags{Tags} startDate{Reading started} finishDate{Reading finished} readings{Readings} dateAdded{Added on} olid{Open Library ID} quotes{Quotes} currentPage{Current page} finishedAt{Finished on} location{Location} borrower{Lent to} lentAt{Lent on} expectedReturn{Return by} lendingStatus{Lending status} coverUrl{Cover URL} dateModified{Modified on} genre{Genre} price{Price} receivedAt{Received on} durationHours{Reading time (hours)} durationMinutes{Reading time (minutes)} readingSeconds{Reading time (seconds)} receivedAs{Received as} other{{field}}}",
   "@importFieldName": {
     "placeholders": {
       "field": {
@@ -623,5 +623,12 @@
   "importFinish": "Done",
   "importUnsupportedFormat": "The file format is not recognised.",
   "importAborted": "The import was cancelled.",
-  "importPathHint": "/path/to/file.csv"
+  "importPathHint": "/path/to/file.csv",
+  "fieldReceivedAs": "Received as",
+  "receivedAsUnknown": "Unknown",
+  "receivedAsPurchase": "Purchase",
+  "receivedAsGift": "Gift",
+  "receivedAsLoan": "Loan",
+  "receivedAsReviewCopy": "Review copy",
+  "receivedAsOther": "Other"
 }

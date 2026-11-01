@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:openreads/data/importers/book_importer.dart';
+import 'package:openreads/data/importers/import_parsing.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/import.dart';
 
@@ -113,6 +114,10 @@ class JsonBackupImporter implements BookImporter {
             genre: _str(map['genre']),
             priceCents: _int(map['priceCents']),
             receivedAt: _date(map['receivedAt']),
+            receivedAs: parseReceivedAs(switch (map['receivedAs']) {
+              final String s => s,
+              _ => null,
+            }),
             readingSeconds: _int(map['readingSeconds']),
             seriesName: _str(seriesRow?['name']),
             seriesTotalVolumes: _int(seriesRow?['totalPlannedVolumes']),

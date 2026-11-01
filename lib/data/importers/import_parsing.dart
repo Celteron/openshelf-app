@@ -237,3 +237,31 @@ List<NoteImport> noteList(String? text, {DateTime? createdAt}) {
   if (content == null || content.isEmpty) return const [];
   return [NoteImport(content: content, createdAt: createdAt)];
 }
+
+/// "Erhalten als" from any source: German and English words and the exported
+/// enum names. Blank is unknown (`null`); anything unrecognised is
+/// [ReceivedAs.other], so the information "it was received somehow" survives.
+ReceivedAs? parseReceivedAs(String? raw) {
+  final value = raw?.trim().toLowerCase().replaceAll(RegExp(r'[\s_-]+'), '');
+  if (value == null || value.isEmpty) return null;
+  return _receivedAsWords[value] ?? ReceivedAs.other;
+}
+
+const _receivedAsWords = {
+  'purchase': ReceivedAs.purchase,
+  'kauf': ReceivedAs.purchase,
+  'gekauft': ReceivedAs.purchase,
+  'bought': ReceivedAs.purchase,
+  'gift': ReceivedAs.gift,
+  'geschenk': ReceivedAs.gift,
+  'geschenkt': ReceivedAs.gift,
+  'loan': ReceivedAs.loan,
+  'leihe': ReceivedAs.loan,
+  'ausleihe': ReceivedAs.loan,
+  'geliehen': ReceivedAs.loan,
+  'borrowed': ReceivedAs.loan,
+  'reviewcopy': ReceivedAs.reviewCopy,
+  'rezensionsexemplar': ReceivedAs.reviewCopy,
+  'other': ReceivedAs.other,
+  'sonstiges': ReceivedAs.other,
+};

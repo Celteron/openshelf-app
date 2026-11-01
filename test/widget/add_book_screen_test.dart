@@ -87,6 +87,7 @@ Book existing({
   String? genre,
   int? priceCents,
   DateTime? receivedAt,
+  ReceivedAs? receivedAs,
   int? readingSeconds,
 }) => Book(
   id: 5,
@@ -99,6 +100,7 @@ Book existing({
   genre: genre,
   priceCents: priceCents,
   receivedAt: receivedAt,
+  receivedAs: receivedAs,
   readingSeconds: readingSeconds,
   coverUrl: coverUrl,
   coverLocalPath: coverLocalPath,
@@ -460,6 +462,44 @@ void main() {
       expect(find.text('Keine Treffer'), findsOneWidget);
     });
   });
+  group('received as (spec 004)', () {
+    Future<void> pick(WidgetTester tester, String label) async {
+      final field = find.byKey(const ValueKey('received-as'));
+      await tester.ensureVisible(field);
+      await tester.tap(field);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label).last);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('is saved with a new book', (tester) async {
+      await pump(tester);
+      await enterTitle(tester, 'Neu');
+      await pick(tester, 'Geschenk');
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      expect(books.added.single.receivedAs, ReceivedAs.gift);
+    });
+
+    testWidgets('is kept when editing and can be cleared', (tester) async {
+      await pump(tester, book: existing(receivedAs: ReceivedAs.loan));
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('received-as')),
+          matching: find.text('Leihe'),
+        ),
+        findsOneWidget,
+      );
+
+      await pick(tester, 'Unbekannt');
+      await tester.tap(find.text('Speichern'));
+      await tester.pumpAndSettle();
+
+      expect(books.updated.single.$2.receivedAs, isNull);
+    });
+  });
+
   group('genre, price and received date (spec 003)', () {
     testWidgets('are saved with a new book', (tester) async {
       await pump(tester);

@@ -167,6 +167,7 @@ class BookImport {
   /// Purchase price in euro cents and the date the book was received.
   final int? priceCents;
   final DateTime? receivedAt;
+  final ReceivedAs? receivedAs;
 
   /// Reading time known without any reading date, in seconds.
   final int? readingSeconds;
@@ -226,6 +227,7 @@ class BookImport {
     this.genre,
     this.priceCents,
     this.receivedAt,
+    this.receivedAs,
     this.readingSeconds,
     this.seriesName,
     this.seriesVolume,

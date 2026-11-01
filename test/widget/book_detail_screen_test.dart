@@ -136,6 +136,7 @@ Book sampleBook({
   String? genre,
   int? priceCents,
   DateTime? receivedAt,
+  ReceivedAs? receivedAs,
   int? readingSeconds,
 }) => Book(
   id: 1,
@@ -152,6 +153,7 @@ Book sampleBook({
   genre: genre,
   priceCents: priceCents,
   receivedAt: receivedAt,
+  receivedAs: receivedAs,
   readingSeconds: readingSeconds,
   editedFields: const [],
   isFavorite: favorite,
@@ -555,9 +557,12 @@ void main() {
           genre: 'Krimi',
           priceCents: 1290,
           receivedAt: DateTime(2025, 12, 24),
+          receivedAs: ReceivedAs.reviewCopy,
         ),
       );
 
+      expect(find.text('Erhalten als'), findsOneWidget);
+      expect(find.text('Rezensionsexemplar'), findsOneWidget);
       expect(find.text('Genre'), findsOneWidget);
       expect(find.text('Krimi'), findsOneWidget);
       expect(find.text('Preis'), findsOneWidget);
@@ -571,6 +576,7 @@ void main() {
       expect(find.text('Genre'), findsNothing);
       expect(find.text('Preis'), findsNothing);
       expect(find.text('Erhalten am'), findsNothing);
+      expect(find.text('Erhalten als'), findsNothing);
     });
 
     testWidgets('shows the reading period and the time read separately', (

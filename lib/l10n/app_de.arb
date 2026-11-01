@@ -591,7 +591,7 @@
   "fieldReceivedAt": "Erhalten am",
   "invalidPrice": "Bitte einen gültigen Preis eingeben, z. B. 12,90",
   "clearDate": "Datum entfernen",
-  "importFieldName": "{field, select, title{Titel} subtitle{Untertitel} authors{Autor(en)} isbn{ISBN} isbn13{ISBN-13} isbn10{ISBN-10} publisher{Verlag} publishedYear{Erscheinungsjahr} pageCount{Seitenzahl} format{Format} language{Sprache} description{Beschreibung} rating{Bewertung} status{Lesestatus} seriesName{Reihe} seriesVolume{Band} favorite{Favorit} review{Rezension} notes{Notizen} tags{Tags} startDate{Lesebeginn} finishDate{Leseende} readings{Lesungen} dateAdded{Hinzugefügt am} olid{Open-Library-ID} quotes{Zitate} currentPage{Aktuelle Seite} finishedAt{Beendet am} location{Standort} borrower{Verleihen an} lentAt{Verliehen am} expectedReturn{Rückgabe bis} lendingStatus{Verleihstatus} coverUrl{Cover-URL} dateModified{Geändert am} genre{Genre} price{Preis} receivedAt{Erhalten am} durationHours{Lesedauer (Stunden)} durationMinutes{Lesedauer (Minuten)} readingSeconds{Lesezeit (Sekunden)} other{{field}}}",
+  "importFieldName": "{field, select, title{Titel} subtitle{Untertitel} authors{Autor(en)} isbn{ISBN} isbn13{ISBN-13} isbn10{ISBN-10} publisher{Verlag} publishedYear{Erscheinungsjahr} pageCount{Seitenzahl} format{Format} language{Sprache} description{Beschreibung} rating{Bewertung} status{Lesestatus} seriesName{Reihe} seriesVolume{Band} favorite{Favorit} review{Rezension} notes{Notizen} tags{Tags} startDate{Lesebeginn} finishDate{Leseende} readings{Lesungen} dateAdded{Hinzugefügt am} olid{Open-Library-ID} quotes{Zitate} currentPage{Aktuelle Seite} finishedAt{Beendet am} location{Standort} borrower{Verleihen an} lentAt{Verliehen am} expectedReturn{Rückgabe bis} lendingStatus{Verleihstatus} coverUrl{Cover-URL} dateModified{Geändert am} genre{Genre} price{Preis} receivedAt{Erhalten am} durationHours{Lesedauer (Stunden)} durationMinutes{Lesedauer (Minuten)} readingSeconds{Lesezeit (Sekunden)} receivedAs{Erhalten als} other{{field}}}",
   "@importFieldName": {
     "placeholders": {
       "field": {
@@ -706,5 +706,12 @@
   },
   "importUnsupportedFormat": "Das Dateiformat wird nicht erkannt.",
   "importAborted": "Der Import wurde abgebrochen.",
-  "importPathHint": "/pfad/zur/datei.csv"
+  "importPathHint": "/pfad/zur/datei.csv",
+  "fieldReceivedAs": "Erhalten als",
+  "receivedAsUnknown": "Unbekannt",
+  "receivedAsPurchase": "Kauf",
+  "receivedAsGift": "Geschenk",
+  "receivedAsLoan": "Leihe",
+  "receivedAsReviewCopy": "Rezensionsexemplar",
+  "receivedAsOther": "Sonstiges"
 }

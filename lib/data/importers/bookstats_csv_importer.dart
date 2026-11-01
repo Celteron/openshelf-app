@@ -50,6 +50,7 @@ class BookstatsCsvImporter extends CsvImporter {
     'lesebeginn': ColumnMapper.fieldStartDate,
     'leseende': ColumnMapper.fieldFinishDate,
     'erhalten am': ColumnMapper.fieldDateAdded,
+    'erhalten als': ColumnMapper.fieldReceivedAs,
   });
 
   @override
@@ -62,6 +63,7 @@ class BookstatsCsvImporter extends CsvImporter {
   Set<String> get mappableFields => {
     ...super.mappableFields,
     ColumnMapper.fieldReceivedAt,
+    ColumnMapper.fieldReceivedAs,
   };
 
   @override
@@ -116,6 +118,7 @@ class BookstatsCsvImporter extends CsvImporter {
       genre: parseGenre(fields[ColumnMapper.fieldGenre]),
       priceCents: parsePriceCents(fields[ColumnMapper.fieldPrice]),
       receivedAt: parseDate(fields[ColumnMapper.fieldReceivedAt]) ?? addedAt,
+      receivedAs: parseReceivedAs(fields[ColumnMapper.fieldReceivedAs]),
       tags: parseTags(
         [
           fields[ColumnMapper.fieldGenre],

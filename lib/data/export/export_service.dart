@@ -97,6 +97,7 @@ class ExportService {
     'price',
     'received_at',
     'reading_seconds',
+    'received_as',
   ];
 
   /// Every book (trashed ones flagged `deleted=true`) with all of its data:
@@ -205,6 +206,7 @@ class ExportService {
         _price(b.priceCents),
         b.receivedAt?.toIso8601String() ?? '',
         b.readingSeconds?.toString() ?? '',
+        b.receivedAs?.name ?? '',
       ]);
     }
     return const ListToCsvConverter(eol: '\n').convert(rows);
@@ -255,6 +257,7 @@ class ExportService {
     'genre': b.genre,
     'priceCents': b.priceCents,
     'receivedAt': b.receivedAt?.toIso8601String(),
+    'receivedAs': b.receivedAs?.name,
     'readingSeconds': b.readingSeconds,
     'deletedAt': b.deletedAt?.toIso8601String(),
     'createdAt': b.createdAt.toIso8601String(),
