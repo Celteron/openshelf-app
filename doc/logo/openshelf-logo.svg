@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14b8a6"/>
+      <stop offset="1" stop-color="#0f4c5c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.25" cy="0.18" r="0.75">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.38"/>
+      <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.62"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.16"/>
+    </linearGradient>
+    <linearGradient id="glassStrong" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.55"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="shadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#000000" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g id="background">
+    <rect x="0" y="0" width="1024" height="1024" rx="232" fill="url(#bg)"/>
+    <rect x="0" y="0" width="1024" height="1024" rx="232" fill="url(#glow)"/>
+  </g>
+  <g id="artwork">
+  <rect x="262" y="310" width="84" height="250" rx="14" fill="#99f6e4" fill-opacity="0.22" stroke="#ffffff" stroke-opacity="0.45" stroke-width="4"/>
+  <rect x="366" y="260" width="84" height="300" rx="14" fill="#ccfbf1" fill-opacity="0.22" stroke="#ffffff" stroke-opacity="0.45" stroke-width="4"/>
+  <rect x="470" y="330" width="84" height="230" rx="14" fill="#a7f3d0" fill-opacity="0.22" stroke="#ffffff" stroke-opacity="0.45" stroke-width="4"/>
+  <rect x="574" y="280" width="84" height="280" rx="14" fill="#99f6e4" fill-opacity="0.22" stroke="#ffffff" stroke-opacity="0.45" stroke-width="4"/>
+  <rect x="678" y="300" width="84" height="260" rx="14" fill="#ccfbf1" fill-opacity="0.22" stroke="#ffffff" stroke-opacity="0.45" stroke-width="4"/>
+  <rect x="232" y="556" width="560" height="14" rx="7" fill="#ffffff" fill-opacity="0.45"/>
+  <path d="M512,800 C410.5,766 294.5,766 222,789.8 L222,510 C294.5,476 410.5,476 512,515.1 Z" fill="url(#glassStrong)" stroke="#ffffff" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M512,800 C613.5,766 729.5,766 802,789.8 L802,510 C729.5,476 613.5,476 512,515.1 Z" fill="url(#glassStrong)" stroke="#ffffff" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M512,515.1 L512,800" stroke="#ffffff" stroke-opacity="0.9" stroke-width="5"/>
+  <path d="M459.8,597.2 Q372.79999999999995,581.2 285.79999999999995,591.2" stroke="#0b1f33" stroke-opacity="0.18" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M564.2,597.2 Q651.2,581.2 738.2,591.2" stroke="#0b1f33" stroke-opacity="0.18" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M459.8,643.6 Q372.79999999999995,627.6 285.79999999999995,637.6" stroke="#0b1f33" stroke-opacity="0.18" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M564.2,643.6 Q651.2,627.6 738.2,637.6" stroke="#0b1f33" stroke-opacity="0.18" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M459.8,690.0 Q372.79999999999995,674.0 285.79999999999995,684.0" stroke="#0b1f33" stroke-opacity="0.18" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M564.2,690.0 Q651.2,674.0 738.2,684.0" stroke="#0b1f33" stroke-opacity="0.18" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M459.8,736.4 Q406.15,720.4 352.5,730.4" stroke="#0b1f33" stroke-opacity="0.18" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M564.2,736.4 Q617.85,720.4 671.5,730.4" stroke="#0b1f33" stroke-opacity="0.18" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M624.5,489.6 L660.5,489.6 L660.5,631.8 L642.5,608.6 L624.5,631.8 Z" fill="#f59e0b"/>
+  </g>
+</svg>

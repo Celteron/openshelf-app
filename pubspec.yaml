@@ -43,19 +43,21 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  flutter_launcher_icons: "^0.13.1"
+  flutter_launcher_icons: ^0.14.4
   drift_dev: ^2.35.1
   build_runner: ^2.4.13
   test: ^1.25.0
 
 flutter_launcher_icons:
-  image_path: "./assets/icons/icon.png"
-  adaptive_icon_foreground: "./assets/icons/icon.png"
-  adaptive_icon_background: "#00BFA6"
-  min_sdk_android: 21
-  android: "launcher_icon"
+  # Sources and generator: doc/logo/ (make_logo.py), then `dart run flutter_launcher_icons`.
+  android: true
+  image_path: "doc/logo/generated/icon.png"
+  adaptive_icon_foreground: "doc/logo/generated/foreground.png"
+  adaptive_icon_background: "doc/logo/generated/background.png"
+  adaptive_icon_monochrome: "doc/logo/generated/monochrome.png"
+  min_sdk_android: 24
   ios: true
-  image_path_ios: "./assets/icons/gplay-icon.png"
+  image_path_ios: "doc/logo/generated/icon_ios.png"
   remove_alpha_ios: true
 
 flutter:
@@ -63,7 +65,6 @@ flutter:
   generate: true
   assets:
     - assets/images/
-    - assets/icons/
     - assets/translations/
   fonts:
     - family: Montserrat
