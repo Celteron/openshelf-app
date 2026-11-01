@@ -1,6 +1,5 @@
-import 'dart:math';
-
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -226,6 +225,19 @@ void main() {
       ).colorScheme;
 
       expect(scheme.tertiary, isNot(const Color(0xFFB45309)));
+    });
+
+    test('text fields keep a visible focus and error frame', () {
+      for (final brightness in Brightness.values) {
+        final theme = buildAppTheme(brightness: brightness);
+        final input = theme.inputDecorationTheme;
+        final scheme = theme.colorScheme;
+
+        expect(input.focusedBorder!.borderSide.color, scheme.primary);
+        expect(input.focusedBorder!.borderSide.width, 2);
+        expect(input.errorBorder!.borderSide.color, scheme.error);
+        expect(input.focusedErrorBorder!.borderSide.color, scheme.error);
+      }
     });
 
     test('the selected navigation icon stands out from its indicator', () {

@@ -34,19 +34,30 @@ void main() {
   BookImport book(String title, String isbn) =>
       BookImport(title: title, isbn13: isbn, authors: const ['A']);
 
-  test('reports every handled row, skipped ones included', () async {
+  test('reports progress only once the rows are written', () async {
     final progress = <int>[];
+    // Book count at each report; drift runs the queries in order, so each
+    // one sees the database as it was when the report came.
+    final stored = <Future<int>>[];
 
     await service.import(
       Stream.fromIterable([
-        ImportRow(rowNumber: 1, book: book('One', '9780000000001')),
-        const ImportRow(rowNumber: 2, error: 'broken'),
-        ImportRow(rowNumber: 3, book: book('Three', '9780000000003')),
+        for (var i = 1; i <= 250; i++)
+          i == 7
+              ? const ImportRow(rowNumber: 7, error: 'broken')
+              : ImportRow(
+                  rowNumber: i,
+                  book: book('Book $i', '978${i.toString().padLeft(10, '0')}'),
+                ),
       ]),
-      onProgress: progress.add,
+      onProgress: (handled) {
+        progress.add(handled);
+        stored.add(db.select(db.books).get().then((rows) => rows.length));
+      },
     );
 
-    expect(progress, [1, 2, 3]);
+    expect(progress, [101, 201, 250], reason: 'batches of 100 books');
+    expect(await Future.wait(stored), [100, 200, 249]);
   });
 
   test('imports books and skips duplicates by ISBN', () async {

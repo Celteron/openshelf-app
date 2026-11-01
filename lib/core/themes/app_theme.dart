@@ -68,9 +68,14 @@ ThemeData buildAppTheme({
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: scheme.surfaceContainerHigh,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(28),
-        borderSide: BorderSide.none,
+      // A borderless base hides focus and errors unless those states get
+      // their own frame (InputDecorator does not derive them from `none`).
+      border: _fieldBorder(BorderSide.none),
+      enabledBorder: _fieldBorder(BorderSide.none),
+      focusedBorder: _fieldBorder(BorderSide(color: scheme.primary, width: 2)),
+      errorBorder: _fieldBorder(BorderSide(color: scheme.error)),
+      focusedErrorBorder: _fieldBorder(
+        BorderSide(color: scheme.error, width: 2),
       ),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -93,6 +98,12 @@ ThemeData buildAppTheme({
     ),
   );
 }
+
+// 12 dp keeps multi-line fields (description, notes) from turning into pills.
+OutlineInputBorder _fieldBorder(BorderSide side) => OutlineInputBorder(
+  borderRadius: BorderRadius.circular(12),
+  borderSide: side,
+);
 
 /// The logo's colours: petrol kept true to the seed (`fidelity`), amber as the
 /// accent (the ribbon), and in the dark petrol-tinted surfaces instead of the

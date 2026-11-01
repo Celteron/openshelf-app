@@ -584,11 +584,11 @@ abstract class AppLocalizations {
   /// **'English'**
   String get languageEnglish;
 
-  /// No description provided for @exportLabel.
+  /// No description provided for @importExportTitle.
   ///
   /// In de, this message translates to:
   /// **'Import & Export'**
-  String get exportLabel;
+  String get importExportTitle;
 
   /// No description provided for @exportJson.
   ///
@@ -1592,12 +1592,6 @@ abstract class AppLocalizations {
   /// **'Alle Felder, kompatibel mit dem Openreads-CSV-Import'**
   String get exportCsvHint;
 
-  /// No description provided for @restoreBackup.
-  ///
-  /// In de, this message translates to:
-  /// **'Backup wiederherstellen / importieren'**
-  String get restoreBackup;
-
   /// No description provided for @restoreBackupHint.
   ///
   /// In de, this message translates to:
@@ -2149,6 +2143,24 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Fertig'**
   String get importFinish;
+
+  /// No description provided for @importUnsupportedFormat.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Dateiformat wird nicht erkannt.'**
+  String get importUnsupportedFormat;
+
+  /// No description provided for @importAborted.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Import wurde abgebrochen.'**
+  String get importAborted;
+
+  /// No description provided for @importPathHint.
+  ///
+  /// In de, this message translates to:
+  /// **'/pfad/zur/datei.csv'**
+  String get importPathHint;
 }
 
 class _AppLocalizationsDelegate

@@ -147,7 +147,7 @@
   "themeDark": "Dunkel",
   "languageGerman": "Deutsch",
   "languageEnglish": "English",
-  "exportLabel": "Import & Export",
+  "importExportTitle": "Import & Export",
   "exportJson": "JSON exportieren",
   "exportCsv": "CSV exportieren",
   "exportDone": "Exportiert nach:",
@@ -508,7 +508,6 @@
   },
   "exportJsonHint": "Vollständiges Backup – lässt sich wiederherstellen",
   "exportCsvHint": "Alle Felder, kompatibel mit dem Openreads-CSV-Import",
-  "restoreBackup": "Backup wiederherstellen / importieren",
   "restoreBackupHint": "Bookstats, OpenShelf-Backup, Openreads, Goodreads, StoryGraph, Bookwyrm …",
   "sourceCode": "Quellcode",
   "reportIssue": "Fehler melden",
@@ -704,5 +703,8 @@
         "type": "int"
       }
     }
-  }
+  },
+  "importUnsupportedFormat": "Das Dateiformat wird nicht erkannt.",
+  "importAborted": "Der Import wurde abgebrochen.",
+  "importPathHint": "/pfad/zur/datei.csv"
 }

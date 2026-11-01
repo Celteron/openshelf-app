@@ -760,21 +760,26 @@ class _TagFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final tagsState = context.watch<TagsCubit>().state;
-    if (tagsState is! TagsLoaded || tagsState.tags.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    final libraryState = context.watch<LibraryCubit>().state;
-    final active = libraryState is LibraryLoaded
-        ? libraryState.tagIds
-        : const <int>{};
+    final hasTags = context.select(
+      (TagsCubit c) => switch (c.state) {
+        TagsLoaded(:final tags) => tags.isNotEmpty,
+        _ => false,
+      },
+    );
+    if (!hasTags) return const SizedBox.shrink();
+    final activeCount = context.select(
+      (LibraryCubit c) => switch (c.state) {
+        LibraryLoaded(:final tagIds) => tagIds.length,
+        _ => 0,
+      },
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: ActionChip(
         key: const ValueKey('tag-filter'),
         avatar: const Icon(Icons.sell_outlined, size: 16),
-        label: Text(l10n.tagFilterLabel(active.length)),
-        backgroundColor: active.isEmpty
+        label: Text(l10n.tagFilterLabel(activeCount)),
+        backgroundColor: activeCount == 0
             ? null
             : Theme.of(context).colorScheme.secondaryContainer,
         onPressed: () => _showTagSheet(context),
@@ -852,9 +857,7 @@ class _TagFilterSheetState extends State<_TagFilterSheet> {
                 ),
                 if (selected.isNotEmpty)
                   TextButton(
-                    // Keeping none of the existing tags clears the filter.
-                    onPressed: () =>
-                        context.read<LibraryCubit>().retainTags(const {}),
+                    onPressed: () => context.read<LibraryCubit>().clearTags(),
                     child: Text(l10n.clearTagFilter),
                   ),
               ],
@@ -872,7 +875,10 @@ class _TagFilterSheetState extends State<_TagFilterSheet> {
             if (shown.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(l10n.noMatchingTags, textAlign: TextAlign.center),
+                child: Text(
+                  tags.isEmpty ? l10n.noTagsYet : l10n.noMatchingTags,
+                  textAlign: TextAlign.center,
+                ),
               )
             else
               Flexible(

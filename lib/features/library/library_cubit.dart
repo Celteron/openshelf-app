@@ -144,6 +144,13 @@ class LibraryCubit extends Cubit<LibraryState> {
     _subscribe();
   }
 
+  /// Drops every tag filter at once.
+  void clearTags() {
+    if (_tagIds.isEmpty) return;
+    _tagIds = const {};
+    _subscribe();
+  }
+
   void _subscribe() {
     _subscription?.cancel();
     final books = _repository.watchBooks(

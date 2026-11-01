@@ -105,24 +105,25 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     );
   }
 
-  Future<void> _exportJson() async {
-    final json = await context.read<ExportService>().exportJson();
-    await _writeExport('openshelf_export.json', json);
-  }
+  Future<void> _exportJson() => _export(
+    'openshelf_export.json',
+    context.read<ExportService>().exportJson,
+  );
 
-  Future<void> _exportCsv() async {
-    final csv = await context.read<ExportService>().exportBooksCsv();
-    await _writeExport('openshelf_books.csv', csv);
-  }
+  Future<void> _exportCsv() => _export(
+    'openshelf_books.csv',
+    context.read<ExportService>().exportBooksCsv,
+  );
 
-  Future<void> _writeExport(String name, String content) async {
-    if (!mounted) return;
+  /// Builds the export and hands it to the save dialog; a failure in either
+  /// step is reported instead of crashing.
+  Future<void> _export(String name, Future<String> Function() build) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final saver = context.read<ExportFileSaver>();
     final String? path;
     try {
-      path = await saver.save(name, content);
+      path = await saver.save(name, await build());
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.exportFailed)));
       return;
@@ -135,7 +136,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.exportLabel)),
+      appBar: AppBar(title: Text(l10n.importExportTitle)),
       body: BlocBuilder<ImporterCubit, ImporterState>(
         builder: (context, state) {
           return switch (state) {
@@ -178,11 +179,25 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                   ),
               ],
             ),
-            ImporterError(:final message) => _ResultView(
+            ImporterError(:final failure, :final detail) => _ResultView(
               icon: Icons.error_outline,
               isError: true,
               title: l10n.importFailedTitle,
-              children: [Text(message, textAlign: TextAlign.center)],
+              children: [
+                Text(switch (failure) {
+                  ImportFailure.unsupportedFormat =>
+                    l10n.importUnsupportedFormat,
+                  ImportFailure.failed => l10n.importAborted,
+                }, textAlign: TextAlign.center),
+                if (detail != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    detail,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ],
             ),
           };
         },
@@ -213,7 +228,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                 onSubmitted: (_) => _loadFromPath(),
                 decoration: InputDecoration(
                   labelText: l10n.importPathLabel,
-                  hintText: '/home/deck/backup.json',
+                  hintText: l10n.importPathHint,
                 ),
               ),
               const SizedBox(height: 8),

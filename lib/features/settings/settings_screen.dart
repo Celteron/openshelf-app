@@ -268,7 +268,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 key: const ValueKey('open-import-export'),
                 leading: const Icon(Icons.import_export),
-                title: Text(l10n.exportLabel),
+                title: Text(l10n.importExportTitle),
                 subtitle: Text(l10n.importExportHint),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.of(context).push(

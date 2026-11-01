@@ -93,7 +93,7 @@ class LibrarySort {
       } else if (ka != null && kb == null) {
         return -1;
       }
-      final byTitle = a.title.toLowerCase().compareTo(b.title.toLowerCase());
+      final byTitle = textSortKey(a.title).compareTo(textSortKey(b.title));
       return byTitle != 0 ? byTitle : a.id.compareTo(b.id);
     });
     return sorted;
@@ -102,7 +102,7 @@ class LibrarySort {
   Comparable<dynamic>? _key(Book b, Map<int, ReadingSpan> spans) {
     switch (field) {
       case LibrarySortField.title:
-        return b.title.toLowerCase();
+        return textSortKey(b.title);
       case LibrarySortField.author:
         final key = authorSortKey(b);
         return key.isEmpty ? null : key;
@@ -174,9 +174,31 @@ double readingProgress(Book book) {
 /// Sort key of the first author, surname first: both `Günter Grass` and
 /// `Grass, Günter` become `grass günter`, so differently written names sort
 /// together.
+/// Case- and accent-insensitive key for alphabetical sorting: umlauts sort like
+/// their base letter and ß like "ss" (DIN 5007, variant 1), so "Ärztin" comes
+/// right after "Apfel" and not after "Z". Plain code-unit order would put every
+/// non-ASCII letter behind z.
+String textSortKey(String text) {
+  final lower = text.toLowerCase();
+  final out = StringBuffer();
+  for (final char in lower.split('')) {
+    out.write(_folded[char] ?? char);
+  }
+  return out.toString();
+}
+
+const _folded = {
+  'ä': 'a', 'ö': 'o', 'ü': 'u', 'ß': 'ss', //
+  'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'å': 'a', 'æ': 'ae', //
+  'ç': 'c', 'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e', //
+  'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i', 'ñ': 'n', //
+  'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ø': 'o', 'œ': 'oe', //
+  'ù': 'u', 'ú': 'u', 'û': 'u', 'ý': 'y', 'ÿ': 'y',
+};
+
 String authorSortKey(Book book) {
   if (book.authors.isEmpty) return '';
-  final name = book.authors.first.trim().toLowerCase();
+  final name = textSortKey(book.authors.first.trim());
   if (name.contains(',')) {
     return name.replaceAll(',', ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
   }

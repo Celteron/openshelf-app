@@ -117,7 +117,7 @@ class _StagingShelf extends StatelessWidget {
                         leading: book.duplicate
                             ? Icon(
                                 Icons.warning,
-                                color: Theme.of(context).colorScheme.tertiary,
+                                color: Theme.of(context).colorScheme.error,
                               )
                             : UrlCover(
                                 key: ValueKey('staged-cover:${book.isbn13}'),

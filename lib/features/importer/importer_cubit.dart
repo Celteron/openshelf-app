@@ -48,9 +48,15 @@ class ImporterDone extends ImporterState {
   const ImporterDone(this.result);
 }
 
+/// Why an import ended without a result; the UI words it per language.
+enum ImportFailure { unsupportedFormat, failed }
+
 class ImporterError extends ImporterState {
-  final String message;
-  const ImporterError(this.message);
+  final ImportFailure failure;
+
+  /// Technical detail (exception text) for a bug report; not translated.
+  final String? detail;
+  const ImporterError(this.failure, [this.detail]);
 }
 
 /// Drives the import lifecycle (`selecting | mapping | importing | done`,
@@ -74,7 +80,7 @@ class ImporterCubit extends Cubit<ImporterState> {
   void selectFile(ImportFile file) {
     final importer = detect(file);
     if (importer == null) {
-      emit(const ImporterError('Unsupported file format'));
+      emit(const ImporterError(ImportFailure.unsupportedFormat));
       return;
     }
     emit(_mappingFor(file, importer));
@@ -150,7 +156,7 @@ class ImporterCubit extends Cubit<ImporterState> {
       );
       emit(ImporterDone(result));
     } catch (e) {
-      emit(ImporterError(e.toString()));
+      emit(ImporterError(ImportFailure.failed, e.toString()));
     }
   }
 

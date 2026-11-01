@@ -57,6 +57,25 @@ void main() {
     );
   });
 
+  test('umlauts and ß sort like their base letters (DIN 5007)', () {
+    final books = [
+      book(1, 'Zorn'),
+      book(2, 'Über Menschen'),
+      book(3, 'Ärztin'),
+      book(4, 'Apfel'),
+      book(5, 'Straße'),
+      book(6, 'Strand'),
+    ];
+    expect(sorted(const LibrarySort(), books), [
+      'Apfel',
+      'Ärztin',
+      'Strand',
+      'Straße',
+      'Über Menschen',
+      'Zorn',
+    ]);
+  });
+
   test('sorts by surname of the first author', () {
     final books = [
       book(1, 'A', authors: ['Günter Grass']),

@@ -291,7 +291,12 @@ void main() {
 
     await failing.runImport();
 
-    expect(failing.state, isA<ImporterError>());
+    expect(
+      failing.state,
+      isA<ImporterError>()
+          .having((s) => s.failure, 'failure', ImportFailure.failed)
+          .having((s) => s.detail, 'detail', contains('disk full')),
+    );
   });
 }
 

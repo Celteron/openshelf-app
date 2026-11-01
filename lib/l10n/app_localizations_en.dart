@@ -271,7 +271,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
-  String get exportLabel => 'Import & export';
+  String get importExportTitle => 'Import & export';
 
   @override
   String get exportJson => 'Export JSON';
@@ -883,9 +883,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'All fields, compatible with the Openreads CSV import';
 
   @override
-  String get restoreBackup => 'Restore backup / import';
-
-  @override
   String get restoreBackupHint =>
       'Bookstats, OpenShelf backup, Openreads, Goodreads, StoryGraph, Bookwyrm …';
 
@@ -1267,4 +1264,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importFinish => 'Done';
+
+  @override
+  String get importUnsupportedFormat => 'The file format is not recognised.';
+
+  @override
+  String get importAborted => 'The import was cancelled.';
+
+  @override
+  String get importPathHint => '/path/to/file.csv';
 }

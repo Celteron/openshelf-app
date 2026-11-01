@@ -239,7 +239,13 @@ void main() {
         ],
       );
       await openSheet(tester);
-      expect(find.byType(FilterChip), findsAtLeastNWidgets(3));
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(FilterChip),
+        ),
+        findsNWidgets(3),
+      );
 
       await tester.enterText(find.byKey(const ValueKey('tag-search')), 'kri');
       await tester.pumpAndSettle();
@@ -252,6 +258,20 @@ void main() {
       expect(chip('Krimi'), findsOneWidget);
       expect(chip('Kriegsroman'), findsOneWidget);
       expect(chip('Fantasy'), findsNothing);
+    });
+
+    testWidgets('"clear selection" drops every active tag', (tester) async {
+      await pumpLibrary(tester);
+      await openSheet(tester);
+      await tester.tap(find.widgetWithText(FilterChip, 'Krimi'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Auswahl aufheben'));
+      await tester.pumpAndSettle();
+      await closeSheet(tester);
+
+      expect(find.byType(InputChip), findsNothing);
+      expect(find.text('Beta'), findsOneWidget);
     });
 
     testWidgets('without tags there is no tag filter', (tester) async {

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openreads/data/export/export_file_saver.dart';
 import 'package:openreads/data/export/export_service.dart';
+import 'package:openreads/data/importers/importers.dart';
 import 'package:openreads/domain/models/import.dart';
 import 'package:openreads/domain/services/import_service.dart';
 import 'package:openreads/features/importer/import_export_screen.dart';
@@ -14,8 +15,13 @@ import 'package:openreads/l10n/app_localizations.dart';
 class _ImportService extends Fake implements ImportService {}
 
 class _Export extends Fake implements ExportService {
+  Object? error;
+
   @override
-  Future<String> exportJson() async => '{"books":[]}';
+  Future<String> exportJson() async {
+    if (error != null) throw error!;
+    return '{"books":[]}';
+  }
 
   @override
   Future<String> exportBooksCsv() async => 'Titel\n';
@@ -38,10 +44,12 @@ class _Saver implements ExportFileSaver {
 void main() {
   late ImporterCubit cubit;
   late _Saver saver;
+  late _Export export;
 
   setUp(() {
     cubit = ImporterCubit(_ImportService(), const []);
     saver = _Saver();
+    export = _Export();
   });
   tearDown(() => cubit.close());
 
@@ -53,7 +61,7 @@ void main() {
     await tester.pumpWidget(
       MultiRepositoryProvider(
         providers: [
-          RepositoryProvider<ExportService>.value(value: _Export()),
+          RepositoryProvider<ExportService>.value(value: export),
           RepositoryProvider<ExportFileSaver>.value(value: saver),
         ],
         child: BlocProvider.value(
@@ -127,13 +135,43 @@ void main() {
     tester,
   ) async {
     await pump(tester);
-    cubit.emit(const ImporterError('disk full'));
+    cubit.emit(const ImporterError(ImportFailure.failed, 'disk full'));
     await tester.pumpAndSettle();
 
     expect(find.text('Import fehlgeschlagen'), findsOneWidget);
-    expect(find.textContaining('disk full'), findsOneWidget);
+    expect(find.text('Der Import wurde abgebrochen.'), findsOneWidget);
+    expect(find.textContaining('disk full'), findsOneWidget, reason: 'detail');
 
     await tapKey(tester, 'import-again');
+    expect(cubit.state, isA<ImporterSelecting>());
+  });
+
+  testWidgets('an unknown file format is explained in German', (tester) async {
+    await pump(tester);
+    cubit.selectFile(
+      const ImportFile(name: 'x.txt', content: 'x', type: ImportFileType.csv),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Das Dateiformat wird nicht erkannt.'), findsOneWidget);
+    expect(find.textContaining('Unsupported'), findsNothing);
+  });
+
+  testWidgets('leaving the matcher starts the next visit fresh', (
+    tester,
+  ) async {
+    await pump(tester);
+    cubit.emit(
+      ImporterMapping(
+        const ImportFile(name: 'x.csv', content: '', type: ImportFileType.csv),
+        defaultImporters().first,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
     expect(cubit.state, isA<ImporterSelecting>());
   });
 
@@ -190,6 +228,15 @@ void main() {
       await tapKey(tester, 'export-json');
 
       expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('a failing export says so instead of crashing', (tester) async {
+      export.error = StateError('db closed');
+      await pump(tester);
+      await tapKey(tester, 'export-json');
+
+      expect(find.text('Export fehlgeschlagen'), findsOneWidget);
+      expect(saver.saved, isEmpty);
     });
 
     testWidgets('a failing save says so instead of crashing', (tester) async {

@@ -16,7 +16,9 @@ import 'package:openreads/domain/repositories/book_repository.dart';
 /// *updated*; if not, the row is a skipped *duplicate*. Existing data is never
 /// overwritten.
 class ImportService {
-  static const _batchSize = 500;
+  // Also the progress step: the bar moves once a batch is written. Small
+  // enough for a smooth bar, large enough to keep transactions few.
+  static const _batchSize = 100;
 
   final BookRepository _repository;
 
@@ -27,7 +29,8 @@ class ImportService {
     : _covers = coverCache;
 
   /// [onProgress] gets the number of rows handled so far, skipped ones
-  /// included, so a caller that knows the row count can show a progress bar.
+  /// included, each time a batch is written and once at the end, so a caller
+  /// that knows the row count can show a progress bar that matches the writes.
   Future<ImportResult> import(
     Stream<ImportRow> rows, {
     void Function(int handled)? onProgress,
@@ -40,47 +43,45 @@ class ImportService {
 
     var handled = 0;
     await for (final row in rows) {
-      // `finally` also runs on the `continue`s below: every row counts.
-      try {
-        // Backup rows that are not books: standalone locations and yearly goals.
-        if (row.goal != null) {
-          extraGoals.add(row.goal!);
-          continue;
-        }
-        if (row.location != null) {
-          extraLocations.add(row.location!);
-          continue;
-        }
-        if (row.tag != null) {
-          extraTags.add(row.tag!);
-          continue;
-        }
-        if (row.error != null) {
-          tally.skipped++;
-          tally.errors.add(
-            RowError(rowNumber: row.rowNumber, reason: row.error!),
-          );
-          continue;
-        }
+      handled++;
+      // Backup rows that are not books: standalone locations and yearly goals.
+      if (row.goal != null) {
+        extraGoals.add(row.goal!);
+        continue;
+      }
+      if (row.location != null) {
+        extraLocations.add(row.location!);
+        continue;
+      }
+      if (row.tag != null) {
+        extraTags.add(row.tag!);
+        continue;
+      }
+      if (row.error != null) {
+        tally.skipped++;
+        tally.errors.add(
+          RowError(rowNumber: row.rowNumber, reason: row.error!),
+        );
+        continue;
+      }
 
-        final book = row.book!;
-        if (book.title == null || book.title!.trim().isEmpty) {
-          tally.skipped++;
-          tally.errors.add(
-            RowError(rowNumber: row.rowNumber, reason: 'Missing title'),
-          );
-          continue;
-        }
+      final book = row.book!;
+      if (book.title == null || book.title!.trim().isEmpty) {
+        tally.skipped++;
+        tally.errors.add(
+          RowError(rowNumber: row.rowNumber, reason: 'Missing title'),
+        );
+        continue;
+      }
 
-        pending.add(await _toImported(book, row.rowNumber));
+      pending.add(await _toImported(book, row.rowNumber));
 
-        if (pending.length >= _batchSize) {
-          final ok = await _flush(pending, tally);
-          if (!ok) return tally.result();
-          pending.clear();
-        }
-      } finally {
-        onProgress?.call(++handled);
+      if (pending.length >= _batchSize) {
+        final ok = await _flush(pending, tally);
+        if (!ok) return tally.result();
+        pending.clear();
+        // Reported after the write, so the bar never runs ahead of it.
+        onProgress?.call(handled);
       }
     }
 
@@ -105,6 +106,7 @@ class ImportService {
         );
       }
     }
+    onProgress?.call(handled);
     return tally.result();
   }
 
