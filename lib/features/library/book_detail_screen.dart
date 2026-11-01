@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/core/helpers/price.dart';
 import 'package:openreads/core/helpers/rating.dart';
+import 'package:openreads/data/cover/cover_cache_service.dart';
+import 'package:openreads/data/cover/cover_picker.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
@@ -16,6 +18,7 @@ import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/domain/models/app_preferences.dart';
 import 'package:openreads/features/common/widgets/book_cover.dart';
 import 'package:openreads/features/library/add_book_screen.dart';
+import 'package:openreads/features/library/cover_search_screen.dart';
 import 'package:openreads/features/library/similar_books_screen.dart';
 import 'package:openreads/features/library/split_volumes_screen.dart';
 import 'package:openreads/features/library/widgets/rating_display.dart';
@@ -103,6 +106,54 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       ),
     );
     await _load();
+  }
+
+  T? _optional<T>() {
+    try {
+      return RepositoryProvider.of<T>(context, listen: false);
+    } catch (_) {
+      return null; // e.g. no camera on desktop, or isolated widget tests
+    }
+  }
+
+  /// Gives a book without cover one from the camera, the gallery or an
+  /// online search, without opening the form (FR-R2-14).
+  Future<void> _addCover(Book book, {CoverPickSource? source}) async {
+    final cache = _optional<CoverCacheService>();
+    if (cache == null) return;
+    final repository = context.read<BookRepository>();
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = AppLocalizations.of(context).coverPickFailed;
+    final key = BookCover.keyFor(book);
+    String? path;
+    try {
+      if (source != null) {
+        final bytes = await _optional<CoverPicker>()?.pick(source);
+        if (bytes == null) return;
+        path = await cache.saveCover(key, bytes);
+      } else {
+        final url = await Navigator.of(context).push<String>(
+          MaterialPageRoute(
+            builder: (_) => CoverSearchScreen(
+              isbn: book.isbn13,
+              coverUrl: book.coverUrl,
+              query: [book.title, ...book.authors.take(1)].join(' '),
+              onNothingFound: () => repository.setCoverNotFound(book.id),
+            ),
+          ),
+        );
+        if (url == null) return;
+        path = await cache.downloadAndCache(key, url);
+      }
+    } catch (_) {
+      path = null; // camera or photo access denied, storage full
+    }
+    if (path == null) {
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+      return;
+    }
+    await repository.setCoverLocalPath(book.id, path);
+    if (mounted) await _load();
   }
 
   Future<void> _toggleFavorite(Book book) async {
@@ -254,6 +305,43 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
+          // Always one slot, so adding a cover does not shift the list's
+          // children (which would resubscribe the session stream below).
+          if (book.coverLocalPath != null ||
+              _optional<CoverCacheService>() == null)
+            const SizedBox.shrink()
+          else
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                children: [
+                  if (_optional<CoverPicker>() != null) ...[
+                    IconButton.outlined(
+                      key: const ValueKey('detail-cover-camera'),
+                      tooltip: l10n.coverFromCamera,
+                      icon: const Icon(Icons.photo_camera_outlined),
+                      onPressed: () =>
+                          _addCover(book, source: CoverPickSource.camera),
+                    ),
+                    IconButton.outlined(
+                      key: const ValueKey('detail-cover-gallery'),
+                      tooltip: l10n.coverFromGallery,
+                      icon: const Icon(Icons.photo_library_outlined),
+                      onPressed: () =>
+                          _addCover(book, source: CoverPickSource.gallery),
+                    ),
+                  ],
+                  IconButton.outlined(
+                    key: const ValueKey('detail-cover-online'),
+                    tooltip: l10n.coverSearchTitle,
+                    icon: const Icon(Icons.image_search_outlined),
+                    onPressed: () => _addCover(book),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 12),
           Center(child: VerificationBadge(book: book)),
           const SizedBox(height: 8),

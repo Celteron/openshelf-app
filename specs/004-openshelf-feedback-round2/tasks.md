@@ -39,7 +39,7 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 - [X] T4-40 "+" choice sheet. (FR-R2-11)
 - [X] T4-41 Editable staged scans, shared values on "save all". (FR-R2-12)
 - [X] T4-42 `CoverSearchScreen` (stored URL, DNB, Open Library by ISBN, other editions by title + author), "Search online" in the book form, cached download, picked cover counts as an edit, nothing found sets the cover flag + tests. (FR-R2-13)
-- [ ] T4-43 Placeholder assets, "Without cover" filter, detail actions, download result with "Show". (FR-R2-14) — done: placeholders, filter, "Show"; open: cover actions on the detail screen.
+- [X] T4-43 Placeholders (not searched / none online), "Without cover" chip, cover actions (camera, gallery, online) on the detail screen of a book without cover, "Show" after "download missing covers" + tests. (FR-R2-14)
 - [X] T4-44 Edit reading start/end in the book form + tests. (FR-R2-22)
 - [X] T4-45 "Complete online" card on the detail screen of books without ISBN opens the form with the Open Library search (title + first author); a saved book only gets its empty fields and a missing cover filled + tests. (FR-R2-23)
 

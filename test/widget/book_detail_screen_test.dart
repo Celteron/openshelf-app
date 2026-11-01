@@ -2,9 +2,13 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:openreads/data/cover/cover_cache_service.dart';
+import 'package:openreads/data/cover/cover_picker.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/data/metadata/open_library_search_client.dart';
 import 'package:openreads/domain/models/book_draft.dart';
@@ -25,6 +29,7 @@ import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
 import '../helpers/fake_settings_repository.dart';
+import '../helpers/test_images.dart';
 
 class FakeBookRepository implements BookRepository {
   Book? book;
@@ -38,6 +43,10 @@ class FakeBookRepository implements BookRepository {
   final splits = <(int, List<VolumeDraft>)>[];
 
   FakeBookRepository(this.book);
+
+  @override
+  Future<void> setCoverLocalPath(int id, String? path) async =>
+      book = book!.copyWith(coverLocalPath: Value(path), coverNotFound: false);
 
   @override
   Future<Book?> getBook(int id) async => byId[id] ?? book ?? trashedBook;
@@ -152,6 +161,13 @@ class FakeLendingRepository implements LendingRepository {
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
+class _Picker implements CoverPicker {
+  Uint8List? next;
+
+  @override
+  Future<Uint8List?> pick(CoverPickSource source) async => next;
+}
+
 /// Lets the edit form open from the detail screen.
 class _Locations implements LocationRepository {
   @override
@@ -208,6 +224,8 @@ Future<FakeBookRepository> pumpDetail(
   List<ReadingSession> sessions = const [],
   List<Book> volumes = const [],
   Map<int, Book> others = const {},
+  CoverPicker? picker,
+  CoverCacheService? covers,
 }) async {
   // Tall enough that the whole (lazily built) list is on screen.
   tester.view.physicalSize = const Size(800, 3200);
@@ -224,6 +242,10 @@ Future<FakeBookRepository> pumpDetail(
         RepositoryProvider<TagRepository>.value(value: FakeTagRepository(tags)),
         RepositoryProvider<NotesRepository>.value(value: FakeNotesRepository()),
         RepositoryProvider<LocationRepository>.value(value: _Locations()),
+        if (picker != null)
+          RepositoryProvider<CoverPicker>.value(value: picker),
+        if (covers != null)
+          RepositoryProvider<CoverCacheService>.value(value: covers),
         RepositoryProvider<OpenLibrarySearchClient>.value(
           value: OpenLibrarySearchClient(
             client: MockClient((_) async => http.Response('{}', 404)),
@@ -755,6 +777,58 @@ void main() {
       final form = tester.widget<AddBookScreen>(find.byType(AddBookScreen));
       expect(form.searchOnline, isTrue);
       expect(form.book?.id, 1);
+    });
+
+    group('cover actions (FR-R2-14)', () {
+      late Directory dir;
+      setUp(() => dir = Directory.systemTemp.createTempSync('detail_cover'));
+      tearDown(() => dir.deleteSync(recursive: true));
+
+      CoverCacheService covers() => CoverCacheService(
+        baseDirectory: dir,
+        client: MockClient((_) async => http.Response('', 404)),
+      );
+
+      testWidgets('a book without cover can get one from the gallery', (
+        tester,
+      ) async {
+        final picker = _Picker()..next = testPng(seed: 4);
+        final repo = await pumpDetail(tester, picker: picker, covers: covers());
+        expect(find.byKey(const ValueKey('detail-cover-camera')), findsOne);
+        expect(find.byKey(const ValueKey('detail-cover-online')), findsOne);
+
+        await tester.runAsync(() async {
+          await tester.tap(find.byKey(const ValueKey('detail-cover-gallery')));
+          for (var i = 0; i < 6; i++) {
+            await tester.pump();
+            await Future<void>.delayed(const Duration(milliseconds: 30));
+          }
+        });
+        await tester.pump();
+
+        final path = repo.book!.coverLocalPath!;
+        expect(File(path).readAsBytesSync(), testPng(seed: 4));
+        expect(
+          find.byKey(const ValueKey('detail-cover-gallery')),
+          findsNothing,
+        );
+      });
+
+      testWidgets('a book with a cover offers no cover actions', (
+        tester,
+      ) async {
+        final cache = covers();
+        final path = (await tester.runAsync(
+          () => cache.saveCover('x', testPng()),
+        ))!;
+        await pumpDetail(
+          tester,
+          book: sampleBook().copyWith(coverLocalPath: Value(path)),
+          picker: _Picker(),
+          covers: cache,
+        );
+        expect(find.byKey(const ValueKey('detail-cover-online')), findsNothing);
+      });
     });
 
     testWidgets('a book with an ISBN does not offer it', (tester) async {
