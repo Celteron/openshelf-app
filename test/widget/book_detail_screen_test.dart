@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/domain/models/book_draft.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/domain/repositories/lending_repository.dart';
@@ -26,10 +27,31 @@ class FakeBookRepository implements BookRepository {
   final deleted = <int>[];
   final restored = <int>[];
 
+  /// Other books by id (a volume's slipcase) and the volumes of slipcases.
+  Map<int, Book> byId = {};
+  List<Book> volumes = [];
+  final splits = <(int, List<VolumeDraft>)>[];
+
   FakeBookRepository(this.book);
 
   @override
-  Future<Book?> getBook(int id) async => book ?? trashedBook;
+  Future<Book?> getBook(int id) async => byId[id] ?? book ?? trashedBook;
+
+  @override
+  Future<List<Book>> getVolumes(int id) async => [
+    for (final v in volumes)
+      if (v.parentId == id) v,
+  ];
+
+  @override
+  Future<List<int>> splitIntoVolumes(int id, List<VolumeDraft> drafts) async {
+    splits.add((id, drafts));
+    volumes = [
+      for (final (i, d) in drafts.indexed)
+        book!.copyWith(id: 100 + i, title: d.title, parentId: Value(id)),
+    ];
+    return [for (final v in volumes) v.id];
+  }
 
   @override
   Stream<List<Book>> watchBooks({
@@ -170,13 +192,17 @@ Future<FakeBookRepository> pumpDetail(
   List<Tag> tags = const [],
   List<LendingData> lendingHistory = const [],
   List<ReadingSession> sessions = const [],
+  List<Book> volumes = const [],
+  Map<int, Book> others = const {},
 }) async {
   // Tall enough that the whole (lazily built) list is on screen.
   tester.view.physicalSize = const Size(800, 3200);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
 
-  final repo = FakeBookRepository(book ?? sampleBook());
+  final repo = FakeBookRepository(book ?? sampleBook())
+    ..volumes = [...volumes]
+    ..byId = {...others};
   await tester.pumpWidget(
     MultiRepositoryProvider(
       providers: [
@@ -710,6 +736,97 @@ void main() {
       );
       // The one real edit action stays in the app bar.
       expect(find.byIcon(Icons.edit), findsOneWidget);
+    });
+  });
+
+  group('slipcases (ADR-0003)', () {
+    Book volume(int id, String title, BookStatus status) => sampleBook(
+      status: status,
+    ).copyWith(id: id, title: title, parentId: const Value(1));
+
+    testWidgets('a single book can be split into volumes', (tester) async {
+      final repo = await pumpDetail(tester);
+
+      await tester.tap(find.byKey(const ValueKey('book-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('split-volumes')));
+      await tester.pumpAndSettle();
+
+      final save = find.byKey(const ValueKey('split-save'));
+      await tester.enterText(
+        find.byKey(const ValueKey('volume-title-0')),
+        'Eins',
+      );
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(save).onPressed,
+        isNull,
+        reason: 'a slipcase needs at least two volumes',
+      );
+
+      await tester.enterText(
+        find.byKey(const ValueKey('volume-title-1')),
+        'Zwei',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('volume-pages-1')),
+        '320',
+      );
+      await tester.tap(find.byKey(const ValueKey('add-volume')));
+      await tester.pump();
+      await tester.enterText(
+        find.byKey(const ValueKey('volume-title-2')),
+        'Drei',
+      );
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+
+      final (id, drafts) = repo.splits.single;
+      expect(id, 1);
+      expect(drafts.map((d) => (d.title, d.pageCount)), [
+        ('Eins', null),
+        ('Zwei', 320),
+        ('Drei', null),
+      ]);
+      // Back on the detail screen, which now shows the volumes.
+      expect(find.byKey(const ValueKey('volumes-section')), findsOneWidget);
+    });
+
+    testWidgets('a slipcase lists its volumes and how many are read', (
+      tester,
+    ) async {
+      await pumpDetail(
+        tester,
+        volumes: [
+          volume(2, 'Band Eins', BookStatus.read),
+          volume(3, 'Band Zwei', BookStatus.unread),
+        ],
+      );
+
+      expect(find.text('Band Eins'), findsOneWidget);
+      expect(find.text('Band Zwei'), findsOneWidget);
+      expect(find.text('1 von 2 gelesen'), findsOneWidget);
+      // Status and rating belong to the volumes; the box shows the derived
+      // status only.
+      expect(find.byType(DropdownButton<BookStatus>), findsNothing);
+      expect(find.text('Am Lesen'), findsOneWidget);
+
+      expect(find.byKey(const ValueKey('book-menu')), findsNothing);
+    });
+
+    testWidgets('a volume links to its slipcase', (tester) async {
+      await pumpDetail(
+        tester,
+        book: volume(
+          1,
+          'Band Eins',
+          BookStatus.read,
+        ).copyWith(parentId: const Value(7)),
+        others: {7: sampleBook().copyWith(id: 7, title: 'Der Schuber')},
+      );
+
+      expect(find.text('Teil von „Der Schuber“'), findsOneWidget);
+      expect(find.byKey(const ValueKey('book-menu')), findsNothing);
     });
   });
 }

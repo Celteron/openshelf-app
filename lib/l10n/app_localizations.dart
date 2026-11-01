@@ -2203,6 +2203,78 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Sonstiges'**
   String get receivedAsOther;
+
+  /// No description provided for @moreActions.
+  ///
+  /// In de, this message translates to:
+  /// **'Weitere Aktionen'**
+  String get moreActions;
+
+  /// No description provided for @splitVolumesAction.
+  ///
+  /// In de, this message translates to:
+  /// **'In Bände aufteilen'**
+  String get splitVolumesAction;
+
+  /// No description provided for @splitVolumesHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Schuber bleibt das physische Objekt mit ISBN, Preis, Standort und Cover. Jeder Band bekommt eigenen Titel, eigene Seiten und eigenen Lesestatus. Sitzungen, Notizen und Rezension wandern zu Band 1.'**
+  String get splitVolumesHint;
+
+  /// No description provided for @volumeTitleLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Titel Band {number}'**
+  String volumeTitleLabel(int number);
+
+  /// No description provided for @volumePagesLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Seiten'**
+  String get volumePagesLabel;
+
+  /// No description provided for @addVolume.
+  ///
+  /// In de, this message translates to:
+  /// **'Band hinzufügen'**
+  String get addVolume;
+
+  /// No description provided for @removeVolume.
+  ///
+  /// In de, this message translates to:
+  /// **'Band entfernen'**
+  String get removeVolume;
+
+  /// No description provided for @splitVolumesSave.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufteilen'**
+  String get splitVolumesSave;
+
+  /// No description provided for @splitVolumesFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufteilen fehlgeschlagen'**
+  String get splitVolumesFailed;
+
+  /// No description provided for @volumesTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Bände'**
+  String get volumesTitle;
+
+  /// No description provided for @volumesReadProgress.
+  ///
+  /// In de, this message translates to:
+  /// **'{read} von {total} gelesen'**
+  String volumesReadProgress(int read, int total);
+
+  /// No description provided for @partOfSlipcase.
+  ///
+  /// In de, this message translates to:
+  /// **'Teil von „{title}“'**
+  String partOfSlipcase(String title);
 }
 
 class _AppLocalizationsDelegate

@@ -1298,4 +1298,47 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get receivedAsOther => 'Sonstiges';
+
+  @override
+  String get moreActions => 'Weitere Aktionen';
+
+  @override
+  String get splitVolumesAction => 'In Bände aufteilen';
+
+  @override
+  String get splitVolumesHint =>
+      'Der Schuber bleibt das physische Objekt mit ISBN, Preis, Standort und Cover. Jeder Band bekommt eigenen Titel, eigene Seiten und eigenen Lesestatus. Sitzungen, Notizen und Rezension wandern zu Band 1.';
+
+  @override
+  String volumeTitleLabel(int number) {
+    return 'Titel Band $number';
+  }
+
+  @override
+  String get volumePagesLabel => 'Seiten';
+
+  @override
+  String get addVolume => 'Band hinzufügen';
+
+  @override
+  String get removeVolume => 'Band entfernen';
+
+  @override
+  String get splitVolumesSave => 'Aufteilen';
+
+  @override
+  String get splitVolumesFailed => 'Aufteilen fehlgeschlagen';
+
+  @override
+  String get volumesTitle => 'Bände';
+
+  @override
+  String volumesReadProgress(int read, int total) {
+    return '$read von $total gelesen';
+  }
+
+  @override
+  String partOfSlipcase(String title) {
+    return 'Teil von „$title“';
+  }
 }

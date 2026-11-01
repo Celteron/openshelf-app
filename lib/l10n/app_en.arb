@@ -630,5 +630,17 @@
   "receivedAsGift": "Gift",
   "receivedAsLoan": "Loan",
   "receivedAsReviewCopy": "Review copy",
-  "receivedAsOther": "Other"
+  "receivedAsOther": "Other",
+  "moreActions": "More actions",
+  "splitVolumesAction": "Split into volumes",
+  "splitVolumesHint": "The slipcase stays the physical object with ISBN, price, location and cover. Every volume gets its own title, pages and reading status. Sessions, notes and review move to volume 1.",
+  "volumeTitleLabel": "Title of volume {number}",
+  "volumePagesLabel": "Pages",
+  "addVolume": "Add volume",
+  "removeVolume": "Remove volume",
+  "splitVolumesSave": "Split",
+  "splitVolumesFailed": "Splitting failed",
+  "volumesTitle": "Volumes",
+  "volumesReadProgress": "{read} of {total} read",
+  "partOfSlipcase": "Part of “{title}”"
 }

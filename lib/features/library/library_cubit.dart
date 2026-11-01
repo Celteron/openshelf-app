@@ -239,6 +239,9 @@ class LibraryCubit extends Cubit<LibraryState> {
 
   Future<void> restoreBook(int bookId) => _repository.restoreBook(bookId);
 
+  Future<List<int>> splitIntoVolumes(int bookId, List<VolumeDraft> volumes) =>
+      _repository.splitIntoVolumes(bookId, volumes);
+
   Future<void> bulkSetFormat(List<int> bookIds, BookFormat format) =>
       _repository.bulkSetFormat(bookIds, format);
 

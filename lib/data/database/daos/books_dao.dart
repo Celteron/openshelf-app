@@ -349,6 +349,82 @@ class BooksDao {
           ))
           .go();
 
+  Future<List<Book>> getVolumes(int id) =>
+      (db.select(db.books)
+            ..where((t) => t.parentId.equals(id) & t.deletedAt.isNull())
+            ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+          .get();
+
+  /// See `BookRepository.splitIntoVolumes`.
+  Future<List<int>> splitIntoVolumes(
+    int id,
+    List<({String title, int? pageCount})> volumes,
+    DateTime now,
+  ) => db.transaction(() async {
+    final box = await getById(id);
+    if (box == null || box.deletedAt != null || box.parentId != null) {
+      throw StateError('Book $id cannot be split');
+    }
+    // Volumes in the trash count too: a restore would mix them with new ones.
+    final volume =
+        await (db.select(db.books)
+              ..where((t) => t.parentId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    if (volume != null) throw StateError('Book $id is already split');
+
+    final ids = <int>[];
+    for (final (i, v) in volumes.indexed) {
+      ids.add(
+        await db
+            .into(db.books)
+            .insert(
+              BooksCompanion.insert(
+                title: v.title,
+                pageCount: Value(v.pageCount),
+                authors: box.authors,
+                publisher: Value(box.publisher),
+                language: Value(box.language),
+                publishedYear: Value(box.publishedYear),
+                format: Value(box.format),
+                genre: Value(box.genre),
+                seriesId: Value(box.seriesId),
+                status: Value(box.status),
+                finishedAt: Value(box.finishedAt),
+                rating: Value(box.rating),
+                // Reading data moves along with the sessions.
+                review: Value(i == 0 ? box.review : null),
+                readingSeconds: Value(i == 0 ? box.readingSeconds : null),
+                editedFields: const ['title', 'pageCount'],
+                parentId: Value(id),
+                createdAt: Value(box.createdAt),
+                updatedAt: Value(now),
+              ),
+            ),
+      );
+    }
+    final first = ids.first;
+    await (db.update(db.readingSessions)..where((t) => t.bookId.equals(id)))
+        .write(ReadingSessionsCompanion(bookId: Value(first)));
+    await (db.update(db.bookNotes)..where((t) => t.bookId.equals(id))).write(
+      BookNotesCompanion(bookId: Value(first)),
+    );
+    // The slipcase is the physical object now; its status comes from the
+    // volumes.
+    await (db.update(db.books)..where((t) => t.id.equals(id))).write(
+      BooksCompanion(
+        status: const Value(BookStatus.unread),
+        rating: const Value(0),
+        finishedAt: const Value(null),
+        review: const Value(null),
+        readingSeconds: const Value(null),
+        currentPage: const Value(0),
+        updatedAt: Value(now),
+      ),
+    );
+    return ids;
+  });
+
   /// Trashes every active book and returns how many.
   Future<int> trashAll(DateTime at) =>
       (db.update(db.books)..where((t) => t.deletedAt.isNull())).write(

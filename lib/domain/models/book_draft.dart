@@ -68,3 +68,12 @@ class BookDraft {
     this.editedFields = const {},
   });
 }
+
+/// One volume when a slipcase is split (ADR-0003): what differs between the
+/// volumes; everything else is taken over from the slipcase.
+class VolumeDraft {
+  final String title;
+  final int? pageCount;
+
+  const VolumeDraft({required this.title, this.pageCount});
+}

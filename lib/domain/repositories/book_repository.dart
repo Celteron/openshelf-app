@@ -57,6 +57,17 @@ abstract class BookRepository {
   /// notes, tag links and lending records; returns how many.
   Future<int> deleteAllBooksPermanently();
 
+  /// The active volumes of slipcase [id] in order; empty for other books.
+  Future<List<Book>> getVolumes(int id);
+
+  /// Splits slipcase [id] into [volumes] (ADR-0003) in one transaction and
+  /// returns the new ids in order. The volumes take over authors, publisher,
+  /// language, year, format, genre, series, status, finish date and rating;
+  /// reading data (sessions, notes, review, reading time) moves to the first
+  /// volume. Throws an [ArgumentError] for fewer than two volumes and a
+  /// [StateError] when [id] is a volume, already split, or unknown.
+  Future<List<int>> splitIntoVolumes(int id, List<VolumeDraft> volumes);
+
   Future<void> bulkSetFormat(List<int> bookIds, BookFormat format);
 
   Future<void> bulkSetAuthors(List<int> bookIds, List<String> authors);

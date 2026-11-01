@@ -716,5 +716,41 @@
   "receivedAsGift": "Geschenk",
   "receivedAsLoan": "Leihe",
   "receivedAsReviewCopy": "Rezensionsexemplar",
-  "receivedAsOther": "Sonstiges"
+  "receivedAsOther": "Sonstiges",
+  "moreActions": "Weitere Aktionen",
+  "splitVolumesAction": "In Bände aufteilen",
+  "splitVolumesHint": "Der Schuber bleibt das physische Objekt mit ISBN, Preis, Standort und Cover. Jeder Band bekommt eigenen Titel, eigene Seiten und eigenen Lesestatus. Sitzungen, Notizen und Rezension wandern zu Band 1.",
+  "volumeTitleLabel": "Titel Band {number}",
+  "@volumeTitleLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "volumePagesLabel": "Seiten",
+  "addVolume": "Band hinzufügen",
+  "removeVolume": "Band entfernen",
+  "splitVolumesSave": "Aufteilen",
+  "splitVolumesFailed": "Aufteilen fehlgeschlagen",
+  "volumesTitle": "Bände",
+  "volumesReadProgress": "{read} von {total} gelesen",
+  "@volumesReadProgress": {
+    "placeholders": {
+      "read": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "partOfSlipcase": "Teil von „{title}“",
+  "@partOfSlipcase": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  }
 }

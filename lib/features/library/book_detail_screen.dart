@@ -8,6 +8,7 @@ import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/features/lending/lending_cubit.dart';
 import 'package:openreads/domain/models/reading_stats.dart';
+import 'package:openreads/domain/models/shelf_partition.dart';
 import 'package:openreads/domain/repositories/notes_repository.dart';
 import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
@@ -16,6 +17,7 @@ import 'package:openreads/domain/models/app_preferences.dart';
 import 'package:openreads/features/common/widgets/book_cover.dart';
 import 'package:openreads/features/library/add_book_screen.dart';
 import 'package:openreads/features/library/similar_books_screen.dart';
+import 'package:openreads/features/library/split_volumes_screen.dart';
 import 'package:openreads/features/library/widgets/rating_display.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/notes/notes_screen.dart';
@@ -43,6 +45,11 @@ class BookDetailScreen extends StatefulWidget {
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
   Book? _book;
+
+  /// The volumes when this book is a slipcase, its slipcase when it is a
+  /// volume (ADR-0003).
+  List<Book> _volumes = const [];
+  Book? _slipcase;
   late final Stream<List<ReadingSession>> _sessions;
 
   @override
@@ -54,8 +61,35 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   Future<void> _load() async {
-    final book = await context.read<BookRepository>().getBook(widget.bookId);
-    if (mounted) setState(() => _book = book);
+    final repository = context.read<BookRepository>();
+    final book = await repository.getBook(widget.bookId);
+    final parentId = book?.parentId;
+    final volumes = book == null || parentId != null
+        ? const <Book>[]
+        : await repository.getVolumes(book.id);
+    final slipcase = parentId == null
+        ? null
+        : await repository.getBook(parentId);
+    if (!mounted) return;
+    setState(() {
+      _book = book;
+      _volumes = volumes;
+      _slipcase = slipcase;
+    });
+  }
+
+  Future<void> _openBook(int id) async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => BookDetailScreen(bookId: id)));
+    await _load();
+  }
+
+  Future<void> _split(Book book) async {
+    final done = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => SplitVolumesScreen(book: book)),
+    );
+    if (done == true) await _load();
   }
 
   Future<void> _openEdit(BuildContext context, Book book) async {
@@ -187,6 +221,19 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             icon: const Icon(Icons.delete_outline),
             tooltip: l10n.deleteBook,
           ),
+          // Only a single book can become a slipcase (one level deep).
+          if (book.parentId == null && _volumes.isEmpty)
+            PopupMenuButton<void>(
+              key: const ValueKey('book-menu'),
+              tooltip: l10n.moreActions,
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  key: const ValueKey('split-volumes'),
+                  onTap: () => _split(book),
+                  child: Text(l10n.splitVolumesAction),
+                ),
+              ],
+            ),
         ],
       ),
       body: ListView(
@@ -226,6 +273,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 ),
             ],
           ),
+          if (_slipcase case final slipcase?)
+            ListTile(
+              key: const ValueKey('slipcase-link'),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.inventory_2_outlined),
+              title: Text(l10n.partOfSlipcase(slipcase.title)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _openBook(slipcase.id),
+            ),
           const SizedBox(height: 16),
           StreamBuilder<List<ReadingSession>>(
             stream: _sessions,
@@ -246,56 +302,67 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             const SizedBox(height: 4),
             Text(book.description!, key: const ValueKey('book-description')),
           ],
-          const SizedBox(height: 24),
-          Text(l10n.ratingLabel, style: Theme.of(context).textTheme.titleSmall),
-          RatingEditor(
-            value: book.rating,
-            display: _ratingDisplay(context, watch: true),
-            // Tapping the star that is already selected clears the rating.
-            onChanged: (v) async {
-              await context.read<LibraryCubit>().setRating(
-                book.id,
-                normalizeRating(v == book.rating ? 0 : v),
-              );
-              await _load();
-            },
-          ),
-          const SizedBox(height: 8),
-          _ReviewTile(review: book.review, onEdit: () => _editReview(book)),
-          const SizedBox(height: 24),
-          Text(l10n.statusLabel, style: Theme.of(context).textTheme.titleSmall),
-          DropdownButton<BookStatus>(
-            value: book.status,
-            items: [
-              for (final s in BookStatus.values)
-                DropdownMenuItem(value: s, child: Text(statusLabel(l10n, s))),
-            ],
-            onChanged: (s) async {
-              if (s == null) return;
-              await context.read<LibraryCubit>().setStatus(book.id, s);
-              await _load();
-              // Finishing an unrated book offers a quick rating (legacy).
-              if (s == BookStatus.read &&
-                  book.status != BookStatus.read &&
-                  book.rating == 0 &&
-                  mounted) {
-                await _quickRate(book);
-              }
-            },
-          ),
-          if (book.status == BookStatus.wishlist) ...[
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              onPressed: () async {
-                await context.read<LibraryCubit>().moveToLibrary(book.id);
+          if (_volumes.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _VolumesSection(volumes: _volumes, onOpen: _openBook),
+          ] else ...[
+            const SizedBox(height: 24),
+            Text(
+              l10n.ratingLabel,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            RatingEditor(
+              value: book.rating,
+              display: _ratingDisplay(context, watch: true),
+              // Tapping the star that is already selected clears the rating.
+              onChanged: (v) async {
+                await context.read<LibraryCubit>().setRating(
+                  book.id,
+                  normalizeRating(v == book.rating ? 0 : v),
+                );
                 await _load();
               },
-              icon: const Icon(Icons.library_add),
-              label: Text(l10n.moveToLibrary),
             ),
+            const SizedBox(height: 8),
+            _ReviewTile(review: book.review, onEdit: () => _editReview(book)),
+            const SizedBox(height: 24),
+            Text(
+              l10n.statusLabel,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            DropdownButton<BookStatus>(
+              value: book.status,
+              items: [
+                for (final s in BookStatus.values)
+                  DropdownMenuItem(value: s, child: Text(statusLabel(l10n, s))),
+              ],
+              onChanged: (s) async {
+                if (s == null) return;
+                await context.read<LibraryCubit>().setStatus(book.id, s);
+                await _load();
+                // Finishing an unrated book offers a quick rating (legacy).
+                if (s == BookStatus.read &&
+                    book.status != BookStatus.read &&
+                    book.rating == 0 &&
+                    mounted) {
+                  await _quickRate(book);
+                }
+              },
+            ),
+            if (book.status == BookStatus.wishlist) ...[
+              const SizedBox(height: 8),
+              FilledButton.icon(
+                onPressed: () async {
+                  await context.read<LibraryCubit>().moveToLibrary(book.id);
+                  await _load();
+                },
+                icon: const Icon(Icons.library_add),
+                label: Text(l10n.moveToLibrary),
+              ),
+            ],
+            const SizedBox(height: 24),
+            _ReadingTile(book: book, onReturn: _load),
           ],
-          const SizedBox(height: 24),
-          _ReadingTile(book: book, onReturn: _load),
           const SizedBox(height: 8),
           _TagsSection(bookId: book.id),
           const SizedBox(height: 8),
@@ -305,6 +372,60 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           _LendingHistory(bookId: book.id),
         ],
       ),
+    );
+  }
+}
+
+/// The volumes of a slipcase with its derived status; status, rating and
+/// reading data live on the volumes (ADR-0003).
+class _VolumesSection extends StatelessWidget {
+  final List<Book> volumes;
+  final ValueChanged<int> onOpen;
+
+  const _VolumesSection({required this.volumes, required this.onOpen});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final read = volumes.where((v) => v.status == BookStatus.read).length;
+    return Column(
+      key: const ValueKey('volumes-section'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${l10n.volumesTitle} (${volumes.length})',
+          style: theme.textTheme.titleSmall,
+        ),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 8,
+          children: [
+            Chip(
+              label: Text(
+                statusLabel(l10n, slipcaseStatus(volumes.map((v) => v.status))),
+              ),
+            ),
+            Chip(label: Text(l10n.volumesReadProgress(read, volumes.length))),
+          ],
+        ),
+        for (final volume in volumes)
+          ListTile(
+            key: ValueKey('volume:${volume.id}'),
+            contentPadding: EdgeInsets.zero,
+            leading: BookCover(book: volume, width: 32, height: 46),
+            title: Text(volume.title),
+            subtitle: Text(
+              [
+                statusLabel(l10n, volume.status),
+                if (volume.pageCount case final pages?)
+                  '$pages ${l10n.volumePagesLabel}',
+              ].join(' · '),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => onOpen(volume.id),
+          ),
+      ],
     );
   }
 }

@@ -1295,4 +1295,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get receivedAsOther => 'Other';
+
+  @override
+  String get moreActions => 'More actions';
+
+  @override
+  String get splitVolumesAction => 'Split into volumes';
+
+  @override
+  String get splitVolumesHint =>
+      'The slipcase stays the physical object with ISBN, price, location and cover. Every volume gets its own title, pages and reading status. Sessions, notes and review move to volume 1.';
+
+  @override
+  String volumeTitleLabel(int number) {
+    return 'Title of volume $number';
+  }
+
+  @override
+  String get volumePagesLabel => 'Pages';
+
+  @override
+  String get addVolume => 'Add volume';
+
+  @override
+  String get removeVolume => 'Remove volume';
+
+  @override
+  String get splitVolumesSave => 'Split';
+
+  @override
+  String get splitVolumesFailed => 'Splitting failed';
+
+  @override
+  String get volumesTitle => 'Volumes';
+
+  @override
+  String volumesReadProgress(int read, int total) {
+    return '$read of $total read';
+  }
+
+  @override
+  String partOfSlipcase(String title) {
+    return 'Part of “$title”';
+  }
 }

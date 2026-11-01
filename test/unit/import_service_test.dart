@@ -113,6 +113,13 @@ class _ThrowingRepository implements BookRepository {
   Future<void> setCoverNotFound(int id) async {}
 
   @override
+  Future<List<int>> splitIntoVolumes(int id, List<VolumeDraft> volumes) =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<Book>> getVolumes(int id) async => const [];
+
+  @override
   Future<int> trashAllBooks() async => 0;
 
   @override

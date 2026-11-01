@@ -126,6 +126,19 @@ class BookRepositoryImpl implements BookRepository {
   Future<int> deleteAllBooksPermanently() => _dao.deleteAll();
 
   @override
+  Future<List<Book>> getVolumes(int id) => _dao.getVolumes(id);
+
+  @override
+  Future<List<int>> splitIntoVolumes(int id, List<VolumeDraft> volumes) async {
+    if (volumes.length < 2) {
+      throw ArgumentError.value(volumes, 'volumes', 'at least two');
+    }
+    return _dao.splitIntoVolumes(id, [
+      for (final v in volumes) (title: v.title.trim(), pageCount: v.pageCount),
+    ], DateTime.now());
+  }
+
+  @override
   Future<void> bulkSetFormat(List<int> bookIds, BookFormat format) =>
       _dao.bulkSetFormat(bookIds, format);
 
