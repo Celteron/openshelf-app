@@ -24,11 +24,12 @@ class PlatformExportFileSaver implements ExportFileSaver {
     final bytes = Uint8List.fromList(utf8.encode(content));
     if (_isMobile) {
       // The app's own storage is invisible to the user on Android/iOS, so the
-      // system "save as" dialog writes the file where they choose. The path it
-      // returns is a guess ("Downloads/<name>") whatever folder was picked.
-      final saved = await FilePicker.platform.saveFile(
+      // system "save as" dialog writes the file where they choose. Its URI is
+      // a content:// handle, so the file name is the only readable part.
+      final saved = await FilePicker.saveFile(
         fileName: fileName,
         bytes: bytes,
+        mimeType: fileName.endsWith('.json') ? 'application/json' : 'text/csv',
       );
       return saved == null ? null : fileName;
     }

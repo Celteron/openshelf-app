@@ -40,12 +40,9 @@ class _ImporterScreenState extends State<ImporterScreen> {
 
   Future<void> _pickFile() async {
     try {
-      final result = await FilePicker.platform.pickFiles(withData: true);
-      if (result == null || result.files.isEmpty) return;
-      final file = result.files.single;
-      final bytes = file.bytes;
-      if (bytes == null) return;
-      _select(file.name, bytes);
+      final file = await FilePicker.pickFile();
+      if (file == null) return;
+      _select(file.name, await file.readAsBytes());
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
