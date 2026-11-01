@@ -121,3 +121,6 @@ lint/tmp/
 # Local secrets (e.g. GOOGLE_BOOKS_API_KEY) never go into the repo
 .env
 .env.*
+
+# Real Bookstats export with personal data: local-only test fixture
+test/Test_Export_BookStats.csv

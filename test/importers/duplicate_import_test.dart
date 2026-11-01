@@ -14,6 +14,12 @@ import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/import.dart';
 import 'package:openreads/domain/services/import_service.dart';
 
+/// The real Bookstats export holds personal data, so it is gitignored and only
+/// exists locally; without it these tests are skipped.
+final _realExportMissing = File('test/Test_Export_BookStats.csv').existsSync()
+    ? null
+    : 'local-only fixture test/Test_Export_BookStats.csv is missing';
+
 /// Re-import behaviour: a row that matches an existing book is merged into it
 /// (only gaps are filled) or skipped as an identical duplicate; it never
 /// creates a second copy and never overwrites what the user already has.
@@ -42,7 +48,7 @@ void main() {
     for (final t in await db.select(db.tags).get()) t.name,
   };
 
-  group('re-importing the real Bookstats export', () {
+  group('re-importing the real Bookstats export', skip: _realExportMissing, () {
     late ImportFile file;
 
     setUp(() {

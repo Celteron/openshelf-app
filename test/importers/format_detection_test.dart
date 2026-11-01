@@ -19,6 +19,12 @@ import 'package:openreads/data/importers/own_csv_importer.dart';
 import 'package:openreads/data/importers/storygraph_csv_importer.dart';
 import 'package:openreads/domain/models/import.dart';
 
+/// The real Bookstats export holds personal data, so it is gitignored and only
+/// exists locally; without it these tests are skipped.
+final _realExportMissing = File('test/Test_Export_BookStats.csv').existsSync()
+    ? null
+    : 'local-only fixture test/Test_Export_BookStats.csv is missing';
+
 /// Which importer claims a file — exactly like the import screen picks it
 /// (`ImporterCubit.detect`): the first importer of the right file type that
 /// recognises it.
@@ -87,16 +93,20 @@ void main() {
       );
     });
 
-    test('Bookstats, including the real ;-separated Latin-1 export', () {
-      final file = ImportFile(
-        name: 'Test_Export_BookStats.csv',
-        content: decodeImportBytes(
-          File('test/Test_Export_BookStats.csv').readAsBytesSync(),
-        ),
-        type: ImportFileType.csv,
-      );
-      expect(detect(file), isA<BookstatsCsvImporter>());
-    });
+    test(
+      'Bookstats, including the real ;-separated Latin-1 export',
+      skip: _realExportMissing,
+      () {
+        final file = ImportFile(
+          name: 'Test_Export_BookStats.csv',
+          content: decodeImportBytes(
+            File('test/Test_Export_BookStats.csv').readAsBytesSync(),
+          ),
+          type: ImportFileType.csv,
+        );
+        expect(detect(file), isA<BookstatsCsvImporter>());
+      },
+    );
 
     test('an unknown CSV falls through to the own-CSV importer', () {
       expect(detect(csv('Name,Alter\nAnna,3\n')), isA<OwnCsvImporter>());
