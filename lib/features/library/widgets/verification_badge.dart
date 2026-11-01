@@ -22,7 +22,11 @@ class VerificationBadge extends StatelessWidget {
     // a button although it does nothing when tapped.
     return Chip(
       avatar: verified
-          ? const Icon(Icons.verified, size: 16, color: Colors.blue)
+          ? Icon(
+              Icons.verified,
+              size: 16,
+              color: Theme.of(context).colorScheme.primary,
+            )
           : null,
       label: Text(verified ? l10n.dnbVerified : l10n.edited),
       visualDensity: VisualDensity.compact,

@@ -170,7 +170,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             onPressed: () => _toggleFavorite(book),
             icon: Icon(
               book.isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: book.isFavorite ? Colors.redAccent : null,
+              color: book.isFavorite
+                  ? Theme.of(context).colorScheme.tertiary
+                  : null,
             ),
             tooltip: book.isFavorite ? l10n.removeFavorite : l10n.addFavorite,
           ),
@@ -614,7 +616,12 @@ class _CopyableRow extends StatelessWidget {
       children: [
         SizedBox(
           width: 120,
-          child: Text(label, style: const TextStyle(color: Colors.grey)),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
         ),
         Expanded(child: SelectableText(value)),
         IconButton(

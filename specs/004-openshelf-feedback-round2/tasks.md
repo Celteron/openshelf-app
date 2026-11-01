@@ -14,8 +14,8 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 - [X] T4-12 `ImportExportScreen` with both actions (export tests moved from Settings); Settings → Data links to it + tests; l10n DE + EN; version 2.13.0+61. (FR-R2-04)
 
 ## Package 3: Colour scheme
-- [ ] T4-20 Rendered previews of the candidate schemes, choice by the product owner. (FR-R2-06)
-- [ ] T4-21 Theme from the chosen scheme, light/dark/AMOLED + tests. (FR-R2-06)
+- [X] T4-20 Rendered previews of three candidates (A petrol glass, B lagoon, C night shelf); the product owner chose A. (FR-R2-06)
+- [X] T4-21 Brand scheme (fidelity petrol, amber tertiary, petrol-tinted dark surfaces), glass component themes, navigation icon contrast ≥ 3:1, stars/favourites/badges from the scheme instead of fixed colours + tests; version 2.14.0+62. (FR-R2-06)
 
 ## Package 4: Book data
 - [ ] T4-30 "Received as" + cover-search flag: compact columns, migration + test + snapshot, form, detail, export/restore, Bookstats mapping. (FR-R2-07, -08, -10)

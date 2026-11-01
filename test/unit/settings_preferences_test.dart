@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -194,10 +196,60 @@ void main() {
       expect(red.useMaterial3, isTrue);
     });
 
-    test('uses the default seed without an accent colour', () {
-      final theme = buildAppTheme(brightness: Brightness.light);
-      final expected = ColorScheme.fromSeed(seedColor: defaultAccentColor);
-      expect(theme.colorScheme.primary, expected.primary);
+    test('without an accent the logo colours apply: petrol and amber', () {
+      for (final brightness in Brightness.values) {
+        final scheme = buildAppTheme(brightness: brightness).colorScheme;
+        final hue = HSLColor.fromColor(scheme.primary).hue;
+
+        expect(hue, inInclusiveRange(160, 195), reason: 'petrol/teal');
+        expect(
+          scheme.tertiary,
+          brightness == Brightness.light
+              ? const Color(0xFFB45309)
+              : const Color(0xFFFBBF24),
+          reason: 'amber like the ribbon',
+        );
+      }
+    });
+
+    test('the dark brand theme is tinted petrol, not grey', () {
+      final scheme = buildAppTheme(brightness: Brightness.dark).colorScheme;
+
+      expect(scheme.surface, const Color(0xFF0A171B));
+      expect(scheme.surfaceContainer, const Color(0xFF12282E));
+    });
+
+    test('a custom accent replaces the brand colours', () {
+      final scheme = buildAppTheme(
+        brightness: Brightness.light,
+        accentColor: 0xFFD32F2F,
+      ).colorScheme;
+
+      expect(scheme.tertiary, isNot(const Color(0xFFB45309)));
+    });
+
+    test('the selected navigation icon stands out from its indicator', () {
+      double contrast(Color a, Color b) {
+        final la = a.computeLuminance(), lb = b.computeLuminance();
+        return (max(la, lb) + 0.05) / (min(la, lb) + 0.05);
+      }
+
+      for (final accent in [null, 0xFFD32F2F, 0xFF1976D2, 0xFFFFEB3B]) {
+        for (final brightness in Brightness.values) {
+          final theme = buildAppTheme(
+            brightness: brightness,
+            accentColor: accent,
+          );
+          final nav = theme.navigationBarTheme;
+          final icon = nav.iconTheme!.resolve({WidgetState.selected})!.color!;
+
+          expect(
+            contrast(icon, nav.indicatorColor!),
+            greaterThanOrEqualTo(3),
+            reason: 'WCAG 1.4.11 for $accent / $brightness',
+          );
+        }
+      }
     });
 
     test('Material You takes the system colours when there are any', () {

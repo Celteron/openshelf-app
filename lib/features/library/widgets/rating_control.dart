@@ -118,6 +118,9 @@ class _RatingControlState extends State<RatingControl> {
       ? Icons.star_half
       : Icons.star_border;
 
-  Icon _icon(double value, int star) =>
-      Icon(_iconData(value, star), color: Colors.amber, size: 36);
+  Icon _icon(double value, int star) => Icon(
+    _iconData(value, star),
+    color: Theme.of(context).colorScheme.tertiary,
+    size: 36,
+  );
 }

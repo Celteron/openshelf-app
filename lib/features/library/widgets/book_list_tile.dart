@@ -54,7 +54,11 @@ class BookListTile extends StatelessWidget {
       trailing:
           trailing ??
           (book.isFavorite && book.status != BookStatus.wishlist
-              ? const Icon(Icons.favorite, size: 18, color: Colors.redAccent)
+              ? Icon(
+                  Icons.favorite,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.tertiary,
+                )
               : null),
       onTap: onTap,
       onLongPress: onLongPress,

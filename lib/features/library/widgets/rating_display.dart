@@ -20,11 +20,12 @@ class RatingBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (rating <= 0) return const SizedBox.shrink();
+    final colour = Theme.of(context).colorScheme.tertiary;
     if (display == RatingDisplay.number) {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.star, size: size, color: Colors.amber),
+          Icon(Icons.star, size: size, color: colour),
           const SizedBox(width: 2),
           Text(formatRating(rating), style: TextStyle(fontSize: size - 1)),
         ],
@@ -41,7 +42,7 @@ class RatingBadge extends StatelessWidget {
                 ? Icons.star_half
                 : Icons.star_border,
             size: size,
-            color: Colors.amber,
+            color: colour,
           ),
       ],
     );

@@ -74,13 +74,13 @@ class BookGridTile extends StatelessWidget {
                       ),
                     ),
                   if (book.isFavorite)
-                    const Positioned(
+                    Positioned(
                       top: 4,
                       right: 4,
                       child: Icon(
                         Icons.favorite,
                         size: 18,
-                        color: Colors.redAccent,
+                        color: Theme.of(context).colorScheme.tertiary,
                       ),
                     ),
                   if (selected)

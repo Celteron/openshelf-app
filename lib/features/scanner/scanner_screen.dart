@@ -115,7 +115,10 @@ class _StagingShelf extends StatelessWidget {
                       ListTile(
                         dense: true,
                         leading: book.duplicate
-                            ? const Icon(Icons.warning, color: Colors.orange)
+                            ? Icon(
+                                Icons.warning,
+                                color: Theme.of(context).colorScheme.tertiary,
+                              )
                             : UrlCover(
                                 key: ValueKey('staged-cover:${book.isbn13}'),
                                 cacheKey: book.isbn13,
