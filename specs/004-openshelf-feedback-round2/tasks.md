@@ -25,7 +25,7 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 - [X] T4-34 Cover flag: set by "download missing covers", cleared by the repository, no passive lookup when set + tests. (FR-R2-08)
 - [X] T4-35 `compactCover` in every cover write, scanner shrink removed + tests. (FR-R2-10)
 - [X] T4-36 One-off compaction of existing cover files + tests. (FR-R2-10)
-- [ ] T4-37 Version bump, release APK.
+- [X] T4-37 Version bump, release APK (2.15.0+63, 2.15.1+64).
 
 ## Package 4b: Slipcases (ADR-0003)
 - [X] T4-38 `ShelfPartition`, `slipcaseStatus` + tests. (FR-R2-09)
@@ -39,7 +39,7 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 - [X] T4-40 "+" choice sheet. (FR-R2-11)
 - [X] T4-41 Editable staged scans, shared values on "save all". (FR-R2-12)
 - [X] T4-42 `CoverSearchScreen` (stored URL, DNB, Open Library by ISBN, other editions by title + author), "Search online" in the book form, cached download, picked cover counts as an edit, nothing found sets the cover flag + tests. (FR-R2-13)
-- [ ] T4-43 Placeholder assets, "Without cover" filter, detail actions, download result with "Show". (FR-R2-14)
+- [ ] T4-43 Placeholder assets, "Without cover" filter, detail actions, download result with "Show". (FR-R2-14) — done: placeholders, filter, "Show"; open: cover actions on the detail screen.
 - [X] T4-44 Edit reading start/end in the book form + tests. (FR-R2-22)
 - [X] T4-45 "Complete online" card on the detail screen of books without ISBN opens the form with the Open Library search (title + first author); a saved book only gets its empty fields and a missing cover filled + tests. (FR-R2-23)
 
