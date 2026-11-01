@@ -43,6 +43,7 @@ void main() {
     double rating = 0,
     bool favorite = false,
     DateTime? createdAt,
+    String? coverLocalPath,
   }) => books.insertBook(
     BooksCompanion.insert(
       title: title,
@@ -50,6 +51,7 @@ void main() {
       editedFields: const [],
       rating: Value(rating),
       isFavorite: Value(favorite),
+      coverLocalPath: Value(coverLocalPath),
       createdAt: createdAt == null ? const Value.absent() : Value(createdAt),
     ),
   );
@@ -348,6 +350,62 @@ void main() {
         expect(all.books, hasLength(3));
       },
     );
+
+    group('without-cover filter (FR-R2-14)', () {
+      test('narrows to books without a cover file', () async {
+        await addBook('Mit', coverLocalPath: '/covers/mit.jpg');
+        await addBook('Ohne');
+        cubit.load();
+        final loaded =
+            await cubit.stream.firstWhere((s) => s is LibraryLoaded)
+                as LibraryLoaded;
+        expect(loaded.hasCoverless, isTrue);
+        expect(loaded.withoutCoverOnly, isFalse);
+
+        cubit.toggleWithoutCover();
+        final state =
+            await cubit.stream.firstWhere(
+                  (s) => s is LibraryLoaded && s.withoutCoverOnly,
+                )
+                as LibraryLoaded;
+        expect(state.books.map((b) => b.title), ['Ohne']);
+        expect(state.hasActiveFilters, isTrue);
+      });
+
+      test('is not offered when every book has a cover', () async {
+        await addBook('Mit', coverLocalPath: '/covers/mit.jpg');
+        cubit.load();
+        final loaded =
+            await cubit.stream.firstWhere((s) => s is LibraryLoaded)
+                as LibraryLoaded;
+        expect(loaded.hasCoverless, isFalse);
+      });
+
+      test(
+        'showWithoutCover drops the chip filters that could hide them',
+        () async {
+          await addBook('Ohne');
+          await addBook('Favorit', favorite: true, coverLocalPath: '/c.jpg');
+          cubit.load();
+          cubit.toggleFavoritesOnly();
+          cubit.filterByStatus(BookStatus.read);
+          await cubit.stream.firstWhere(
+            (s) => s is LibraryLoaded && s.statusFilter == BookStatus.read,
+          );
+
+          cubit.showWithoutCover();
+          cubit.showWithoutCover();
+          final state =
+              await cubit.stream.firstWhere(
+                    (s) => s is LibraryLoaded && s.withoutCoverOnly,
+                  )
+                  as LibraryLoaded;
+          expect(state.favoritesOnly, isFalse);
+          expect(state.statusFilter, isNull);
+          expect(state.books.map((b) => b.title), ['Ohne']);
+        },
+      );
+    });
 
     test('setFavorite updates the running list reactively', () async {
       final id = await addBook('Alpha');

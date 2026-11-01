@@ -1438,4 +1438,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get completeOnlineHint =>
       'Without an ISBN the app finds neither cover nor details. Search the book online to add them.';
+
+  @override
+  String get withoutCoverFilter => 'Without cover';
+
+  @override
+  String get show => 'Show';
 }

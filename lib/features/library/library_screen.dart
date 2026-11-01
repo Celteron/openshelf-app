@@ -814,6 +814,8 @@ class _StatusFilterBar extends StatelessWidget {
       builder: (context, state) {
         final current = state is LibraryLoaded ? state.statusFilter : null;
         final favoritesOnly = state is LibraryLoaded && state.favoritesOnly;
+        final withoutCover = state is LibraryLoaded && state.withoutCoverOnly;
+        final hasCoverless = state is LibraryLoaded && state.hasCoverless;
         final years = state is LibraryLoaded
             ? state.availableYears
             : const <int>[];
@@ -834,6 +836,18 @@ class _StatusFilterBar extends StatelessWidget {
                       context.read<LibraryCubit>().toggleFavoritesOnly(),
                 ),
               ),
+              if (hasCoverless || withoutCover)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: FilterChip(
+                    key: const ValueKey('without-cover-filter'),
+                    avatar: const Icon(Icons.hide_image_outlined, size: 16),
+                    label: Text(l10n.withoutCoverFilter),
+                    selected: withoutCover,
+                    onSelected: (_) =>
+                        context.read<LibraryCubit>().toggleWithoutCover(),
+                  ),
+                ),
               if (years.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),

@@ -799,5 +799,7 @@
   "coverSearchTitle": "Cover online suchen",
   "coverSearchEmpty": "Kein Cover online gefunden. Du kannst eins fotografieren oder aus der Galerie wählen.",
   "completeOnline": "Online vervollständigen",
-  "completeOnlineHint": "Ohne ISBN findet die App weder Cover noch Daten. Such das Buch online, um sie zu ergänzen."
+  "completeOnlineHint": "Ohne ISBN findet die App weder Cover noch Daten. Such das Buch online, um sie zu ergänzen.",
+  "withoutCoverFilter": "Ohne Cover",
+  "show": "Anzeigen"
 }

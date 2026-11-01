@@ -40,6 +40,12 @@ class LibraryLoaded extends LibraryState {
   /// Only books flagged as favourite.
   final bool favoritesOnly;
 
+  /// Only books without a cover file on this device (FR-R2-14).
+  final bool withoutCoverOnly;
+
+  /// Whether any book lacks a cover; the filter is offered only then.
+  final bool hasCoverless;
+
   final LibrarySort sort;
 
   /// Only books finished in this year (Openreads year filter chip).
@@ -56,6 +62,8 @@ class LibraryLoaded extends LibraryState {
     this.locationId,
     this.tagIds = const {},
     this.favoritesOnly = false,
+    this.withoutCoverOnly = false,
+    this.hasCoverless = false,
     this.sort = const LibrarySort(),
     this.yearFilter,
     this.availableYears = const [],
@@ -66,6 +74,7 @@ class LibraryLoaded extends LibraryState {
       statusFilter != null ||
       tagIds.isNotEmpty ||
       favoritesOnly ||
+      withoutCoverOnly ||
       yearFilter != null;
 }
 
@@ -90,6 +99,7 @@ class LibraryCubit extends Cubit<LibraryState> {
   int? _locationId;
   Set<int> _tagIds = const {};
   bool _favoritesOnly = false;
+  bool _withoutCover = false;
   LibrarySort _sort = const LibrarySort();
   int? _year;
 
@@ -119,6 +129,23 @@ class LibraryCubit extends Cubit<LibraryState> {
 
   void toggleFavoritesOnly() {
     _favoritesOnly = !_favoritesOnly;
+    _subscribe();
+  }
+
+  void toggleWithoutCover() {
+    _withoutCover = !_withoutCover;
+    _subscribe();
+  }
+
+  /// Shows the books without a cover, e.g. after "download missing covers":
+  /// drops the chip filters that could hide them (the typed search stays, it
+  /// is visible in the search field).
+  void showWithoutCover() {
+    _withoutCover = true;
+    _status = null;
+    _favoritesOnly = false;
+    _year = null;
+    _tagIds = const {};
     _subscribe();
   }
 
@@ -180,6 +207,7 @@ class LibraryCubit extends Cubit<LibraryState> {
 
     final status = _status;
     final favoritesOnly = _favoritesOnly;
+    final withoutCover = _withoutCover;
     final sort = _sort;
     final year = _year;
     final sessions =
@@ -216,6 +244,7 @@ class LibraryCubit extends Cubit<LibraryState> {
                 }.toList()..sort((a, b) => b.compareTo(a));
                 Iterable<Book> visible = books;
                 if (favoritesOnly) visible = visible.where((b) => b.isFavorite);
+                if (withoutCover) visible = visible.where(_coverless);
                 if (year != null) {
                   visible = visible.where(
                     (b) => GoalProgress.countsForYear(b, year),
@@ -237,6 +266,8 @@ class LibraryCubit extends Cubit<LibraryState> {
                     locationId: _locationId,
                     tagIds: _tagIds,
                     favoritesOnly: favoritesOnly,
+                    withoutCoverOnly: withoutCover,
+                    hasCoverless: all.any(_coverless),
                     sort: sort,
                     yearFilter: year,
                     availableYears: years,
@@ -246,6 +277,9 @@ class LibraryCubit extends Cubit<LibraryState> {
               onError: (_) => emit(const LibraryError('Failed to load books')),
             );
   }
+
+  /// No cover file on this device; a cover URL alone is not downloaded yet.
+  static bool _coverless(Book book) => book.coverLocalPath == null;
 
   /// Adds a book and returns its id.
   Future<int> addBook(BookDraft draft) => _repository.addBook(draft);

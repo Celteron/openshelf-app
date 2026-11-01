@@ -2431,6 +2431,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Ohne ISBN findet die App weder Cover noch Daten. Such das Buch online, um sie zu ergänzen.'**
   String get completeOnlineHint;
+
+  /// No description provided for @withoutCoverFilter.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Cover'**
+  String get withoutCoverFilter;
+
+  /// No description provided for @show.
+  ///
+  /// In de, this message translates to:
+  /// **'Anzeigen'**
+  String get show;
 }
 
 class _AppLocalizationsDelegate

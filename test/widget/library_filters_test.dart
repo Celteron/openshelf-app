@@ -118,12 +118,14 @@ Book book(
   bool favorite = false,
   double rating = 0,
   DateTime? createdAt,
+  String? coverLocalPath,
 }) => Book(
   id: id,
   title: title,
   authors: const ['Autor'],
   status: status,
   rating: rating,
+  coverLocalPath: coverLocalPath,
   editedFields: const [],
   currentPage: 0,
   isFavorite: favorite,
@@ -330,6 +332,32 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('favorites-filter')));
     await tester.pumpAndSettle();
     expect(find.text('Alpha'), findsOneWidget);
+  });
+
+  group('without-cover chip (FR-R2-14)', () {
+    testWidgets('narrows the list to books without a cover', (tester) async {
+      await pumpLibrary(
+        tester,
+        seed: [
+          book(1, 'Alpha', BookStatus.read, coverLocalPath: '/c/a.jpg'),
+          book(2, 'Beta', BookStatus.read),
+        ],
+      );
+      expect(find.text('Ohne Cover'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('without-cover-filter')));
+      await tester.pumpAndSettle();
+      expect(find.text('Alpha'), findsNothing);
+      expect(find.text('Beta'), findsOneWidget);
+    });
+
+    testWidgets('is hidden when every book has a cover', (tester) async {
+      await pumpLibrary(
+        tester,
+        seed: [book(1, 'Alpha', BookStatus.read, coverLocalPath: '/c/a.jpg')],
+      );
+      expect(find.byKey(const ValueKey('without-cover-filter')), findsNothing);
+    });
   });
 
   group('sort menu', () {

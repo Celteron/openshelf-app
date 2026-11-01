@@ -13,6 +13,7 @@ import 'package:openreads/domain/models/tag_with_count.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:openreads/domain/services/cover_sync_service.dart';
+import 'package:openreads/features/library/library_cubit.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/settings/settings_screen.dart';
 import 'package:openreads/features/tags/tags_cubit.dart';
@@ -46,7 +47,17 @@ class _Books implements BookRepository {
       paths[id] = path;
 
   @override
+  Future<void> setCoverNotFound(int id) async {}
+
+  @override
   Stream<List<Book>> watchTrashedBooks() => Stream.value(const []);
+
+  @override
+  Stream<List<Book>> watchBooks({
+    String? query,
+    BookStatus? status,
+    int? locationId,
+  }) => Stream.value(books);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -66,6 +77,7 @@ void main() {
     WidgetTester tester, {
     _Books? books,
     String? bakedKey,
+    bool coversOnline = true,
   }) async {
     tester.view.physicalSize = const Size(800, 5000);
     tester.view.devicePixelRatio = 1.0;
@@ -80,11 +92,13 @@ void main() {
     final cache = CoverCacheService(
       baseDirectory: dir,
       client: MockClient(
-        (_) async => http.Response.bytes(
-          testPng(),
-          200,
-          headers: {'content-type': 'image/png'},
-        ),
+        (_) async => coversOnline
+            ? http.Response.bytes(
+                testPng(),
+                200,
+                headers: {'content-type': 'image/png'},
+              )
+            : http.Response('', 404),
       ),
     );
 
@@ -99,12 +113,19 @@ void main() {
             BlocProvider.value(value: settings),
             BlocProvider.value(value: tags),
             BlocProvider(create: (_) => TrashCubit(bookRepo)),
+            BlocProvider(create: (_) => LibraryCubit(bookRepo)),
           ],
-          child: const MaterialApp(
-            locale: Locale('de'),
+          // Settings is pushed from the library, as in the app.
+          child: MaterialApp(
+            locale: const Locale('de'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: SettingsScreen(),
+            onGenerateRoute: (_) =>
+                MaterialPageRoute(builder: (_) => const Text('library')),
+            onGenerateInitialRoutes: (_) => [
+              MaterialPageRoute(builder: (_) => const Text('library')),
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ],
           ),
         ),
       ),
@@ -420,6 +441,50 @@ void main() {
         findsOneWidget,
       );
       expect(books.paths.keys, unorderedEquals([1, 2]));
+    });
+
+    testWidgets('"Show" opens the library filtered to books without cover', (
+      tester,
+    ) async {
+      final books = _Books([needsCover(1, isbn: '9783000000301')]);
+      await pump(tester, books: books, coversOnline: false);
+
+      await tester.runAsync(() async {
+        await tester.tap(find.byKey(const ValueKey('download-covers')));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+      });
+      await tester.pump();
+      expect(
+        find.text('0 Cover geladen, 1 ohne Online-Cover, 0 nicht erreichbar'),
+        findsOneWidget,
+      );
+
+      // Let the snack bar slide in before tapping its action.
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.text('Anzeigen'));
+      // No pumpAndSettle: the library cubit keeps its stream open.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.byType(SettingsScreen), findsNothing);
+      expect(find.text('library'), findsOneWidget);
+      final state = tester
+          .element(find.text('library'))
+          .read<LibraryCubit>()
+          .state;
+      expect(state is LibraryLoaded && state.withoutCoverOnly, isTrue);
+    });
+
+    testWidgets('no "Show" when every cover was found', (tester) async {
+      await pump(tester, books: _Books([needsCover(1)]));
+
+      await tester.runAsync(() async {
+        await tester.tap(find.byKey(const ValueKey('download-covers')));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+      });
+      await tester.pump();
+
+      expect(find.text('Anzeigen'), findsNothing);
     });
   });
 }

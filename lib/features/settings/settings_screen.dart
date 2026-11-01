@@ -9,6 +9,7 @@ import 'package:openreads/domain/services/cover_sync_service.dart';
 import 'package:openreads/domain/services/data_wipe_service.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/features/importer/import_export_screen.dart';
+import 'package:openreads/features/library/library_cubit.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/tags/tags_cubit.dart';
 import 'package:openreads/features/tags/tags_screen.dart';
@@ -498,11 +499,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final sync = context.read<CoverSyncService>();
+    final library = context.read<LibraryCubit>();
+    final navigator = Navigator.of(context);
     messenger.showSnackBar(SnackBar(content: Text(l10n.coversDownloading)));
     final result = await sync.downloadMissing();
     messenger.hideCurrentSnackBar();
+    final stillMissing = result.notFound + result.failed > 0;
     messenger.showSnackBar(
       SnackBar(
+        // "Show" leads to the books that still need a cover (FR-R2-14);
+        // Settings is pushed from the library, so popping returns there.
+        action: stillMissing
+            ? SnackBarAction(
+                label: l10n.show,
+                onPressed: () {
+                  library.showWithoutCover();
+                  navigator.popUntil((route) => route.isFirst);
+                },
+              )
+            : null,
         content: Text(
           result.total == 0 && result.notFound == 0
               ? l10n.coversNoneMissing
