@@ -26,6 +26,9 @@ def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+} else {
+    logger.warn("android/key.properties not found: release is signed with this machine's debug key. " +
+            "Updates only install over builds signed with the same key.")
 }
 
 android {
@@ -66,7 +69,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            // Without a local key.properties (e.g. private sideload builds) the
+            // release build falls back to the debug key instead of failing.
+            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
         }
     }
 }
