@@ -2299,6 +2299,42 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Bände ausblenden'**
   String get hideVolumes;
+
+  /// No description provided for @addScanTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'ISBN scannen'**
+  String get addScanTitle;
+
+  /// No description provided for @addScanHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Barcode mit der Kamera erfassen, auch mehrere nacheinander'**
+  String get addScanHint;
+
+  /// No description provided for @addSearchTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Online suchen'**
+  String get addSearchTitle;
+
+  /// No description provided for @addSearchHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Nach Titel oder Autor bei Open Library suchen'**
+  String get addSearchHint;
+
+  /// No description provided for @addManualTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Manuell eingeben'**
+  String get addManualTitle;
+
+  /// No description provided for @addManualHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Angaben selbst ausfüllen'**
+  String get addManualHint;
 }
 
 class _AppLocalizationsDelegate

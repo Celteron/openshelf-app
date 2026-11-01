@@ -137,6 +137,7 @@ Future<FakeBookRepository> pumpLibrary(
   List<Book>? seed,
   FakeSettingsRepository? settings,
   List<Tag> tagList = const [Tag(id: 1, name: 'Krimi')],
+  VoidCallback? onScan,
 }) async {
   final books = FakeBookRepository(
     seed ??
@@ -159,11 +160,11 @@ Future<FakeBookRepository> pumpLibrary(
               SettingsCubit(settings ?? FakeSettingsRepository())..load(),
         ),
       ],
-      child: const MaterialApp(
-        locale: Locale('de'),
+      child: MaterialApp(
+        locale: const Locale('de'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: LibraryScreen(),
+        home: LibraryScreen(onScan: onScan),
       ),
     ),
   );
@@ -704,6 +705,35 @@ void main() {
 
       expect(find.byType(BookGridTile), findsNWidgets(2));
       expect(find.text('2 Bände'), findsOneWidget);
+    });
+  });
+
+  group('add sheet (FR-R2-11)', () {
+    testWidgets('"+" offers scanning, online search and manual entry', (
+      tester,
+    ) async {
+      var scans = 0;
+      await pumpLibrary(tester, onScan: () => scans++);
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('add-scan')), findsOneWidget);
+      expect(find.byKey(const ValueKey('add-search')), findsOneWidget);
+      expect(find.byKey(const ValueKey('add-manual')), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('add-scan')));
+      await tester.pumpAndSettle();
+      expect(scans, 1);
+      expect(find.byKey(const ValueKey('add-scan')), findsNothing);
+    });
+
+    testWidgets('without a scanner there is no scan option', (tester) async {
+      await pumpLibrary(tester);
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('add-scan')), findsNothing);
+      expect(find.byKey(const ValueKey('add-manual')), findsOneWidget);
     });
   });
 }

@@ -1369,4 +1369,23 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get hideVolumes => 'Bände ausblenden';
+
+  @override
+  String get addScanTitle => 'ISBN scannen';
+
+  @override
+  String get addScanHint =>
+      'Barcode mit der Kamera erfassen, auch mehrere nacheinander';
+
+  @override
+  String get addSearchTitle => 'Online suchen';
+
+  @override
+  String get addSearchHint => 'Nach Titel oder Autor bei Open Library suchen';
+
+  @override
+  String get addManualTitle => 'Manuell eingeben';
+
+  @override
+  String get addManualHint => 'Alle Angaben selbst ausfüllen';
 }

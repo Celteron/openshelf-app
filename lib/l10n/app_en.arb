@@ -646,5 +646,11 @@
   "volumeCount": "{count, plural, =1{1 volume} other{{count} volumes}}",
   "trashedWithVolumes": "with {count, plural, =1{1 volume} other{{count} volumes}}",
   "showVolumes": "Show volumes",
-  "hideVolumes": "Hide volumes"
+  "hideVolumes": "Hide volumes",
+  "addScanTitle": "Scan ISBN",
+  "addScanHint": "Capture barcodes with the camera, several in a row",
+  "addSearchTitle": "Search online",
+  "addSearchHint": "Search Open Library by title or author",
+  "addManualTitle": "Enter manually",
+  "addManualHint": "Fill in all details yourself"
 }

@@ -1366,4 +1366,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hideVolumes => 'Hide volumes';
+
+  @override
+  String get addScanTitle => 'Scan ISBN';
+
+  @override
+  String get addScanHint =>
+      'Capture barcodes with the camera, several in a row';
+
+  @override
+  String get addSearchTitle => 'Search online';
+
+  @override
+  String get addSearchHint => 'Search Open Library by title or author';
+
+  @override
+  String get addManualTitle => 'Enter manually';
+
+  @override
+  String get addManualHint => 'Fill in all details yourself';
 }

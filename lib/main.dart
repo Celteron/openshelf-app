@@ -233,7 +233,7 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final screens = [
-      const LibraryScreen(),
+      LibraryScreen(onScan: () => setState(() => _index = _scannerIndex)),
       const LocationTreeScreen(),
       // Built only while its tab is open: the IndexedStack would otherwise
       // start the camera (and its permission prompt) at app launch and keep it

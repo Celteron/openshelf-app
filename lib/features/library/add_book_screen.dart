@@ -25,9 +25,12 @@ import 'package:openreads/l10n/app_localizations.dart';
 ///
 /// Pass an existing [book] to open the form in edit mode: fields are
 /// pre-filled and saving updates the record instead of inserting a new one.
+/// With [searchOnline] the form opens the Open Library search right away and
+/// closes again when the search is left without a pick (FR-R2-11).
 class AddBookScreen extends StatefulWidget {
   final Book? book;
-  const AddBookScreen({super.key, this.book});
+  final bool searchOnline;
+  const AddBookScreen({super.key, this.book, this.searchOnline = false});
 
   @override
   State<AddBookScreen> createState() => _AddBookScreenState();
@@ -91,6 +94,12 @@ class _AddBookScreenState extends State<AddBookScreen> {
         _format = defaults.defaultFormat;
         _status = defaults.defaultStatus;
       }
+    }
+    if (widget.searchOnline) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final picked = await _searchOpenLibrary();
+        if (!picked && mounted) Navigator.of(context).pop();
+      });
     }
   }
 
@@ -273,14 +282,15 @@ class _AddBookScreenState extends State<AddBookScreen> {
     );
   }
 
-  /// Fills the form from an Open Library result or edition.
-  Future<void> _searchOpenLibrary() async {
+  /// Fills the form from an Open Library result or edition; returns whether
+  /// one was picked.
+  Future<bool> _searchOpenLibrary() async {
     final pick = await Navigator.of(context).push<OlPick>(
       MaterialPageRoute(
         builder: (_) => OpenLibrarySearchScreen(initialQuery: _title.text),
       ),
     );
-    if (pick == null || !mounted) return;
+    if (pick == null || !mounted) return false;
     final m = pick.metadata;
     setState(() {
       _title.text = m.title ?? _title.text;
@@ -298,6 +308,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
         _coverLocalPath = null;
       }
     });
+    return true;
   }
 
   void _showSnack(String message) {

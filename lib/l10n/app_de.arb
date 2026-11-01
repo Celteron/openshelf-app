@@ -770,5 +770,11 @@
     }
   },
   "showVolumes": "Bände anzeigen",
-  "hideVolumes": "Bände ausblenden"
+  "hideVolumes": "Bände ausblenden",
+  "addScanTitle": "ISBN scannen",
+  "addScanHint": "Barcode mit der Kamera erfassen, auch mehrere nacheinander",
+  "addSearchTitle": "Online suchen",
+  "addSearchHint": "Nach Titel oder Autor bei Open Library suchen",
+  "addManualTitle": "Manuell eingeben",
+  "addManualHint": "Alle Angaben selbst ausfüllen"
 }

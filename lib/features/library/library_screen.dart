@@ -23,7 +23,10 @@ const double _wideBreakpoint = 840.0;
 /// via long-press multi-selection. On wide screens a master-detail layout shows
 /// the list and the selected book side by side (spec §6.1, T071).
 class LibraryScreen extends StatefulWidget {
-  const LibraryScreen({super.key});
+  /// Opens the scanner tab; the add sheet offers scanning only with it.
+  final VoidCallback? onScan;
+
+  const LibraryScreen({super.key, this.onScan});
 
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
@@ -269,10 +272,85 @@ class _LibraryScreenState extends State<LibraryScreen> {
     ).push(MaterialPageRoute(builder: (_) => BookDetailScreen(bookId: id)));
   }
 
-  void _openAddBook(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const AddBookScreen()));
+  /// "+" asks how to add (FR-R2-11): next to the scanner a lone "add" button
+  /// was ambiguous.
+  Future<void> _openAddBook(BuildContext context) async {
+    final choice = await showModalBottomSheet<_AddChoice>(
+      context: context,
+      showDragHandle: true,
+      builder: (_) => _AddSheet(canScan: widget.onScan != null),
+    );
+    if (choice == null || !context.mounted) return;
+    switch (choice) {
+      case _AddChoice.scan:
+        widget.onScan?.call();
+      case _AddChoice.search || _AddChoice.manual:
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                AddBookScreen(searchOnline: choice == _AddChoice.search),
+          ),
+        );
+    }
+  }
+}
+
+enum _AddChoice { scan, search, manual }
+
+class _AddSheet extends StatelessWidget {
+  final bool canScan;
+  const _AddSheet({required this.canScan});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    Widget option(
+      _AddChoice choice,
+      IconData icon,
+      String title,
+      String hint,
+    ) => ListTile(
+      key: ValueKey('add-${choice.name}'),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      leading: CircleAvatar(
+        backgroundColor: scheme.primaryContainer,
+        foregroundColor: scheme.onPrimaryContainer,
+        child: Icon(icon),
+      ),
+      title: Text(title),
+      subtitle: Text(hint),
+      onTap: () => Navigator.of(context).pop(choice),
+    );
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (canScan)
+              option(
+                _AddChoice.scan,
+                Icons.qr_code_scanner,
+                l10n.addScanTitle,
+                l10n.addScanHint,
+              ),
+            option(
+              _AddChoice.search,
+              Icons.travel_explore,
+              l10n.addSearchTitle,
+              l10n.addSearchHint,
+            ),
+            option(
+              _AddChoice.manual,
+              Icons.edit_note,
+              l10n.addManualTitle,
+              l10n.addManualHint,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

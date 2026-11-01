@@ -140,6 +140,7 @@ void main() {
     Book? book,
     bool withPicker = true,
     MetadataAggregatorService aggregator = const MetadataAggregatorService([]),
+    bool searchOnline = false,
   }) async {
     tester.view.physicalSize = const Size(800, 3000);
     tester.view.devicePixelRatio = 1.0;
@@ -171,7 +172,20 @@ void main() {
             locale: const Locale('de'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: AddBookScreen(book: book),
+            // "Search online" is pushed from the library's add sheet.
+            home: searchOnline
+                ? Builder(
+                    builder: (context) => TextButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const AddBookScreen(searchOnline: true),
+                        ),
+                      ),
+                      child: const Text('launch'),
+                    ),
+                  )
+                : AddBookScreen(book: book),
           ),
         ),
       ),
@@ -444,6 +458,23 @@ void main() {
       expect(draft.isbn13, '9783257229530');
       expect(draft.coverUrl, 'https://covers.openlibrary.org/b/id/1234-L.jpg');
       expect(draft.language, 'de');
+    });
+
+    testWidgets('"search online" starts with the search, back leaves it', (
+      tester,
+    ) async {
+      olHttp = MockClient((_) async => ok({'docs': []}));
+      await pump(tester, searchOnline: true);
+      await tester.tap(find.text('launch'));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('ol-query')), findsOneWidget);
+
+      // Leaving the search without a pick leaves the whole add flow.
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(AddBookScreen), findsNothing);
+      expect(find.text('launch'), findsOneWidget);
     });
 
     testWidgets('no results shows a message', (tester) async {
