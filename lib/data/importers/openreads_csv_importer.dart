@@ -55,6 +55,8 @@ class OpenreadsCsvImporter extends CsvImporter {
     'expected_return': ColumnMapper.fieldExpectedReturn,
     'cover_url': ColumnMapper.fieldCoverUrl,
     'deleted': 'deleted',
+    'id': 'id',
+    'slipcase_id': 'slipcase_id',
   });
 
   @override
@@ -63,10 +65,11 @@ class OpenreadsCsvImporter extends CsvImporter {
   /// Separates the tags inside one cell.
   Pattern get tagSeparator => ExportService.tagSeparator;
 
-  /// `deleted` is an internal flag, not something to match a column to.
+  /// `deleted` and the slipcase link are internal, not something to match a
+  /// column to.
   @override
   Set<String> get mappableFields =>
-      super.mappableFields.difference({'deleted'});
+      super.mappableFields.difference({'deleted', 'id', 'slipcase_id'});
 
   @override
   ColumnMapper get columnMapper => _mapper;
@@ -132,6 +135,8 @@ class OpenreadsCsvImporter extends CsvImporter {
       priceCents: parsePriceCents(fields[ColumnMapper.fieldPrice]),
       receivedAt: parseDate(fields[ColumnMapper.fieldReceivedAt]),
       receivedAs: parseReceivedAs(fields[ColumnMapper.fieldReceivedAs]),
+      sourceKey: fields['id'],
+      parentSourceKey: fields['slipcase_id'],
       readingSeconds: parseInt(fields[ColumnMapper.fieldReadingSeconds]),
       coverUrl: fields[ColumnMapper.fieldCoverUrl],
       seriesName: fields[ColumnMapper.fieldSeriesName],

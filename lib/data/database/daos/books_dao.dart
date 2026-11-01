@@ -82,7 +82,15 @@ class BooksDao {
   /// plus tags, notes and sessions it does not have yet); the rest is inserted.
   /// Matching also sees books inserted earlier in the same batch, so duplicates
   /// inside one file collapse as well.
-  Future<ImportBatchOutcome> importBatch(List<ImportedBook> batch) {
+  ///
+  /// A volume is linked to its slipcase through the source keys ([knownIds]
+  /// from earlier batches plus this one). A slipcase that is unknown or itself
+  /// a volume (one level only) leaves the volume a single book, reported in
+  /// [ImportBatchOutcome.orphanRows].
+  Future<ImportBatchOutcome> importBatch(
+    List<ImportedBook> batch, {
+    Map<String, int> knownIds = const {},
+  }) {
     return db.transaction(() async {
       final index = BookMatchIndex(await db.select(db.books).get());
       final context = ImportContext(db);
@@ -91,6 +99,23 @@ class BooksDao {
       var inserted = 0;
       var updated = 0;
       var unchanged = 0;
+      final ids = {...knownIds};
+      final keyedIds = <String, int>{};
+      final orphanRows = <int>[];
+
+      int? slipcaseOf(ImportedBook item) {
+        final key = item.parentSourceKey;
+        if (key == null) return null;
+        final id = ids[key];
+        if (id != null && index[id]?.parentId == null) return id;
+        orphanRows.add(item.rowNumber);
+        return null;
+      }
+
+      void remember(ImportedBook item, int id) {
+        final key = item.sourceKey;
+        if (key != null) ids[key] = keyedIds[key] = id;
+      }
 
       for (final item in batch) {
         // Resolve the lookup tables first so the book row can reference them.
@@ -101,9 +126,11 @@ class BooksDao {
         );
         // `copyWith(x: Value.absent())` would overwrite the companion's own
         // value, so unresolved ids are passed as null (= keep).
+        final parentId = slipcaseOf(item);
         final incoming = item.book.copyWith(
           locationId: locationId == null ? null : Value(locationId),
           seriesId: seriesId == null ? null : Value(seriesId),
+          parentId: parentId == null ? null : Value(parentId),
         );
 
         final existing = index.find(incoming);
@@ -111,9 +138,11 @@ class BooksDao {
           final bookId = await db.into(db.books).insert(incoming);
           index.put((await getById(bookId))!);
           await _addSatellites(bookId, item, context);
+          remember(item, bookId);
           inserted++;
           continue;
         }
+        remember(item, existing.id);
 
         var changed = false;
         final patch = mergeMissingFields(existing, incoming);
@@ -135,6 +164,8 @@ class BooksDao {
         inserted: inserted,
         updated: updated,
         unchanged: unchanged,
+        keyedIds: keyedIds,
+        orphanRows: orphanRows,
       );
     });
   }

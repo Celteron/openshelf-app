@@ -211,6 +211,11 @@ class BookImport {
   /// Raw cover image bytes shipped with the source (legacy backups).
   final Uint8List? coverBytes;
 
+  /// The book's id in the source file, and the id of the slipcase it belongs
+  /// to (ADR-0003). Only meaningful within one file.
+  final String? sourceKey;
+  final String? parentSourceKey;
+
   const BookImport({
     this.title,
     this.subtitle,
@@ -251,6 +256,8 @@ class BookImport {
     this.deletedAt,
     this.exact = false,
     this.coverBytes,
+    this.sourceKey,
+    this.parentSourceKey,
   });
 
   bool get isEmpty =>
@@ -269,6 +276,11 @@ class ImportedBook {
   final int? seriesTotalVolumes;
   final List<LendingImport> lendings;
 
+  /// See [BookImport.sourceKey]; [rowNumber] locates warnings in the file.
+  final String? sourceKey;
+  final String? parentSourceKey;
+  final int rowNumber;
+
   const ImportedBook({
     required this.book,
     this.tags = const [],
@@ -278,6 +290,9 @@ class ImportedBook {
     this.seriesName,
     this.seriesTotalVolumes,
     this.lendings = const [],
+    this.sourceKey,
+    this.parentSourceKey,
+    this.rowNumber = 0,
   });
 }
 
@@ -341,10 +356,19 @@ class ImportBatchOutcome {
   /// Existing books that already had everything the import offered.
   final int unchanged;
 
+  /// Source key → library id of every keyed book in the batch, so volumes in
+  /// later batches find their slipcase.
+  final Map<String, int> keyedIds;
+
+  /// Rows of volumes whose slipcase was not found; imported as single books.
+  final List<int> orphanRows;
+
   const ImportBatchOutcome({
     this.inserted = 0,
     this.updated = 0,
     this.unchanged = 0,
+    this.keyedIds = const {},
+    this.orphanRows = const [],
   });
 }
 

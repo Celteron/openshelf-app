@@ -133,6 +133,8 @@ class JsonBackupImporter implements BookImporter {
             addedAt: _date(map['createdAt']),
             updatedAt: _date(map['updatedAt']),
             deletedAt: _date(map['deletedAt']),
+            sourceKey: id?.toString(),
+            parentSourceKey: _int(map['parentId'])?.toString(),
             tags: tagsByBook[id] ?? const [],
             notes: [
               for (final n in notesByBook[id] ?? const <Map<String, dynamic>>[])

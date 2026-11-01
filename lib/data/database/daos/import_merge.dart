@@ -180,6 +180,8 @@ class BookMatchIndex {
     books.forEach(put);
   }
 
+  Book? operator [](int id) => _byId[id];
+
   /// Adds a book, or refreshes it after it was updated.
   void put(Book book) {
     _byId[book.id] = book;
@@ -210,8 +212,12 @@ class BookMatchIndex {
       incoming.title.value,
       incoming.authors.present ? incoming.authors.value : const [],
     );
+    // Titles match only within the same slipcase (or among single books):
+    // volume titles like "Band 1" repeat across box sets (ADR-0003).
+    final parentId = incoming.parentId.present ? incoming.parentId.value : null;
     for (final id in _byTitle[key] ?? const <int>[]) {
       final candidate = _byId[id]!;
+      if (candidate.parentId != parentId) continue;
       if (isbn13 == null || candidate.isbn13 == null) return candidate;
     }
     return null;

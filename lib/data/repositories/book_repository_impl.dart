@@ -93,8 +93,10 @@ class BookRepositoryImpl implements BookRepository {
   Future<int> insertAll(List<BooksCompanion> books) => _dao.insertAll(books);
 
   @override
-  Future<ImportBatchOutcome> importBatch(List<ImportedBook> books) =>
-      _dao.importBatch(books);
+  Future<ImportBatchOutcome> importBatch(
+    List<ImportedBook> books, {
+    Map<String, int> knownIds = const {},
+  }) => _dao.importBatch(books, knownIds: knownIds);
 
   @override
   Future<void> importExtras(ImportExtras extras) => _dao.importExtras(extras);

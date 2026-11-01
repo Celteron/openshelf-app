@@ -98,6 +98,9 @@ class ExportService {
     'received_at',
     'reading_seconds',
     'received_as',
+    // File-local id and the id of the slipcase a volume belongs to.
+    'id',
+    'slipcase_id',
   ];
 
   /// Every book (trashed ones flagged `deleted=true`) with all of its data:
@@ -207,6 +210,8 @@ class ExportService {
         b.receivedAt?.toIso8601String() ?? '',
         b.readingSeconds?.toString() ?? '',
         b.receivedAs?.name ?? '',
+        '${b.id}',
+        b.parentId?.toString() ?? '',
       ]);
     }
     return const ListToCsvConverter(eol: '\n').convert(rows);
@@ -259,6 +264,7 @@ class ExportService {
     'receivedAt': b.receivedAt?.toIso8601String(),
     'receivedAs': b.receivedAs?.name,
     'readingSeconds': b.readingSeconds,
+    'parentId': b.parentId,
     'deletedAt': b.deletedAt?.toIso8601String(),
     'createdAt': b.createdAt.toIso8601String(),
     'updatedAt': b.updatedAt.toIso8601String(),

@@ -27,7 +27,13 @@ abstract class BookRepository {
   /// A row matching an existing book (ISBN-13, ISBN-10, or identical title and
   /// authors) is merged into it instead of duplicated: only missing data is
   /// added, nothing the user entered is overwritten.
-  Future<ImportBatchOutcome> importBatch(List<ImportedBook> books);
+  ///
+  /// [knownIds] maps source keys of earlier batches to library ids, so a
+  /// volume finds a slipcase imported before (ADR-0003).
+  Future<ImportBatchOutcome> importBatch(
+    List<ImportedBook> books, {
+    Map<String, int> knownIds = const {},
+  });
 
   /// Writes the standalone locations and goals of a backup.
   Future<void> importExtras(ImportExtras extras);

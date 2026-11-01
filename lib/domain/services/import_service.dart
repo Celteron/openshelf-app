@@ -113,11 +113,23 @@ class ImportService {
   /// Returns `false` when the batch failed (and was rolled back).
   Future<bool> _flush(List<ImportedBook> batch, _Tally tally) async {
     try {
-      final outcome = await _repository.importBatch(batch);
+      final outcome = await _repository.importBatch(
+        batch,
+        knownIds: tally.keyedIds,
+      );
       tally.imported += outcome.inserted;
       tally.updated += outcome.updated;
       tally.duplicates += outcome.unchanged;
       tally.skipped += outcome.unchanged;
+      tally.keyedIds.addAll(outcome.keyedIds);
+      for (final row in outcome.orphanRows) {
+        tally.errors.add(
+          RowError(
+            rowNumber: row,
+            reason: 'Slipcase not found; imported as a single book',
+          ),
+        );
+      }
       return true;
     } catch (e) {
       // The transaction has rolled back; no partial books from this batch.
@@ -219,6 +231,9 @@ class ImportService {
       seriesName: book.seriesName,
       seriesTotalVolumes: book.seriesTotalVolumes,
       lendings: book.lendings,
+      sourceKey: book.sourceKey,
+      parentSourceKey: book.parentSourceKey,
+      rowNumber: rowNumber,
     );
   }
 
@@ -234,6 +249,9 @@ class _Tally {
   int skipped = 0;
   int duplicates = 0;
   final errors = <RowError>[];
+
+  /// Source key → library id over all batches (slipcase links).
+  final keyedIds = <String, int>{};
 
   ImportResult result() => ImportResult(
     imported: imported,

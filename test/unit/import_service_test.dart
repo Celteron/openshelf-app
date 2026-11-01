@@ -137,7 +137,10 @@ class _ThrowingRepository implements BookRepository {
   }
 
   @override
-  Future<ImportBatchOutcome> importBatch(List<ImportedBook> books) async {
+  Future<ImportBatchOutcome> importBatch(
+    List<ImportedBook> books, {
+    Map<String, int> knownIds = const {},
+  }) async {
     throw Exception('constraint failed');
   }
 
