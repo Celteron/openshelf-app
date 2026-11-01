@@ -263,6 +263,9 @@ class LibraryCubit extends Cubit<LibraryState> {
       _repository.updateReview(bookId, review);
 
   /// Moves a book to the trash (it can be restored from there).
+  Future<void> setCoverNotFound(int bookId) =>
+      _repository.setCoverNotFound(bookId);
+
   Future<void> deleteBook(int bookId) => _repository.deleteBook(bookId);
 
   Future<void> deleteBooks(List<int> bookIds) =>

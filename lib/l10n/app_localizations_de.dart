@@ -1424,4 +1424,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String pageCount(int count) {
     return '$count Seiten';
   }
+
+  @override
+  String get coverSearchOnline => 'Online suchen';
+
+  @override
+  String get coverSearchTitle => 'Cover online suchen';
+
+  @override
+  String get coverSearchEmpty =>
+      'Kein Cover online gefunden. Du kannst eins fotografieren oder aus der Galerie wählen.';
+
+  @override
+  String get completeOnline => 'Online vervollständigen';
+
+  @override
+  String get completeOnlineHint =>
+      'Ohne ISBN findet die App weder Cover noch Daten. Such das Buch online, um sie zu ergänzen.';
+
+  @override
+  String get findCover => 'Cover suchen';
 }

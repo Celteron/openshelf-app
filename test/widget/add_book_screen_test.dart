@@ -20,6 +20,7 @@ import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:openreads/domain/services/metadata_aggregator_service.dart';
 import 'package:openreads/features/library/add_book_screen.dart';
+import 'package:openreads/features/library/cover_search_screen.dart';
 import 'package:openreads/features/library/library_cubit.dart';
 import 'package:openreads/features/metadata/metadata_cubit.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
@@ -31,6 +32,7 @@ import '../helpers/test_images.dart';
 class _Books implements BookRepository {
   final added = <BookDraft>[];
   final updated = <(int, BookDraft)>[];
+  final coverNotFound = <int>[];
 
   /// Makes saving fail, like a database that is out of date.
   Object? failWith;
@@ -45,6 +47,9 @@ class _Books implements BookRepository {
   @override
   Future<void> updateBookDraft(int id, BookDraft draft) async =>
       updated.add((id, draft));
+
+  @override
+  Future<void> setCoverNotFound(int id) async => coverNotFound.add(id);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -380,6 +385,101 @@ void main() {
       await pump(tester, withPicker: false);
       expect(find.byKey(const ValueKey('cover-gallery')), findsNothing);
       expect(find.byKey(const ValueKey('cover-camera')), findsNothing);
+    });
+
+    group('online search (FR-R2-13)', () {
+      void serveCovers() {
+        cache = CoverCacheService(
+          baseDirectory: dir,
+          client: MockClient(
+            (_) async => http.Response.bytes(
+              testPng(seed: 3),
+              200,
+              headers: {'content-type': 'image/jpeg'},
+            ),
+          ),
+        );
+      }
+
+      void serveSearch(List<Map<String, Object>> docs) {
+        olHttp = MockClient(
+          (_) async => http.Response.bytes(
+            utf8.encode(jsonEncode({'docs': docs})),
+            200,
+            headers: {'content-type': 'application/json'},
+          ),
+        );
+      }
+
+      Future<void> pickFirst(WidgetTester tester) async {
+        await tester.tap(find.byType(CoverCandidateTile).first);
+        await tester.runAsync(() async {
+          for (var i = 0; i < 10; i++) {
+            await tester.pump();
+            await Future<void>.delayed(const Duration(milliseconds: 30));
+          }
+        });
+        await tester.pumpAndSettle();
+      }
+
+      Future<void> openSearch(WidgetTester tester) async {
+        await tester.tap(find.byKey(const ValueKey('cover-online')));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('a picked cover is downloaded and saved as an edit', (
+        tester,
+      ) async {
+        serveCovers();
+        serveSearch([
+          {'title': 'Bestehend', 'cover_i': 123},
+        ]);
+        await pump(tester, book: existing());
+
+        await openSearch(tester);
+        expect(find.byType(CoverSearchScreen), findsOneWidget);
+
+        await pickFirst(tester);
+        expect(find.byKey(const ValueKey('cover-remove')), findsOneWidget);
+
+        await tester.tap(find.text('Speichern'));
+        await tester.pumpAndSettle();
+
+        final draft = books.updated.single.$2;
+        expect(draft.coverUrl, OpenLibrarySearchClient.coverUrlForId(123));
+        expect(File(draft.coverLocalPath!).existsSync(), isTrue);
+        expect(draft.editedFields, contains('coverUrl'));
+      });
+
+      testWidgets('nothing online marks the book as without cover', (
+        tester,
+      ) async {
+        serveSearch(const []);
+        await pump(tester, book: existing());
+
+        await openSearch(tester);
+
+        expect(find.byKey(const ValueKey('cover-search-empty')), findsOne);
+        expect(books.coverNotFound, [5]);
+      });
+
+      testWidgets('a cover that fails to download keeps the form', (
+        tester,
+      ) async {
+        serveSearch([
+          {'title': 'Bestehend', 'cover_i': 123},
+        ]);
+        await pump(tester, book: existing());
+
+        await openSearch(tester);
+        await pickFirst(tester);
+
+        expect(find.text('Bild konnte nicht geladen werden'), findsOneWidget);
+        expect(find.byKey(const ValueKey('cover-placeholder')), findsOneWidget);
+      });
     });
 
     testWidgets(

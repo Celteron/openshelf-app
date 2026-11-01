@@ -1421,4 +1421,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String pageCount(int count) {
     return '$count pages';
   }
+
+  @override
+  String get coverSearchOnline => 'Search online';
+
+  @override
+  String get coverSearchTitle => 'Search cover online';
+
+  @override
+  String get coverSearchEmpty =>
+      'No cover found online. You can take a photo or pick one from the gallery.';
+
+  @override
+  String get completeOnline => 'Complete online';
+
+  @override
+  String get completeOnlineHint =>
+      'Without an ISBN the app finds neither cover nor details. Search the book online to add them.';
+
+  @override
+  String get findCover => 'Find cover';
 }

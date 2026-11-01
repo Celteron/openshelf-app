@@ -15,6 +15,7 @@ import 'package:openreads/domain/repositories/location_repository.dart';
 import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/features/common/widgets/book_cover.dart';
 import 'package:openreads/features/common/status_label.dart';
+import 'package:openreads/features/library/cover_search_screen.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:openreads/features/library/library_cubit.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
@@ -246,6 +247,48 @@ class _AddBookScreenState extends State<AddBookScreen> {
     setState(() => _coverLocalPath = path);
   }
 
+  /// Lets the user pick one of the covers found online (FR-R2-13) and caches
+  /// it, so the library stays browsable offline (Constitution III.3).
+  Future<void> _searchCover() async {
+    final cache = _coverCache;
+    if (cache == null) return;
+    final book = widget.book;
+    final library = context.read<LibraryCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = AppLocalizations.of(context).coverPickFailed;
+    final authors = _parseAuthors();
+    final isbn = normalizeIsbn(_isbn.text);
+    final url = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => CoverSearchScreen(
+          isbn: isbn,
+          coverUrl: _coverUrl,
+          query: [
+            _title.text.trim(),
+            if (authors.isNotEmpty) authors.first,
+          ].join(' '),
+          onNothingFound: book == null
+              ? null
+              : () => library.setCoverNotFound(book.id),
+        ),
+      ),
+    );
+    if (url == null || !mounted) return;
+    final key = book != null
+        ? BookCover.keyFor(book)
+        : isbn ?? 'draft-${DateTime.now().microsecondsSinceEpoch}';
+    final path = await cache.downloadAndCache(key, url);
+    if (!mounted) return;
+    if (path == null) {
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+      return;
+    }
+    setState(() {
+      _coverUrl = url;
+      _coverLocalPath = path;
+    });
+  }
+
   void _removeCover() => setState(() {
     _coverLocalPath = null;
     _coverUrl = null;
@@ -294,6 +337,13 @@ class _AddBookScreenState extends State<AddBookScreen> {
                     label: Text(l10n.coverFromCamera),
                   ),
                 ],
+                if (cache != null)
+                  OutlinedButton.icon(
+                    key: const ValueKey('cover-online'),
+                    onPressed: _searchCover,
+                    icon: const Icon(Icons.image_search_outlined),
+                    label: Text(l10n.coverSearchOnline),
+                  ),
                 if (hasCover)
                   TextButton.icon(
                     key: const ValueKey('cover-remove'),
@@ -473,6 +523,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
     if (_format != (b.format ?? BookFormat.paperback)) changed.add('format');
     final isbn13 = normalizeIsbn(_isbn.text);
     if (isbn13 != b.isbn13) changed.add('isbn13');
+    if (_coverUrl != b.coverUrl) changed.add('coverUrl');
 
     return changed;
   }

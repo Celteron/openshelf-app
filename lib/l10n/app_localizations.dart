@@ -2401,6 +2401,42 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'{count} Seiten'**
   String pageCount(int count);
+
+  /// No description provided for @coverSearchOnline.
+  ///
+  /// In de, this message translates to:
+  /// **'Online suchen'**
+  String get coverSearchOnline;
+
+  /// No description provided for @coverSearchTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Cover online suchen'**
+  String get coverSearchTitle;
+
+  /// No description provided for @coverSearchEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Cover online gefunden. Du kannst eins fotografieren oder aus der Galerie wählen.'**
+  String get coverSearchEmpty;
+
+  /// No description provided for @completeOnline.
+  ///
+  /// In de, this message translates to:
+  /// **'Online vervollständigen'**
+  String get completeOnline;
+
+  /// No description provided for @completeOnlineHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne ISBN findet die App weder Cover noch Daten. Such das Buch online, um sie zu ergänzen.'**
+  String get completeOnlineHint;
+
+  /// No description provided for @findCover.
+  ///
+  /// In de, this message translates to:
+  /// **'Cover suchen'**
+  String get findCover;
 }
 
 class _AppLocalizationsDelegate
