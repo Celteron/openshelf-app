@@ -11,23 +11,39 @@ class CoverPlaceholder extends StatelessWidget {
   final double? width;
   final double? height;
   final double iconSize;
+
+  /// Every source was asked and none has a cover (FR-R2-14); otherwise the
+  /// book was not looked up yet.
+  final bool notFound;
+
   const CoverPlaceholder({
     super.key,
     this.width,
     this.height,
     this.iconSize = 24,
+    this.notFound = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    // A plain grey book: a darker spine on the left, the icon on the cover.
     return Container(
       key: const ValueKey('cover-placeholder'),
       width: width,
       height: height,
-      color: scheme.surfaceContainerHighest,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        border: Border(
+          left: BorderSide(color: scheme.outlineVariant, width: iconSize / 4),
+        ),
+      ),
       alignment: Alignment.center,
-      child: Icon(Icons.book, size: iconSize, color: scheme.onSurfaceVariant),
+      child: Icon(
+        notFound ? Icons.hide_image_outlined : Icons.menu_book_outlined,
+        size: iconSize,
+        color: scheme.onSurfaceVariant,
+      ),
     );
   }
 }
@@ -40,6 +56,7 @@ class CoverImage extends StatelessWidget {
   final double? height;
   final BoxFit fit;
   final double iconSize;
+  final bool notFound;
   const CoverImage({
     super.key,
     required this.path,
@@ -47,22 +64,26 @@ class CoverImage extends StatelessWidget {
     this.height,
     this.fit = BoxFit.cover,
     this.iconSize = 24,
+    this.notFound = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final path = this.path;
-    if (path == null) {
-      return CoverPlaceholder(width: width, height: height, iconSize: iconSize);
-    }
+    final placeholder = CoverPlaceholder(
+      width: width,
+      height: height,
+      iconSize: iconSize,
+      notFound: notFound,
+    );
+    if (path == null) return placeholder;
     return Image.file(
       File(path),
       key: ValueKey('cover-image:$path'),
       width: width,
       height: height,
       fit: fit,
-      errorBuilder: (_, _, _) =>
-          CoverPlaceholder(width: width, height: height, iconSize: iconSize),
+      errorBuilder: (_, _, _) => placeholder,
     );
   }
 }
@@ -176,6 +197,7 @@ class _BookCoverState extends State<BookCover> {
       height: widget.height,
       fit: widget.fit,
       iconSize: widget.iconSize,
+      notFound: widget.book.coverNotFound,
     );
     final radius = widget.borderRadius;
     return Semantics(

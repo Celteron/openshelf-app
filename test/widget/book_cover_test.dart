@@ -159,6 +159,41 @@ void main() {
     expect(find.byKey(const ValueKey('cover-placeholder')), findsOneWidget);
   });
 
+  group('placeholders (FR-R2-14)', () {
+    testWidgets('a book not searched yet shows the book placeholder', (
+      tester,
+    ) async {
+      await pump(tester, BookCover(book: book()), cache: service());
+      expect(find.byIcon(Icons.menu_book_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.hide_image_outlined), findsNothing);
+    });
+
+    testWidgets('a book without a cover online shows its own placeholder', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        BookCover(book: book(coverNotFound: true)),
+        cache: service(),
+      );
+      expect(find.byIcon(Icons.hide_image_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.menu_book_outlined), findsNothing);
+    });
+
+    testWidgets('a found cover beats the flag', (tester) async {
+      final cache = service();
+      final path = await tester.runAsync(
+        () => cache.saveCover('mine', testPng()),
+      );
+      await pump(
+        tester,
+        BookCover(book: book(coverLocalPath: path, coverNotFound: true)),
+        cache: cache,
+      );
+      expect(find.byKey(ValueKey('cover-image:$path')), findsOneWidget);
+    });
+  });
+
   testWidgets('downloads the remote cover once and remembers the file', (
     tester,
   ) async {
