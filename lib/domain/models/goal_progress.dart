@@ -1,5 +1,6 @@
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/shelf_partition.dart';
 
 /// Progress towards a yearly "books read" goal (FR-P2-08).
 class GoalProgress {
@@ -63,7 +64,10 @@ class GoalProgress {
     required DateTime now,
     int? targetPages,
   }) {
-    final counted = books.where((b) => countsForYear(b, year)).toList();
+    // Volumes count, the slipcase holding them does not (ADR-0003).
+    final counted = ShelfPartition.of(
+      books,
+    ).readable.where((b) => countsForYear(b, year)).toList();
     final completed = counted.length;
     final pagesRead = counted.fold<int>(
       0,

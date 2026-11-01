@@ -5,6 +5,7 @@ import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/goal_progress.dart';
 import 'package:openreads/domain/models/reading_stats.dart';
+import 'package:openreads/domain/models/shelf_partition.dart';
 import 'package:openreads/domain/models/statistics.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/domain/repositories/goal_repository.dart';
@@ -102,7 +103,7 @@ class StatisticsCubit extends Cubit<StatisticsState> {
       final scopeIds = year == null
           ? null
           : {
-              for (final b in books)
+              for (final b in ShelfPartition.of(books).readable)
                 if (b.status == BookStatus.read &&
                     BookStatistics.finishedOn(b).year == year)
                   b.id,

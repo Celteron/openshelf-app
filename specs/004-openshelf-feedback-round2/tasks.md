@@ -28,8 +28,8 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 - [ ] T4-37 Version bump, release APK.
 
 ## Package 4b: Slipcases (ADR-0003)
-- [ ] T4-38 `ShelfPartition`, `slipcaseStatus` + tests. (FR-R2-09)
-- [ ] T4-39 Statistics and goal over readable/physical sets + tests. (FR-R2-09)
+- [X] T4-38 `ShelfPartition`, `slipcaseStatus` + tests. (FR-R2-09)
+- [X] T4-39 Statistics and goal over readable/physical sets + tests. (FR-R2-09)
 - [ ] T4-3A Trash semantics for containers and volumes + tests. (FR-R2-09)
 - [ ] T4-3B "Split into volumes" (repository + UI) + tests. (FR-R2-09)
 - [ ] T4-3C Import/export of the relation, scoped duplicate matching + tests. (FR-R2-09)

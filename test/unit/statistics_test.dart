@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/goal_progress.dart';
 import 'package:openreads/domain/models/statistics.dart';
 
 Book _book(
@@ -13,6 +14,7 @@ Book _book(
   double rating = 0.0,
   DateTime? finishedAt,
   DateTime? createdAt,
+  int? parentId,
 }) {
   return Book(
     id: id,
@@ -29,6 +31,7 @@ Book _book(
     status: status,
     rating: rating,
     locationId: locationId,
+    parentId: parentId,
     seriesId: null,
     seriesVolume: null,
     currentPage: 0,
@@ -313,6 +316,61 @@ void main() {
       );
       expect(stats.slowestBook, isNull);
       expect(stats.longestBook!.name, 'Lang');
+    });
+  });
+
+  group('slipcases (ADR-0003)', () {
+    final books = [
+      _book(1, status: BookStatus.read, pages: 300, locationId: 7),
+      // The slipcase: the physical object with the summed page count.
+      _book(
+        2,
+        status: BookStatus.read,
+        pages: 1184,
+        locationId: 7,
+        title: 'Schuber',
+      ),
+      // A volume with its own location must not count the box twice.
+      _book(3, status: BookStatus.read, pages: 500, parentId: 2, locationId: 7),
+      _book(
+        4,
+        status: BookStatus.read,
+        pages: 684,
+        parentId: 2,
+        title: 'Band 2',
+      ),
+    ];
+    const locations = [
+      Location(id: 7, name: 'Regal', type: LocationType.shelf, sortOrder: 0),
+    ];
+
+    test('reading statistics count the volumes, not the slipcase', () {
+      final stats = BookStatistics.compute(books, locations);
+
+      expect(stats.totalBooks, 3);
+      expect(stats.statusCounts[BookStatus.read], 3);
+      expect(stats.pagesRead, 300 + 500 + 684);
+      expect(stats.longestBook!.name, 'Band 2');
+      expect(stats.averagePages, ((300 + 500 + 684) / 3).round());
+      expect(stats.monthly.fold<int>(0, (s, m) => s + m.books), 3);
+    });
+
+    test('locations count the physical objects once', () {
+      final stats = BookStatistics.compute(books, locations);
+
+      expect(stats.topLocations.single.count, 2);
+    });
+
+    test('the goal counts volumes', () {
+      final goal = GoalProgress.compute(
+        year: 2020,
+        target: 10,
+        books: books,
+        now: DateTime(2020, 6),
+      );
+
+      expect(goal.completed, 3);
+      expect(goal.pagesRead, 300 + 500 + 684);
     });
   });
 }

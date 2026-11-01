@@ -3,6 +3,7 @@ import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/goal_progress.dart';
 import 'package:openreads/domain/models/library_sort.dart';
 import 'package:openreads/domain/models/reading_stats.dart';
+import 'package:openreads/domain/models/shelf_partition.dart';
 
 /// Books and pages finished in one calendar month.
 class MonthStat {
@@ -99,17 +100,21 @@ class BookStatistics {
     int? year,
     Iterable<ReadingSession> sessions = const [],
   }) {
+    // Reading numbers count single books and volumes, locations the physical
+    // objects (ADR-0003): a slipcase is neither read nor shelved twice.
+    final shelf = ShelfPartition.of(allBooks);
     final years = {
-      for (final b in allBooks)
+      for (final b in shelf.readable)
         if (b.status == BookStatus.read) finishedOn(b).year,
     }.toList()..sort((a, b) => b.compareTo(a));
 
     final books = year == null
-        ? allBooks
+        ? shelf.readable
         : [
-            for (final b in allBooks)
+            for (final b in shelf.readable)
               if (b.status == BookStatus.read && finishedOn(b).year == year) b,
           ];
+    final shelved = {for (final b in books) shelf.shelvedAs(b)};
 
     final statusCounts = <BookStatus, int>{
       for (final status in BookStatus.values) status: 0,
@@ -132,15 +137,17 @@ class BookStatistics {
         monthPages[month] += book.pageCount ?? 0;
       }
 
-      final locationId = book.locationId;
-      if (locationId != null) {
-        locationCounts[locationId] = (locationCounts[locationId] ?? 0) + 1;
-      }
-
       for (final author in book.authors) {
         final name = author.trim();
         if (name.isEmpty) continue;
         authorCounts[name] = (authorCounts[name] ?? 0) + 1;
+      }
+    }
+
+    for (final book in shelved) {
+      final locationId = book.locationId;
+      if (locationId != null) {
+        locationCounts[locationId] = (locationCounts[locationId] ?? 0) + 1;
       }
     }
 
