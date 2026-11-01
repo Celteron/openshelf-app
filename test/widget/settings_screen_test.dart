@@ -288,6 +288,23 @@ void main() {
       expect(cubit.state.googleBooksApiKey, 'baked-9876');
     });
 
+    testWidgets('the key is hidden until the eye is tapped', (tester) async {
+      await pump(tester, bakedKey: 'baked-9876');
+      await openKeyDialog(tester);
+
+      EditableText field() => tester.widget<EditableText>(
+        find.descendant(
+          of: find.byKey(const ValueKey('google-key-field')),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(field().obscureText, isTrue);
+
+      await tester.tap(find.byKey(const ValueKey('google-key-visibility')));
+      await tester.pump();
+      expect(field().obscureText, isFalse);
+    });
+
     testWidgets('cancelling keeps the key', (tester) async {
       final cubit = await pump(tester, bakedKey: 'baked-9876');
 

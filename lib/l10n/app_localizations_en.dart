@@ -866,6 +866,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get showKey => 'Show key';
+
+  @override
+  String get hideKey => 'Hide key';
+
+  @override
   String get googleBooksKeyHint =>
       'Without your own key all users share a quota that is often used up. Leave empty to send no key.';
 

@@ -434,6 +434,8 @@
   "googleBooksKey": "Google Books API key",
   "googleBooksKeyNone": "Not set (shared quota)",
   "googleBooksKeySet": "Set (…{suffix})",
+  "showKey": "Show key",
+  "hideKey": "Hide key",
   "googleBooksKeyHint": "Without your own key all users share a quota that is often used up. Leave empty to send no key.",
   "coversDownloading": "Downloading covers …",
   "coversNoneMissing": "No covers are missing",

@@ -678,6 +678,7 @@ class _GoogleKeyDialog extends StatefulWidget {
 
 class _GoogleKeyDialogState extends State<_GoogleKeyDialog> {
   late final _controller = TextEditingController(text: widget.initial);
+  var _obscured = true;
 
   @override
   void dispose() {
@@ -693,11 +694,18 @@ class _GoogleKeyDialogState extends State<_GoogleKeyDialog> {
       content: TextField(
         key: const ValueKey('google-key-field'),
         controller: _controller,
+        obscureText: _obscured,
         autocorrect: false,
         enableSuggestions: false,
         decoration: InputDecoration(
           helperText: l10n.googleBooksKeyHint,
           helperMaxLines: 4,
+          suffixIcon: IconButton(
+            key: const ValueKey('google-key-visibility'),
+            icon: Icon(_obscured ? Icons.visibility : Icons.visibility_off),
+            tooltip: _obscured ? l10n.showKey : l10n.hideKey,
+            onPressed: () => setState(() => _obscured = !_obscured),
+          ),
         ),
       ),
       actions: [

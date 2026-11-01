@@ -500,6 +500,8 @@
       }
     }
   },
+  "showKey": "Key anzeigen",
+  "hideKey": "Key verbergen",
   "googleBooksKeyHint": "Ohne eigenen Key teilen sich alle Nutzer ein Kontingent, das oft ausgeschöpft ist. Leer lassen, um keinen Key zu senden.",
   "coversDownloading": "Cover werden geladen …",
   "coversNoneMissing": "Es fehlen keine Cover",

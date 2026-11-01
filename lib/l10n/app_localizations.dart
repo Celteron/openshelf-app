@@ -1562,6 +1562,18 @@ abstract class AppLocalizations {
   /// **'Gesetzt (…{suffix})'**
   String googleBooksKeySet(String suffix);
 
+  /// No description provided for @showKey.
+  ///
+  /// In de, this message translates to:
+  /// **'Key anzeigen'**
+  String get showKey;
+
+  /// No description provided for @hideKey.
+  ///
+  /// In de, this message translates to:
+  /// **'Key verbergen'**
+  String get hideKey;
+
   /// No description provided for @googleBooksKeyHint.
   ///
   /// In de, this message translates to:
