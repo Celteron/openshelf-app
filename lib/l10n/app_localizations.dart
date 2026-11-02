@@ -2399,7 +2399,7 @@ abstract class AppLocalizations {
   /// No description provided for @pageCount.
   ///
   /// In de, this message translates to:
-  /// **'{count} Seiten'**
+  /// **'{count, plural, =1{1 Seite} other{{count} Seiten}}'**
   String pageCount(int count);
 
   /// No description provided for @coverSearchOnline.

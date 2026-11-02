@@ -790,7 +790,7 @@
   "sharedValuesTitle": "Für alle übernehmen",
   "sharedValuesHint": "Diese Angaben bekommen alle erfassten Bücher beim Speichern.",
   "apply": "Übernehmen",
-  "pageCount": "{count} Seiten",
+  "pageCount": "{count, plural, =1{1 Seite} other{{count} Seiten}}",
   "@pageCount": {
     "placeholders": {
       "count": {

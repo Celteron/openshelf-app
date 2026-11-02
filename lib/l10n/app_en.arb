@@ -666,7 +666,7 @@
   "sharedValuesTitle": "Apply to all",
   "sharedValuesHint": "All captured books get these details when saved.",
   "apply": "Apply",
-  "pageCount": "{count} pages",
+  "pageCount": "{count, plural, =1{1 page} other{{count} pages}}",
   "coverSearchOnline": "Search online",
   "coverSearchTitle": "Search cover online",
   "coverSearchEmpty": "No cover found online. You can take a photo or pick one from the gallery.",

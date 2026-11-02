@@ -1438,7 +1438,13 @@ class AppLocalizationsDe extends AppLocalizations {
         intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
-    return '$countString Seiten';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString Seiten',
+      one: '1 Seite',
+    );
+    return '$_temp0';
   }
 
   @override
