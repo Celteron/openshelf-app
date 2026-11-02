@@ -45,8 +45,15 @@ class FakeBookRepository implements BookRepository {
   FakeBookRepository(this.book);
 
   @override
-  Future<void> setCoverLocalPath(int id, String? path) async =>
-      book = book!.copyWith(coverLocalPath: Value(path), coverNotFound: false);
+  Future<void> setChosenCover(
+    int id, {
+    required String path,
+    String? url,
+  }) async => book = book!.copyWith(
+    coverLocalPath: Value(path),
+    coverUrl: url == null ? const Value.absent() : Value(url),
+    coverNotFound: false,
+  );
 
   @override
   Future<Book?> getBook(int id) async => byId[id] ?? book ?? trashedBook;

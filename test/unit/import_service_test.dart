@@ -176,6 +176,13 @@ class _ThrowingRepository implements BookRepository {
   Future<void> setCoverLocalPath(int id, String? path) async {}
 
   @override
+  Future<void> setChosenCover(
+    int id, {
+    required String path,
+    String? url,
+  }) async {}
+
+  @override
   Future<void> updateFavorite(int id, bool isFavorite) async {}
 
   @override

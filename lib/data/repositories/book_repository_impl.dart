@@ -163,6 +163,27 @@ class BookRepositoryImpl implements BookRepository {
   );
 
   @override
+  Future<void> setChosenCover(
+    int id, {
+    required String path,
+    String? url,
+  }) async {
+    final book = await _dao.getById(id);
+    if (book == null) return;
+    await _dao.update(
+      id,
+      BooksCompanion(
+        coverLocalPath: Value(path),
+        coverNotFound: const Value(false),
+        coverUrl: url == null ? const Value.absent() : Value(url),
+        editedFields: url == null
+            ? const Value.absent()
+            : Value({...book.editedFields, 'coverUrl'}.toList()),
+      ),
+    );
+  }
+
+  @override
   Future<void> setCoverNotFound(int id) =>
       _dao.update(id, const BooksCompanion(coverNotFound: Value(true)));
 

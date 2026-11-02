@@ -85,6 +85,20 @@ void main() {
       return id;
     }
 
+    test('a cover chosen online keeps its URL as a user edit', () async {
+      final id = await flagged(url: 'https://a/default.jpg');
+      await repository.setChosenCover(
+        id,
+        path: '/covers/online.jpg',
+        url: 'https://b/other-edition.jpg',
+      );
+      final book = (await repository.getBook(id))!;
+      expect(book.coverLocalPath, '/covers/online.jpg');
+      expect(book.coverUrl, 'https://b/other-edition.jpg');
+      expect(book.editedFields, contains('coverUrl'));
+      expect(book.coverNotFound, isFalse);
+    });
+
     test('a stored cover clears it', () async {
       final id = await flagged();
       await repository.setCoverLocalPath(id, '/covers/b.jpg');

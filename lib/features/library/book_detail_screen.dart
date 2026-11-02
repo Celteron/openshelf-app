@@ -131,15 +131,17 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     final repository = context.read<BookRepository>();
     final messenger = ScaffoldMessenger.of(context);
     final failed = AppLocalizations.of(context).coverPickFailed;
-    final key = BookCover.keyFor(book);
+    // A fresh key: a new path is never served from the image cache.
+    final key = 'detail-${DateTime.now().microsecondsSinceEpoch}';
     String? path;
+    String? url;
     try {
       if (source != null) {
         final bytes = await _optional<CoverPicker>()?.pick(source);
         if (bytes == null) return;
         path = await cache.saveCover(key, bytes);
       } else {
-        final url = await Navigator.of(context).push<String>(
+        url = await Navigator.of(context).push<String>(
           MaterialPageRoute(
             builder: (_) => CoverSearchScreen(
               isbn: book.isbn13,
@@ -159,7 +161,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       messenger.showSnackBar(SnackBar(content: Text(failed)));
       return;
     }
-    await repository.setCoverLocalPath(book.id, path);
+    await repository.setChosenCover(book.id, path: path, url: url);
     if (mounted) await _load();
   }
 

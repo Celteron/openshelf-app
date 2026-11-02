@@ -85,6 +85,11 @@ abstract class BookRepository {
   /// Setting a file also clears the "no cover online" flag.
   Future<void> setCoverLocalPath(int id, String? path);
 
+  /// Stores a cover the user picked: the cached file at [path] and, for an
+  /// online pick, its [url] as a user edit, so exports keep the choice and
+  /// lookups never replace it (Constitution I.3, III.2).
+  Future<void> setChosenCover(int id, {required String path, String? url});
+
   /// Remembers that every online source answered "no cover" (FR-R2-08).
   Future<void> setCoverNotFound(int id);
 
