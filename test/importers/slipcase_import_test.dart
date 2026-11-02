@@ -243,6 +243,36 @@ void main() {
       expect(await target.select(target.bookNotes).get(), hasLength(1));
     });
 
+    test('rating and finish of the single book go to volume 1', () async {
+      final original = await add(
+        source,
+        'Panem-Schuber',
+        isbn13: '9783789132100',
+      );
+      await restore(target, await ExportService(source).exportJson());
+      final box = (await target.select(target.books).getSingle()).id;
+      // Rated and finished here; split unrated on the other device.
+      await BooksDao(target).update(
+        box,
+        BooksCompanion(
+          status: const Value(BookStatus.read),
+          rating: const Value(5),
+          finishedAt: Value(DateTime(2025, 5, 1)),
+        ),
+      );
+      await BookRepositoryImpl(BooksDao(source)).splitIntoVolumes(
+        original,
+        const [VolumeDraft(title: 'Band 1'), VolumeDraft(title: 'Band 2')],
+      );
+
+      await restore(target, await ExportService(source).exportJson());
+
+      final first = (await BooksDao(target).getVolumes(box)).first;
+      expect(first.rating, 5);
+      expect(first.status, BookStatus.read);
+      expect(first.finishedAt, DateTime(2025, 5, 1));
+    });
+
     test('a volume matched by ISBN to another book is reported', () async {
       await add(target, 'Einzeln', isbn13: '9783000000001');
       final result = await importInto(

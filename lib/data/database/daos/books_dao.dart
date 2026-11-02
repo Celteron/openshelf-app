@@ -489,7 +489,14 @@ class BooksDao {
     final volume = (await getById(volumeId))!;
     await update(
       volumeId,
+      // Fill only what the volume lacks: on import it comes from another
+      // device and must not lose this device's rating or finish.
       BooksCompanion(
+        status: Value(
+          volume.status == BookStatus.unread ? box.status : volume.status,
+        ),
+        rating: Value(volume.rating == 0 ? box.rating : volume.rating),
+        finishedAt: Value(volume.finishedAt ?? box.finishedAt),
         review: Value(volume.review ?? box.review),
         readingSeconds: Value(volume.readingSeconds ?? box.readingSeconds),
         currentPage: Value(
