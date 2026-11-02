@@ -86,7 +86,8 @@ void main() {
     ];
     expect([...tops]..sort(), tops);
 
-    expect(find.text('1.200'), findsOneWidget);
+    // The total and the "read" status row.
+    expect(find.text('1.200'), findsNWidgets(2));
     expect(find.text('1.234.567'), findsOneWidget);
     expect(find.textContaining('12.345 Seiten'), findsOneWidget);
     expect(find.textContaining('23.456 Seiten'), findsOneWidget);
@@ -214,6 +215,13 @@ void main() {
 
     testWidgets('a status opens its books', (tester) async {
       await pumpStats(tester);
+      // A full tap target (Constitution V.3).
+      expect(
+        tester
+            .getSize(find.byKey(const ValueKey('status-books-unread')))
+            .height,
+        greaterThanOrEqualTo(48),
+      );
       await tester.tap(find.byKey(const ValueKey('status-books-unread')));
       await tester.pumpAndSettle();
 

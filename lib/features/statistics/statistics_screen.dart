@@ -430,21 +430,25 @@ class _StatusRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fraction = total == 0 ? 0.0 : count / total;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [Text(label), Text('$count')],
-          ),
-          const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(value: fraction, minHeight: 6),
-          ),
-        ],
+    // Status rows are tappable: a full 48 dp target (Constitution V.3).
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 48),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Text(label), Text(formatCount(context, count))],
+            ),
+            const SizedBox(height: 4),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(value: fraction, minHeight: 6),
+            ),
+          ],
+        ),
       ),
     );
   }
