@@ -26,4 +26,9 @@ class SeriesDao {
         .insert(SeriesTableCompanion.insert(name: name.trim()));
     return (await getById(id))!;
   }
+
+  Future<void> setTotalVolumes(int id, int? total) =>
+      (db.update(db.seriesTable)..where((t) => t.id.equals(id))).write(
+        SeriesTableCompanion(totalPlannedVolumes: Value(total)),
+      );
 }

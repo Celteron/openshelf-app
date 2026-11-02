@@ -125,6 +125,25 @@ void main() {
     }
   });
 
+  test('a saved batch triggers the cover search once (P1)', () async {
+    var calls = 0;
+    final queue = MetadataLookupQueue(
+      MetadataAggregatorService([_FakeSource()]),
+      minInterval: Duration.zero,
+    );
+    final hooked = ScannerCubit(books, queue, onBooksAdded: () => calls++);
+    addTearDown(hooked.close);
+
+    hooked.start();
+    await hooked.onScanned('978-3-86680-192-9');
+    await hooked.saveAll();
+    expect(calls, 1);
+
+    // Nothing staged, nothing added: no search.
+    await hooked.saveAll();
+    expect(calls, 1);
+  });
+
   test('dedupes an already-owned ISBN', () async {
     await books.addBook(
       const BookDraft(isbn13: '978-3-86680-192-9', title: 'Owned'),

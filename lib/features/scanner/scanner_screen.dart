@@ -2,11 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:openreads/core/helpers/maybe_read.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/book_metadata.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/location_repository.dart';
 import 'package:openreads/features/common/status_label.dart';
+import 'package:openreads/domain/models/scan_verdict.dart';
 import 'package:openreads/features/scanner/scanner_cubit.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/common/widgets/book_cover.dart';
@@ -47,15 +49,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   StagedDefaults _defaults() {
-    try {
-      final settings = context.read<SettingsCubit>().state;
-      return StagedDefaults(
-        format: settings.defaultFormat,
-        status: settings.defaultStatus,
-      );
-    } catch (_) {
-      return const StagedDefaults(); // no settings (isolated widget tests)
-    }
+    final settings = context.maybeRead<SettingsCubit>()?.state;
+    // No settings in isolated widget tests.
+    if (settings == null) return const StagedDefaults();
+    return StagedDefaults(
+      format: settings.defaultFormat,
+      status: settings.defaultStatus,
+    );
   }
 
   @override
@@ -82,7 +82,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   Widget _scaffold(BuildContext context, AppLocalizations l10n) {
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.scannerTitle)),
+      appBar: AppBar(
+        title: Text(l10n.scannerTitle),
+        actions: const [_LookupModeChip()],
+      ),
       body: Column(
         children: [
           Expanded(
@@ -117,8 +120,192 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                   ),
           ),
+          const _VerdictCard(),
           _StagingShelf(),
         ],
+      ),
+    );
+  }
+}
+
+/// "In the shop": scans only answer "do I have it?" and stage nothing.
+class _LookupModeChip extends StatelessWidget {
+  const _LookupModeChip();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return BlocBuilder<ScannerCubit, ScannerState>(
+      buildWhen: (a, b) =>
+          (a is ScannerActive ? a.lookupOnly : false) !=
+          (b is ScannerActive ? b.lookupOnly : false),
+      builder: (context, state) {
+        final on = state is ScannerActive && state.lookupOnly;
+        return Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: Tooltip(
+            message: l10n.scanLookupModeHint,
+            child: FilterChip(
+              key: const ValueKey('scan-lookup-mode'),
+              avatar: const Icon(Icons.storefront_outlined, size: 18),
+              label: Text(l10n.scanLookupMode),
+              selected: on,
+              onSelected: (value) =>
+                  context.read<ScannerCubit>().setLookupOnly(value),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The answer to the latest scan: owned (and where), wishlist, in the trash,
+/// or new with the actions to add it.
+class _VerdictCard extends StatelessWidget {
+  const _VerdictCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ScannerCubit, ScannerState>(
+      buildWhen: (a, b) =>
+          (a is ScannerActive ? a.verdict : null) !=
+              (b is ScannerActive ? b.verdict : null) ||
+          (a is ScannerActive && a.verdictFailed) !=
+              (b is ScannerActive && b.verdictFailed),
+      builder: (context, state) {
+        final verdict = state is ScannerActive ? state.verdict : null;
+        return AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          child: verdict == null
+              ? const SizedBox(width: double.infinity)
+              : _VerdictBody(
+                  verdict: verdict,
+                  failed: state is ScannerActive && state.verdictFailed,
+                ),
+        );
+      },
+    );
+  }
+}
+
+class _VerdictBody extends StatelessWidget {
+  final ScanVerdict verdict;
+  final bool failed;
+  const _VerdictBody({required this.verdict, required this.failed});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final cubit = context.read<ScannerCubit>();
+
+    final (IconData icon, Color color, String headline) = switch (verdict) {
+      OwnedVerdict() => (Icons.check_circle, scheme.primary, l10n.verdictOwned),
+      WishlistVerdict() => (
+        Icons.favorite_border,
+        scheme.tertiary,
+        l10n.verdictWishlist,
+      ),
+      TrashedVerdict() => (
+        Icons.delete_outline,
+        scheme.error,
+        l10n.verdictTrashed,
+      ),
+      NewVerdict() => (
+        Icons.add_circle_outline,
+        scheme.secondary,
+        l10n.verdictNew,
+      ),
+    };
+    final title = switch (verdict) {
+      OwnedVerdict(:final book) || WishlistVerdict(:final book) => book.title,
+      NewVerdict(:final metadata) => metadata?.title,
+      TrashedVerdict() => null,
+    };
+    final series = switch (verdict) {
+      OwnedVerdict(:final series) || WishlistVerdict(:final series) => series,
+      _ => null,
+    };
+
+    return Card(
+      margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 4, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: color),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Semantics(
+                    liveRegion: true,
+                    child: Text(
+                      headline,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  key: const ValueKey('verdict-dismiss'),
+                  icon: const Icon(Icons.close),
+                  tooltip: l10n.verdictDismiss,
+                  onPressed: cubit.dismissVerdict,
+                ),
+              ],
+            ),
+            if (failed)
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  l10n.verdictSaveFailed,
+                  style: TextStyle(color: scheme.error),
+                ),
+              ),
+            if (title != null) Text(title),
+            if (verdict case OwnedVerdict(:final locationPath))
+              Text(locationPath ?? l10n.verdictNoLocation),
+            if (series != null) ...[
+              if (series.missing.isNotEmpty)
+                Text(
+                  l10n.verdictSeriesMissing(
+                    series.name,
+                    series.missing.length,
+                    series.missing.join(', '),
+                  ),
+                )
+              else if (series.total != null)
+                Text(l10n.verdictSeriesComplete(series.name, series.total!)),
+            ],
+            if (verdict is NewVerdict)
+              Wrap(
+                spacing: 8,
+                children: [
+                  FilledButton.tonalIcon(
+                    key: const ValueKey('verdict-add'),
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.verdictAdd),
+                    onPressed: cubit.addVerdictToStaged,
+                  ),
+                  OutlinedButton.icon(
+                    key: const ValueKey('verdict-wishlist'),
+                    icon: const Icon(Icons.favorite_border),
+                    label: Text(l10n.verdictToWishlist),
+                    onPressed: cubit.addVerdictToWishlist,
+                  ),
+                ],
+              ),
+            if (verdict is WishlistVerdict)
+              FilledButton.tonalIcon(
+                key: const ValueKey('verdict-bought'),
+                icon: const Icon(Icons.shopping_bag_outlined),
+                label: Text(l10n.verdictBought),
+                onPressed: cubit.moveVerdictToLibrary,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -131,6 +318,9 @@ class _StagingShelf extends StatelessWidget {
     return BlocBuilder<ScannerCubit, ScannerState>(
       builder: (context, state) {
         if (state is! ScannerActive) return const SizedBox.shrink();
+        if (state.lookupOnly && state.staged.isEmpty) {
+          return const SizedBox.shrink();
+        }
         final cubit = context.read<ScannerCubit>();
         return Container(
           constraints: const BoxConstraints(maxHeight: 280),

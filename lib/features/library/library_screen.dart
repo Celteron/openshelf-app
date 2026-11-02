@@ -15,6 +15,7 @@ import 'package:openreads/features/library/widgets/book_list_tile.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/tags/tags_cubit.dart';
 import 'package:openreads/features/settings/settings_screen.dart';
+import 'package:openreads/features/shopping/shopping_list_screen.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
 const double _wideBreakpoint = 840.0;
@@ -105,6 +106,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ),
           const _ViewToggle(),
           const _SortMenu(),
+          IconButton(
+            key: const ValueKey('open-shopping-list'),
+            icon: const Icon(Icons.shopping_cart_outlined),
+            tooltip: l10n.shoppingTitle,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ShoppingListScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => Navigator.of(

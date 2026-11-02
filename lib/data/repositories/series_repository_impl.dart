@@ -12,4 +12,11 @@ class SeriesRepositoryImpl implements SeriesRepository {
 
   @override
   Future<Series> findOrCreate(String name) => _dao.findOrCreate(name);
+
+  @override
+  Future<List<Series>> getAll() => _dao.getAll();
+
+  @override
+  Future<void> setTotalVolumes(int id, int? total) =>
+      _dao.setTotalVolumes(id, total);
 }
