@@ -2,13 +2,18 @@ import 'dart:async';
 
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/core/dependency_injection.dart';
 import 'package:openreads/core/themes/app_theme.dart';
 import 'package:openreads/data/cover/cover_cache_service.dart';
 import 'package:openreads/data/cover/cover_picker.dart';
+import 'package:openreads/data/cover/spine_color_service.dart';
 import 'package:openreads/data/export/export_file_saver.dart';
+import 'package:openreads/data/ocr/photo_picker.dart';
+import 'package:openreads/data/ocr/tesseract_text_recognizer.dart';
+import 'package:openreads/domain/services/text_recognizer.dart';
 import 'package:openreads/domain/services/cover_compaction_job.dart';
 import 'package:openreads/domain/services/cover_sync_service.dart';
 import 'package:openreads/domain/services/data_wipe_service.dart';
@@ -24,6 +29,7 @@ import 'package:openreads/data/metadata/open_library_search_client.dart';
 import 'package:openreads/domain/services/import_service.dart';
 import 'package:openreads/domain/services/metadata_aggregator_service.dart';
 import 'package:openreads/domain/services/metadata_lookup_queue.dart';
+import 'package:openreads/domain/services/ownership_checker.dart';
 import 'package:openreads/features/importer/importer_cubit.dart';
 import 'package:openreads/features/lending/lending_cubit.dart';
 import 'package:openreads/features/library/library_cubit.dart';
@@ -31,12 +37,13 @@ import 'package:openreads/features/home/home_cubit.dart';
 import 'package:openreads/features/home/home_screen.dart';
 import 'package:openreads/features/library/library_screen.dart';
 import 'package:openreads/features/locations/location_tree_cubit.dart';
-import 'package:openreads/features/locations/location_tree_screen.dart';
+import 'package:openreads/features/locations/shelf_wall_screen.dart';
 import 'package:openreads/features/metadata/metadata_cubit.dart';
 import 'package:openreads/features/scanner/scanner_cubit.dart';
 import 'package:openreads/features/scanner/scanner_screen.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/statistics/custom_stats_cubit.dart';
+import 'package:openreads/features/statistics/reading_calendar_cubit.dart';
 import 'package:openreads/features/statistics/statistics_cubit.dart';
 import 'package:openreads/features/tags/tags_cubit.dart';
 import 'package:openreads/features/statistics/statistics_screen.dart';
@@ -129,6 +136,13 @@ class OpenShelfApp extends StatelessWidget {
   }) : coverPicker = coverPicker ?? platformCoverPicker(),
        exportFileSaver = exportFileSaver ?? PlatformExportFileSaver();
 
+  /// Looks up the covers of freshly added books in the background, so their
+  /// placeholder says "no cover online" instead of "not searched" (P1).
+  void _searchCovers() => unawaited(
+    // A failed background search only leaves the placeholder as it was.
+    coverSync.downloadMissing().then((_) {}, onError: (Object _) {}),
+  );
+
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
@@ -146,10 +160,22 @@ class OpenShelfApp extends StatelessWidget {
         RepositoryProvider.value(value: deps.statTileRepository),
         RepositoryProvider.value(value: deps.readingTracker),
         RepositoryProvider.value(value: coverCache),
+        RepositoryProvider(create: (_) => SpineColorService()),
         RepositoryProvider(create: (_) => OpenLibrarySearchClient()),
         RepositoryProvider.value(value: coverSync),
         RepositoryProvider.value(value: dataWipe),
         RepositoryProvider<CoverPicker>.value(value: coverPicker),
+        // Photo-to-text needs the Android OCR channel.
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) ...[
+          RepositoryProvider<TextPhotoPicker>(
+            create: (_) => ImagePickerTextPhotoPicker(),
+          ),
+          RepositoryProvider<TextRecognizer>(
+            create: (_) => TesseractTextRecognizer(
+              workDirectory: getApplicationSupportDirectory,
+            ),
+          ),
+        ],
         RepositoryProvider<ExportFileSaver>.value(value: exportFileSaver),
       ],
       child: MultiBlocProvider(
@@ -173,9 +199,24 @@ class OpenShelfApp extends StatelessWidget {
           BlocProvider(create: (_) => MetadataCubit(aggregator)),
           BlocProvider(create: (_) => HomeCubit(deps.bookRepository)),
           BlocProvider(
-            create: (_) => ScannerCubit(deps.bookRepository, lookupQueue),
+            create: (_) => ScannerCubit(
+              deps.bookRepository,
+              lookupQueue,
+              ownership: OwnershipChecker(
+                deps.bookRepository,
+                deps.locationRepository,
+                deps.seriesRepository,
+              ),
+              onBooksAdded: _searchCovers,
+            ),
           ),
-          BlocProvider(create: (_) => ImporterCubit(importService, importers)),
+          BlocProvider(
+            create: (_) => ImporterCubit(
+              importService,
+              importers,
+              onBooksAdded: _searchCovers,
+            ),
+          ),
           BlocProvider(
             create: (_) => StatisticsCubit(
               deps.bookRepository,
@@ -192,6 +233,9 @@ class OpenShelfApp extends StatelessWidget {
               tags: deps.tagRepository,
               locations: deps.locationRepository,
             )..load(),
+          ),
+          BlocProvider(
+            create: (_) => ReadingCalendarCubit(deps.readingRepository)..load(),
           ),
           BlocProvider.value(value: settingsCubit),
         ],
@@ -242,8 +286,10 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   static const _libraryIndex = 1;
   static const _scannerIndex = 2;
+  static const _shelfIndex = 4;
 
   int _index = 0;
+  bool _shelfVisited = false;
 
   @override
   Widget build(BuildContext context) {
@@ -259,14 +305,21 @@ class _HomeShellState extends State<HomeShell> {
       else
         const SizedBox.shrink(),
       StatisticsScreen(onShowLibrary: showLibrary),
-      const LocationTreeScreen(),
+      // Built on the first visit: laying out the wall reads every book.
+      if (_shelfVisited || _index == _shelfIndex)
+        const ShelfWallScreen()
+      else
+        const SizedBox.shrink(),
     ];
 
     return Scaffold(
       body: IndexedStack(index: _index, children: screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        onDestinationSelected: (i) => setState(() {
+          _index = i;
+          if (i == _shelfIndex) _shelfVisited = true;
+        }),
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.home_outlined),
