@@ -145,6 +145,67 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noLocationsYet => 'Noch keine Orte';
 
   @override
+  String get shelfUnassigned => 'Ohne Standort';
+
+  @override
+  String get shelfEmptyRow => 'Leer';
+
+  @override
+  String get shelfManage => 'Standorte verwalten';
+
+  @override
+  String shelfSpineLabel(String title, String authors) {
+    return '$title, $authors';
+  }
+
+  @override
+  String shelfSpineLabelPages(String title, String authors, int pages) {
+    return '$title, $authors, $pages Seiten';
+  }
+
+  @override
+  String shelfSlipcaseCount(int count) {
+    return '$count Bände';
+  }
+
+  @override
+  String get shelfFind => 'Im Regal finden';
+
+  @override
+  String get shelfFindHint => 'Titel oder Autor';
+
+  @override
+  String shelfFindCount(int current, int total) {
+    return '$current von $total';
+  }
+
+  @override
+  String get shelfFindNone => 'Nichts gefunden';
+
+  @override
+  String get shelfFindNext => 'Nächster Treffer';
+
+  @override
+  String get shelfFindPrevious => 'Voriger Treffer';
+
+  @override
+  String get shelfFindClose => 'Suche schließen';
+
+  @override
+  String get shelfMoveTo => 'Verschieben nach …';
+
+  @override
+  String shelfMoved(String place) {
+    return 'Verschoben nach $place';
+  }
+
+  @override
+  String get shelfMoveFailed => 'Verschieben fehlgeschlagen';
+
+  @override
+  String get shelfUndo => 'Rückgängig';
+
+  @override
   String get locationName => 'Ortsname';
 
   @override
@@ -171,6 +232,87 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get alreadyInLibrary => 'Bereits in der Bibliothek';
+
+  @override
+  String get scanLookupMode => 'Im Laden';
+
+  @override
+  String get scanLookupModeHint => 'Nur nachschlagen, nichts vormerken';
+
+  @override
+  String get verdictOwned => 'Besitzt du';
+
+  @override
+  String get verdictNoLocation => 'Kein Standort';
+
+  @override
+  String get verdictWishlist => 'Auf deiner Wunschliste';
+
+  @override
+  String get verdictTrashed => 'Liegt im Papierkorb';
+
+  @override
+  String get verdictNew => 'Noch nicht in der Bibliothek';
+
+  @override
+  String get verdictAdd => 'Hinzufügen';
+
+  @override
+  String get verdictToWishlist => 'Wunschliste';
+
+  @override
+  String get verdictBought => 'Gekauft';
+
+  @override
+  String get verdictDismiss => 'Schließen';
+
+  @override
+  String get verdictSaveFailed =>
+      'Speichern fehlgeschlagen. Bitte noch einmal versuchen.';
+
+  @override
+  String verdictSeriesMissing(String series, int count, String volumes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bände $volumes fehlen',
+      one: 'Band $volumes fehlt',
+    );
+    return '$series: $_temp0';
+  }
+
+  @override
+  String verdictSeriesComplete(String series, int total) {
+    return '$series: komplett ($total Bände)';
+  }
+
+  @override
+  String get shoppingTitle => 'Einkaufsliste';
+
+  @override
+  String get shoppingWishlistHeading => 'Wunschliste';
+
+  @override
+  String get shoppingGapsHeading => 'Fehlende Bände';
+
+  @override
+  String get shoppingOpenHeading => 'Reihen ohne Längenangabe';
+
+  @override
+  String get shoppingSetLength => 'Anzahl Bände festlegen';
+
+  @override
+  String get shoppingLengthLabel => 'Anzahl Bände';
+
+  @override
+  String get shoppingEmpty =>
+      'Nichts zu kaufen: Die Wunschliste ist leer und bei allen Reihen mit bekannter Länge sind alle Bände da.';
+
+  @override
+  String get shoppingCopy => 'Als Text kopieren';
+
+  @override
+  String get shoppingCopied => 'In die Zwischenablage kopiert';
 
   @override
   String get saveAll => 'Alle speichern';
@@ -428,6 +570,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noteContentLabel => 'Text';
 
   @override
+  String get notePhoto => 'Text aus Foto';
+
+  @override
+  String get notePhotoCamera => 'Kamera';
+
+  @override
+  String get notePhotoGallery => 'Galerie';
+
+  @override
+  String get noteOcrWorking => 'Text wird erkannt…';
+
+  @override
+  String get noteOcrNone => 'Es wurde kein Text erkannt.';
+
+  @override
+  String get noteOcrFailed => 'Die Texterkennung ist fehlgeschlagen.';
+
+  @override
   String get notePageLabel => 'Seite (optional)';
 
   @override
@@ -652,6 +812,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get coverRemove => 'Cover entfernen';
+
+  @override
+  String get coverMissingShort => 'Cover fehlt';
+
+  @override
+  String get coverMissingBanner => 'Cover fehlt – manuell ergänzen';
 
   @override
   String get coverPickFailed => 'Bild konnte nicht geladen werden';
@@ -1528,6 +1694,190 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get homeEmpty =>
       'Noch keine Bücher. Tippe in der Bibliothek auf +, um loszulegen.';
+
+  @override
+  String get homeCustomizeTitle => 'Startseite anpassen';
+
+  @override
+  String get homeCustomizeHint =>
+      'Blöcke per Griff verschieben, mit dem Schalter ein- oder ausblenden.';
+
+  @override
+  String get homeCustomizeReset => 'Zurücksetzen';
+
+  @override
+  String get homeCustomizeDrag => 'Verschieben';
+
+  @override
+  String get homeModuleDonut => 'Übersicht (Donut)';
+
+  @override
+  String get homeModulePinned => 'Angepinnte Statistiken';
+
+  @override
+  String get homeModuleGoal => 'Leseziel';
+
+  @override
+  String get homeModuleReading => 'Gerade am Lesen';
+
+  @override
+  String get homeModuleRecent => 'Zuletzt hinzugefügt';
+
+  @override
+  String get homeModuleTrend => 'Ungelesen-Stapel';
+
+  @override
+  String get homeModuleFavourites => 'Favoriten';
+
+  @override
+  String get homeModuleHeatmap => 'Lesekalender';
+
+  @override
+  String get homeAllHidden =>
+      'Alle Blöcke sind ausgeblendet. Über das Symbol oben rechts kannst du sie wieder einschalten.';
+
+  @override
+  String get heatmapTitle => 'Lesekalender';
+
+  @override
+  String heatmapSummary(int withTime, int inProgress) {
+    String _temp0 = intl.Intl.pluralLogic(
+      withTime,
+      locale: localeName,
+      other: '$withTime Tage mit Lesezeit',
+      one: '1 Tag mit Lesezeit',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      inProgress,
+      locale: localeName,
+      other: '$inProgress Tage mit Buch in Arbeit',
+      one: '1 Tag mit Buch in Arbeit',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String heatmapDayNothing(String date) {
+    return '$date: nichts gelesen';
+  }
+
+  @override
+  String heatmapDayDetail(String date, String time, int books) {
+    String _temp0 = intl.Intl.pluralLogic(
+      books,
+      locale: localeName,
+      other: '$books Bücher in Arbeit',
+      one: '1 Buch in Arbeit',
+      zero: 'kein Buch in Arbeit',
+    );
+    return '$date: $time gelesen · $_temp0';
+  }
+
+  @override
+  String heatmapDayProgress(String date, int books) {
+    String _temp0 = intl.Intl.pluralLogic(
+      books,
+      locale: localeName,
+      other: '$books Bücher in Arbeit',
+      one: '1 Buch in Arbeit',
+    );
+    return '$date: $_temp0';
+  }
+
+  @override
+  String get heatmapEmpty =>
+      'Noch keine Lesedaten. Starte eine Lesesitzung oder trage bei einem Buch Lesestart und -ende ein.';
+
+  @override
+  String get heatmapLess => 'Weniger';
+
+  @override
+  String get heatmapMore => 'Mehr';
+
+  @override
+  String get heatmapPrevYear => 'Vorheriges Jahr';
+
+  @override
+  String get heatmapNextYear => 'Nächstes Jahr';
+
+  @override
+  String reviewOpen(int year) {
+    return 'Rückblick $year';
+  }
+
+  @override
+  String reviewIntro(int year) {
+    return 'Dein Lesejahr $year';
+  }
+
+  @override
+  String reviewBooks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Bücher',
+      one: '1 Buch',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String reviewPages(String count) {
+    return '$count Seiten';
+  }
+
+  @override
+  String get reviewTimeHeading => 'Deine Lesezeit';
+
+  @override
+  String reviewDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'an $count Tagen gelesen',
+      one: 'an 1 Tag gelesen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewLongest => 'Dickstes Buch';
+
+  @override
+  String get reviewBest => 'Dein Highlight';
+
+  @override
+  String get reviewTopAuthor => 'Lieblings-Autor:in';
+
+  @override
+  String get reviewBestMonth => 'Stärkster Monat';
+
+  @override
+  String get reviewCoversHeading => 'Deine Bücher';
+
+  @override
+  String get reviewSave => 'Als Bild speichern';
+
+  @override
+  String reviewSaved(String name) {
+    return 'Gespeichert: $name';
+  }
+
+  @override
+  String get reviewSaveFailed => 'Bild konnte nicht gespeichert werden';
+
+  @override
+  String reviewEmpty(int year) {
+    return 'Für $year gibt es noch keine beendeten Bücher.';
+  }
+
+  @override
+  String reviewPage(int current, int total) {
+    return 'Seite $current von $total';
+  }
+
+  @override
+  String get homeReadAction => 'Jetzt lesen';
 
   @override
   String get scanSaveFailed =>

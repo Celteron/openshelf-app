@@ -362,6 +362,108 @@ abstract class AppLocalizations {
   /// **'Noch keine Orte'**
   String get noLocationsYet;
 
+  /// No description provided for @shelfUnassigned.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Standort'**
+  String get shelfUnassigned;
+
+  /// No description provided for @shelfEmptyRow.
+  ///
+  /// In de, this message translates to:
+  /// **'Leer'**
+  String get shelfEmptyRow;
+
+  /// No description provided for @shelfManage.
+  ///
+  /// In de, this message translates to:
+  /// **'Standorte verwalten'**
+  String get shelfManage;
+
+  /// No description provided for @shelfSpineLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'{title}, {authors}'**
+  String shelfSpineLabel(String title, String authors);
+
+  /// No description provided for @shelfSpineLabelPages.
+  ///
+  /// In de, this message translates to:
+  /// **'{title}, {authors}, {pages} Seiten'**
+  String shelfSpineLabelPages(String title, String authors, int pages);
+
+  /// No description provided for @shelfSlipcaseCount.
+  ///
+  /// In de, this message translates to:
+  /// **'{count} Bände'**
+  String shelfSlipcaseCount(int count);
+
+  /// No description provided for @shelfFind.
+  ///
+  /// In de, this message translates to:
+  /// **'Im Regal finden'**
+  String get shelfFind;
+
+  /// No description provided for @shelfFindHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Titel oder Autor'**
+  String get shelfFindHint;
+
+  /// No description provided for @shelfFindCount.
+  ///
+  /// In de, this message translates to:
+  /// **'{current} von {total}'**
+  String shelfFindCount(int current, int total);
+
+  /// No description provided for @shelfFindNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Nichts gefunden'**
+  String get shelfFindNone;
+
+  /// No description provided for @shelfFindNext.
+  ///
+  /// In de, this message translates to:
+  /// **'Nächster Treffer'**
+  String get shelfFindNext;
+
+  /// No description provided for @shelfFindPrevious.
+  ///
+  /// In de, this message translates to:
+  /// **'Voriger Treffer'**
+  String get shelfFindPrevious;
+
+  /// No description provided for @shelfFindClose.
+  ///
+  /// In de, this message translates to:
+  /// **'Suche schließen'**
+  String get shelfFindClose;
+
+  /// No description provided for @shelfMoveTo.
+  ///
+  /// In de, this message translates to:
+  /// **'Verschieben nach …'**
+  String get shelfMoveTo;
+
+  /// No description provided for @shelfMoved.
+  ///
+  /// In de, this message translates to:
+  /// **'Verschoben nach {place}'**
+  String shelfMoved(String place);
+
+  /// No description provided for @shelfMoveFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Verschieben fehlgeschlagen'**
+  String get shelfMoveFailed;
+
+  /// No description provided for @shelfUndo.
+  ///
+  /// In de, this message translates to:
+  /// **'Rückgängig'**
+  String get shelfUndo;
+
   /// No description provided for @locationName.
   ///
   /// In de, this message translates to:
@@ -409,6 +511,144 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Bereits in der Bibliothek'**
   String get alreadyInLibrary;
+
+  /// No description provided for @scanLookupMode.
+  ///
+  /// In de, this message translates to:
+  /// **'Im Laden'**
+  String get scanLookupMode;
+
+  /// No description provided for @scanLookupModeHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur nachschlagen, nichts vormerken'**
+  String get scanLookupModeHint;
+
+  /// No description provided for @verdictOwned.
+  ///
+  /// In de, this message translates to:
+  /// **'Besitzt du'**
+  String get verdictOwned;
+
+  /// No description provided for @verdictNoLocation.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Standort'**
+  String get verdictNoLocation;
+
+  /// No description provided for @verdictWishlist.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf deiner Wunschliste'**
+  String get verdictWishlist;
+
+  /// No description provided for @verdictTrashed.
+  ///
+  /// In de, this message translates to:
+  /// **'Liegt im Papierkorb'**
+  String get verdictTrashed;
+
+  /// No description provided for @verdictNew.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch nicht in der Bibliothek'**
+  String get verdictNew;
+
+  /// No description provided for @verdictAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinzufügen'**
+  String get verdictAdd;
+
+  /// No description provided for @verdictToWishlist.
+  ///
+  /// In de, this message translates to:
+  /// **'Wunschliste'**
+  String get verdictToWishlist;
+
+  /// No description provided for @verdictBought.
+  ///
+  /// In de, this message translates to:
+  /// **'Gekauft'**
+  String get verdictBought;
+
+  /// No description provided for @verdictDismiss.
+  ///
+  /// In de, this message translates to:
+  /// **'Schließen'**
+  String get verdictDismiss;
+
+  /// No description provided for @verdictSaveFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Speichern fehlgeschlagen. Bitte noch einmal versuchen.'**
+  String get verdictSaveFailed;
+
+  /// No description provided for @verdictSeriesMissing.
+  ///
+  /// In de, this message translates to:
+  /// **'{series}: {count, plural, =1{Band {volumes} fehlt} other{Bände {volumes} fehlen}}'**
+  String verdictSeriesMissing(String series, int count, String volumes);
+
+  /// No description provided for @verdictSeriesComplete.
+  ///
+  /// In de, this message translates to:
+  /// **'{series}: komplett ({total} Bände)'**
+  String verdictSeriesComplete(String series, int total);
+
+  /// No description provided for @shoppingTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Einkaufsliste'**
+  String get shoppingTitle;
+
+  /// No description provided for @shoppingWishlistHeading.
+  ///
+  /// In de, this message translates to:
+  /// **'Wunschliste'**
+  String get shoppingWishlistHeading;
+
+  /// No description provided for @shoppingGapsHeading.
+  ///
+  /// In de, this message translates to:
+  /// **'Fehlende Bände'**
+  String get shoppingGapsHeading;
+
+  /// No description provided for @shoppingOpenHeading.
+  ///
+  /// In de, this message translates to:
+  /// **'Reihen ohne Längenangabe'**
+  String get shoppingOpenHeading;
+
+  /// No description provided for @shoppingSetLength.
+  ///
+  /// In de, this message translates to:
+  /// **'Anzahl Bände festlegen'**
+  String get shoppingSetLength;
+
+  /// No description provided for @shoppingLengthLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Anzahl Bände'**
+  String get shoppingLengthLabel;
+
+  /// No description provided for @shoppingEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Nichts zu kaufen: Die Wunschliste ist leer und bei allen Reihen mit bekannter Länge sind alle Bände da.'**
+  String get shoppingEmpty;
+
+  /// No description provided for @shoppingCopy.
+  ///
+  /// In de, this message translates to:
+  /// **'Als Text kopieren'**
+  String get shoppingCopy;
+
+  /// No description provided for @shoppingCopied.
+  ///
+  /// In de, this message translates to:
+  /// **'In die Zwischenablage kopiert'**
+  String get shoppingCopied;
 
   /// No description provided for @saveAll.
   ///
@@ -854,6 +1094,42 @@ abstract class AppLocalizations {
   /// **'Text'**
   String get noteContentLabel;
 
+  /// No description provided for @notePhoto.
+  ///
+  /// In de, this message translates to:
+  /// **'Text aus Foto'**
+  String get notePhoto;
+
+  /// No description provided for @notePhotoCamera.
+  ///
+  /// In de, this message translates to:
+  /// **'Kamera'**
+  String get notePhotoCamera;
+
+  /// No description provided for @notePhotoGallery.
+  ///
+  /// In de, this message translates to:
+  /// **'Galerie'**
+  String get notePhotoGallery;
+
+  /// No description provided for @noteOcrWorking.
+  ///
+  /// In de, this message translates to:
+  /// **'Text wird erkannt…'**
+  String get noteOcrWorking;
+
+  /// No description provided for @noteOcrNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Es wurde kein Text erkannt.'**
+  String get noteOcrNone;
+
+  /// No description provided for @noteOcrFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Texterkennung ist fehlgeschlagen.'**
+  String get noteOcrFailed;
+
   /// No description provided for @notePageLabel.
   ///
   /// In de, this message translates to:
@@ -1177,6 +1453,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Cover entfernen'**
   String get coverRemove;
+
+  /// No description provided for @coverMissingShort.
+  ///
+  /// In de, this message translates to:
+  /// **'Cover fehlt'**
+  String get coverMissingShort;
+
+  /// No description provided for @coverMissingBanner.
+  ///
+  /// In de, this message translates to:
+  /// **'Cover fehlt – manuell ergänzen'**
+  String get coverMissingBanner;
 
   /// No description provided for @coverPickFailed.
   ///
@@ -2545,6 +2833,246 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Noch keine Bücher. Tippe in der Bibliothek auf +, um loszulegen.'**
   String get homeEmpty;
+
+  /// No description provided for @homeCustomizeTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Startseite anpassen'**
+  String get homeCustomizeTitle;
+
+  /// No description provided for @homeCustomizeHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Blöcke per Griff verschieben, mit dem Schalter ein- oder ausblenden.'**
+  String get homeCustomizeHint;
+
+  /// No description provided for @homeCustomizeReset.
+  ///
+  /// In de, this message translates to:
+  /// **'Zurücksetzen'**
+  String get homeCustomizeReset;
+
+  /// No description provided for @homeCustomizeDrag.
+  ///
+  /// In de, this message translates to:
+  /// **'Verschieben'**
+  String get homeCustomizeDrag;
+
+  /// No description provided for @homeModuleDonut.
+  ///
+  /// In de, this message translates to:
+  /// **'Übersicht (Donut)'**
+  String get homeModuleDonut;
+
+  /// No description provided for @homeModulePinned.
+  ///
+  /// In de, this message translates to:
+  /// **'Angepinnte Statistiken'**
+  String get homeModulePinned;
+
+  /// No description provided for @homeModuleGoal.
+  ///
+  /// In de, this message translates to:
+  /// **'Leseziel'**
+  String get homeModuleGoal;
+
+  /// No description provided for @homeModuleReading.
+  ///
+  /// In de, this message translates to:
+  /// **'Gerade am Lesen'**
+  String get homeModuleReading;
+
+  /// No description provided for @homeModuleRecent.
+  ///
+  /// In de, this message translates to:
+  /// **'Zuletzt hinzugefügt'**
+  String get homeModuleRecent;
+
+  /// No description provided for @homeModuleTrend.
+  ///
+  /// In de, this message translates to:
+  /// **'Ungelesen-Stapel'**
+  String get homeModuleTrend;
+
+  /// No description provided for @homeModuleFavourites.
+  ///
+  /// In de, this message translates to:
+  /// **'Favoriten'**
+  String get homeModuleFavourites;
+
+  /// No description provided for @homeModuleHeatmap.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesekalender'**
+  String get homeModuleHeatmap;
+
+  /// No description provided for @homeAllHidden.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Blöcke sind ausgeblendet. Über das Symbol oben rechts kannst du sie wieder einschalten.'**
+  String get homeAllHidden;
+
+  /// No description provided for @heatmapTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesekalender'**
+  String get heatmapTitle;
+
+  /// No description provided for @heatmapSummary.
+  ///
+  /// In de, this message translates to:
+  /// **'{withTime, plural, =1{1 Tag mit Lesezeit} other{{withTime} Tage mit Lesezeit}} · {inProgress, plural, =1{1 Tag mit Buch in Arbeit} other{{inProgress} Tage mit Buch in Arbeit}}'**
+  String heatmapSummary(int withTime, int inProgress);
+
+  /// No description provided for @heatmapDayNothing.
+  ///
+  /// In de, this message translates to:
+  /// **'{date}: nichts gelesen'**
+  String heatmapDayNothing(String date);
+
+  /// No description provided for @heatmapDayDetail.
+  ///
+  /// In de, this message translates to:
+  /// **'{date}: {time} gelesen · {books, plural, =0{kein Buch in Arbeit} =1{1 Buch in Arbeit} other{{books} Bücher in Arbeit}}'**
+  String heatmapDayDetail(String date, String time, int books);
+
+  /// No description provided for @heatmapDayProgress.
+  ///
+  /// In de, this message translates to:
+  /// **'{date}: {books, plural, =1{1 Buch in Arbeit} other{{books} Bücher in Arbeit}}'**
+  String heatmapDayProgress(String date, int books);
+
+  /// No description provided for @heatmapEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Lesedaten. Starte eine Lesesitzung oder trage bei einem Buch Lesestart und -ende ein.'**
+  String get heatmapEmpty;
+
+  /// No description provided for @heatmapLess.
+  ///
+  /// In de, this message translates to:
+  /// **'Weniger'**
+  String get heatmapLess;
+
+  /// No description provided for @heatmapMore.
+  ///
+  /// In de, this message translates to:
+  /// **'Mehr'**
+  String get heatmapMore;
+
+  /// No description provided for @heatmapPrevYear.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorheriges Jahr'**
+  String get heatmapPrevYear;
+
+  /// No description provided for @heatmapNextYear.
+  ///
+  /// In de, this message translates to:
+  /// **'Nächstes Jahr'**
+  String get heatmapNextYear;
+
+  /// No description provided for @reviewOpen.
+  ///
+  /// In de, this message translates to:
+  /// **'Rückblick {year}'**
+  String reviewOpen(int year);
+
+  /// No description provided for @reviewIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Lesejahr {year}'**
+  String reviewIntro(int year);
+
+  /// No description provided for @reviewBooks.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Buch} other{{count} Bücher}}'**
+  String reviewBooks(int count);
+
+  /// No description provided for @reviewPages.
+  ///
+  /// In de, this message translates to:
+  /// **'{count} Seiten'**
+  String reviewPages(String count);
+
+  /// No description provided for @reviewTimeHeading.
+  ///
+  /// In de, this message translates to:
+  /// **'Deine Lesezeit'**
+  String get reviewTimeHeading;
+
+  /// No description provided for @reviewDays.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{an 1 Tag gelesen} other{an {count} Tagen gelesen}}'**
+  String reviewDays(int count);
+
+  /// No description provided for @reviewLongest.
+  ///
+  /// In de, this message translates to:
+  /// **'Dickstes Buch'**
+  String get reviewLongest;
+
+  /// No description provided for @reviewBest.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Highlight'**
+  String get reviewBest;
+
+  /// No description provided for @reviewTopAuthor.
+  ///
+  /// In de, this message translates to:
+  /// **'Lieblings-Autor:in'**
+  String get reviewTopAuthor;
+
+  /// No description provided for @reviewBestMonth.
+  ///
+  /// In de, this message translates to:
+  /// **'Stärkster Monat'**
+  String get reviewBestMonth;
+
+  /// No description provided for @reviewCoversHeading.
+  ///
+  /// In de, this message translates to:
+  /// **'Deine Bücher'**
+  String get reviewCoversHeading;
+
+  /// No description provided for @reviewSave.
+  ///
+  /// In de, this message translates to:
+  /// **'Als Bild speichern'**
+  String get reviewSave;
+
+  /// No description provided for @reviewSaved.
+  ///
+  /// In de, this message translates to:
+  /// **'Gespeichert: {name}'**
+  String reviewSaved(String name);
+
+  /// No description provided for @reviewSaveFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Bild konnte nicht gespeichert werden'**
+  String get reviewSaveFailed;
+
+  /// No description provided for @reviewEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Für {year} gibt es noch keine beendeten Bücher.'**
+  String reviewEmpty(int year);
+
+  /// No description provided for @reviewPage.
+  ///
+  /// In de, this message translates to:
+  /// **'Seite {current} von {total}'**
+  String reviewPage(int current, int total);
+
+  /// No description provided for @homeReadAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Jetzt lesen'**
+  String get homeReadAction;
 
   /// No description provided for @scanSaveFailed.
   ///

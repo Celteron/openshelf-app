@@ -58,6 +58,52 @@
   "edited": "bearbeitet",
   "myShelf": "Mein Regal",
   "noLocationsYet": "Noch keine Orte",
+  "shelfUnassigned": "Ohne Standort",
+  "shelfEmptyRow": "Leer",
+  "shelfManage": "Standorte verwalten",
+  "shelfSpineLabel": "{title}, {authors}",
+  "@shelfSpineLabel": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "authors": {"type": "String"}
+    }
+  },
+  "shelfSpineLabelPages": "{title}, {authors}, {pages} Seiten",
+  "@shelfSpineLabelPages": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "authors": {"type": "String"},
+      "pages": {"type": "int"}
+    }
+  },
+  "shelfSlipcaseCount": "{count} Bände",
+  "@shelfSlipcaseCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "shelfFind": "Im Regal finden",
+  "shelfFindHint": "Titel oder Autor",
+  "shelfFindCount": "{current} von {total}",
+  "@shelfFindCount": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "shelfFindNone": "Nichts gefunden",
+  "shelfFindNext": "Nächster Treffer",
+  "shelfFindPrevious": "Voriger Treffer",
+  "shelfFindClose": "Suche schließen",
+  "shelfMoveTo": "Verschieben nach …",
+  "shelfMoved": "Verschoben nach {place}",
+  "@shelfMoved": {
+    "placeholders": {
+      "place": {"type": "String"}
+    }
+  },
+  "shelfMoveFailed": "Verschieben fehlgeschlagen",
+  "shelfUndo": "Rückgängig",
   "locationName": "Ortsname",
   "cancel": "Abbrechen",
   "ok": "OK",
@@ -73,6 +119,42 @@
     }
   },
   "alreadyInLibrary": "Bereits in der Bibliothek",
+  "scanLookupMode": "Im Laden",
+  "scanLookupModeHint": "Nur nachschlagen, nichts vormerken",
+  "verdictOwned": "Besitzt du",
+  "verdictNoLocation": "Kein Standort",
+  "verdictWishlist": "Auf deiner Wunschliste",
+  "verdictTrashed": "Liegt im Papierkorb",
+  "verdictNew": "Noch nicht in der Bibliothek",
+  "verdictAdd": "Hinzufügen",
+  "verdictToWishlist": "Wunschliste",
+  "verdictBought": "Gekauft",
+  "verdictDismiss": "Schließen",
+  "verdictSaveFailed": "Speichern fehlgeschlagen. Bitte noch einmal versuchen.",
+  "verdictSeriesMissing": "{series}: {count, plural, =1{Band {volumes} fehlt} other{Bände {volumes} fehlen}}",
+  "@verdictSeriesMissing": {
+    "placeholders": {
+      "series": {"type": "String"},
+      "count": {"type": "int"},
+      "volumes": {"type": "String"}
+    }
+  },
+  "verdictSeriesComplete": "{series}: komplett ({total} Bände)",
+  "@verdictSeriesComplete": {
+    "placeholders": {
+      "series": {"type": "String"},
+      "total": {"type": "int"}
+    }
+  },
+  "shoppingTitle": "Einkaufsliste",
+  "shoppingWishlistHeading": "Wunschliste",
+  "shoppingGapsHeading": "Fehlende Bände",
+  "shoppingOpenHeading": "Reihen ohne Längenangabe",
+  "shoppingSetLength": "Anzahl Bände festlegen",
+  "shoppingLengthLabel": "Anzahl Bände",
+  "shoppingEmpty": "Nichts zu kaufen: Die Wunschliste ist leer und bei allen Reihen mit bekannter Länge sind alle Bände da.",
+  "shoppingCopy": "Als Text kopieren",
+  "shoppingCopied": "In die Zwischenablage kopiert",
   "saveAll": "Alle speichern",
   "saving": "Speichern…",
   "chooseFile": "CSV/JSON-Datei auswählen",
@@ -250,6 +332,12 @@
   "addNote": "Eintrag hinzufügen",
   "editNote": "Eintrag bearbeiten",
   "noteContentLabel": "Text",
+  "notePhoto": "Text aus Foto",
+  "notePhotoCamera": "Kamera",
+  "notePhotoGallery": "Galerie",
+  "noteOcrWorking": "Text wird erkannt…",
+  "noteOcrNone": "Es wurde kein Text erkannt.",
+  "noteOcrFailed": "Die Texterkennung ist fehlgeschlagen.",
   "notePageLabel": "Seite (optional)",
   "notePage": "S. {page}",
   "@notePage": {
@@ -396,6 +484,8 @@
   "coverFromGallery": "Aus Galerie",
   "coverFromCamera": "Kamera",
   "coverRemove": "Cover entfernen",
+  "coverMissingShort": "Cover fehlt",
+  "coverMissingBanner": "Cover fehlt – manuell ergänzen",
   "coverPickFailed": "Bild konnte nicht geladen werden",
   "sortModified": "Geändert am",
   "sortPages": "Seitenzahl",
@@ -847,6 +937,111 @@
   "homeCurrentlyReading": "Gerade am Lesen",
   "homeUnreadTrend": "Ungelesen-Stapel, letzte 6 Monate",
   "homeEmpty": "Noch keine Bücher. Tippe in der Bibliothek auf +, um loszulegen.",
+  "homeCustomizeTitle": "Startseite anpassen",
+  "homeCustomizeHint": "Blöcke per Griff verschieben, mit dem Schalter ein- oder ausblenden.",
+  "homeCustomizeReset": "Zurücksetzen",
+  "homeCustomizeDrag": "Verschieben",
+  "homeModuleDonut": "Übersicht (Donut)",
+  "homeModulePinned": "Angepinnte Statistiken",
+  "homeModuleGoal": "Leseziel",
+  "homeModuleReading": "Gerade am Lesen",
+  "homeModuleRecent": "Zuletzt hinzugefügt",
+  "homeModuleTrend": "Ungelesen-Stapel",
+  "homeModuleFavourites": "Favoriten",
+  "homeModuleHeatmap": "Lesekalender",
+  "homeAllHidden": "Alle Blöcke sind ausgeblendet. Über das Symbol oben rechts kannst du sie wieder einschalten.",
+  "heatmapTitle": "Lesekalender",
+  "heatmapSummary": "{withTime, plural, =1{1 Tag mit Lesezeit} other{{withTime} Tage mit Lesezeit}} · {inProgress, plural, =1{1 Tag mit Buch in Arbeit} other{{inProgress} Tage mit Buch in Arbeit}}",
+  "@heatmapSummary": {
+    "placeholders": {
+      "withTime": {"type": "int"},
+      "inProgress": {"type": "int"}
+    }
+  },
+  "heatmapDayNothing": "{date}: nichts gelesen",
+  "@heatmapDayNothing": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "heatmapDayDetail": "{date}: {time} gelesen · {books, plural, =0{kein Buch in Arbeit} =1{1 Buch in Arbeit} other{{books} Bücher in Arbeit}}",
+  "@heatmapDayDetail": {
+    "placeholders": {
+      "date": {"type": "String"},
+      "time": {"type": "String"},
+      "books": {"type": "int"}
+    }
+  },
+  "heatmapDayProgress": "{date}: {books, plural, =1{1 Buch in Arbeit} other{{books} Bücher in Arbeit}}",
+  "@heatmapDayProgress": {
+    "placeholders": {
+      "date": {"type": "String"},
+      "books": {"type": "int"}
+    }
+  },
+  "heatmapEmpty": "Noch keine Lesedaten. Starte eine Lesesitzung oder trage bei einem Buch Lesestart und -ende ein.",
+  "heatmapLess": "Weniger",
+  "heatmapMore": "Mehr",
+  "heatmapPrevYear": "Vorheriges Jahr",
+  "heatmapNextYear": "Nächstes Jahr",
+  "reviewOpen": "Rückblick {year}",
+  "@reviewOpen": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "reviewIntro": "Dein Lesejahr {year}",
+  "@reviewIntro": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "reviewBooks": "{count, plural, =1{1 Buch} other{{count} Bücher}}",
+  "@reviewBooks": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "reviewPages": "{count} Seiten",
+  "@reviewPages": {
+    "placeholders": {
+      "count": {"type": "String"}
+    }
+  },
+  "reviewTimeHeading": "Deine Lesezeit",
+  "reviewDays": "{count, plural, =1{an 1 Tag gelesen} other{an {count} Tagen gelesen}}",
+  "@reviewDays": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "reviewLongest": "Dickstes Buch",
+  "reviewBest": "Dein Highlight",
+  "reviewTopAuthor": "Lieblings-Autor:in",
+  "reviewBestMonth": "Stärkster Monat",
+  "reviewCoversHeading": "Deine Bücher",
+  "reviewSave": "Als Bild speichern",
+  "reviewSaved": "Gespeichert: {name}",
+  "@reviewSaved": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "reviewSaveFailed": "Bild konnte nicht gespeichert werden",
+  "reviewEmpty": "Für {year} gibt es noch keine beendeten Bücher.",
+  "@reviewEmpty": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "reviewPage": "Seite {current} von {total}",
+  "@reviewPage": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "homeReadAction": "Jetzt lesen",
   "scanSaveFailed": "Speichern fehlgeschlagen. Prüfe den Standort und versuche es erneut.",
   "statNoData": "Noch keine Daten.",
   "statOther": "Andere",
