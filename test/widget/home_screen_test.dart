@@ -44,11 +44,15 @@ Book _book(int id, String title, BookStatus status, {bool favorite = false}) =>
 
 /// The home tab (FR-R2-19).
 void main() {
-  Future<(LibraryCubit, List<int>)> pump(WidgetTester tester) async {
+  Future<(LibraryCubit, List<int>)> pump(
+    WidgetTester tester, {
+    List<Book> more = const [],
+  }) async {
     final repo = _Books([
       _book(1, 'Fertig', BookStatus.read, favorite: true),
       _book(2, 'Dabei', BookStatus.reading),
       _book(3, 'Stapel', BookStatus.unread),
+      ...more,
     ]);
     final shown = <int>[];
     tester.view.physicalSize = const Size(800, 3000);
@@ -109,5 +113,20 @@ void main() {
       state is LibraryLoaded && state.statusFilter == BookStatus.unread,
       isTrue,
     );
+  });
+
+  testWidgets('the reading segment shows re-reads too, as it counts them', (
+    tester,
+  ) async {
+    final (library, _) = await pump(
+      tester,
+      more: [_book(4, 'Nochmal', BookStatus.reReading)],
+    );
+
+    await tester.tap(find.byKey(const ValueKey('home-segment-reading')));
+    await tester.pump();
+
+    final state = library.state;
+    expect(state is LibraryLoaded ? state.onlyIds : null, {2, 4});
   });
 }

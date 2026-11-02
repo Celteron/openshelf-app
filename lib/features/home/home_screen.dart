@@ -32,8 +32,17 @@ class _HomeScreenState extends State<HomeScreen> {
     context.read<HomeCubit>().load();
   }
 
-  void _showStatus(BookStatus status) {
-    context.read<LibraryCubit>().showStatus(status);
+  void _showStatus(BookStatus status, HomeSummary summary) {
+    final library = context.read<LibraryCubit>();
+    final reading = summary.currentlyReading;
+    // The segment counts re-reads as well, which the reading chip leaves
+    // out: show exactly the counted books then.
+    if (status == BookStatus.reading &&
+        reading.any((b) => b.status == BookStatus.reReading)) {
+      library.showOnly({for (final b in reading) b.id});
+    } else {
+      library.showStatus(status);
+    }
     widget.onShowLibrary?.call();
   }
 
@@ -57,7 +66,10 @@ class _HomeScreenState extends State<HomeScreen> {
           HomeLoaded(:final summary) => ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _Donut(summary: summary, onStatus: _showStatus),
+              _Donut(
+                summary: summary,
+                onStatus: (status) => _showStatus(status, summary),
+              ),
               const _HomeGoal(),
               if (summary.currentlyReading.isNotEmpty)
                 _Section(
