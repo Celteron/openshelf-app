@@ -226,17 +226,41 @@ class _StagingShelf extends StatelessWidget {
 }
 
 /// One line saying what "save all" will apply.
-class _SharedSummary extends StatelessWidget {
+class _SharedSummary extends StatefulWidget {
   final StagedDefaults shared;
   const _SharedSummary({required this.shared});
 
   @override
+  State<_SharedSummary> createState() => _SharedSummaryState();
+}
+
+class _SharedSummaryState extends State<_SharedSummary> {
+  /// Read once per chosen location, not on every scan that rebuilds the
+  /// shelf (the line would also flicker while the query runs).
+  Future<List<Location>>? _locations;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(_SharedSummary old) {
+    super.didUpdateWidget(old);
+    if (old.shared.locationId != widget.shared.locationId) _load();
+  }
+
+  void _load() => _locations = widget.shared.locationId == null
+      ? null
+      : context.read<LocationRepository>().getLocations();
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final shared = widget.shared;
     return FutureBuilder<List<Location>>(
-      future: shared.locationId == null
-          ? null
-          : context.read<LocationRepository>().getLocations(),
+      future: _locations,
       builder: (context, snapshot) {
         final location = [
           for (final l in snapshot.data ?? const <Location>[])

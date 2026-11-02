@@ -19,10 +19,15 @@ class _NoRepo implements BookRepository {
 }
 
 class _Locations implements LocationRepository {
+  int asked = 0;
+
   @override
-  Future<List<Location>> getLocations() async => const [
-    Location(id: 3, name: 'Regal', type: LocationType.shelf, sortOrder: 0),
-  ];
+  Future<List<Location>> getLocations() async {
+    asked++;
+    return const [
+      Location(id: 3, name: 'Regal', type: LocationType.shelf, sortOrder: 0),
+    ];
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -48,6 +53,8 @@ class _SeededCubit extends ScannerCubit {
 void main() {
   const isbn = '9783257229530';
 
+  late _Locations locations;
+
   Future<_SeededCubit> pump(WidgetTester tester) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
@@ -65,7 +72,7 @@ void main() {
     addTearDown(cubit.close);
     await tester.pumpWidget(
       RepositoryProvider<LocationRepository>.value(
-        value: _Locations(),
+        value: locations = _Locations(),
         child: BlocProvider<ScannerCubit>.value(
           value: cubit,
           child: const MaterialApp(
@@ -124,6 +131,24 @@ void main() {
     await tester.pumpAndSettle();
 
     expect((cubit.state as ScannerActive).shared.locationId, isNull);
+  });
+
+  shelfTest('the shared summary reads the locations once, not per scan', (
+    tester,
+  ) async {
+    final cubit = await pump(tester);
+    cubit.setShared(const StagedDefaults(locationId: 3));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Regal'), findsOneWidget);
+    final before = locations.asked;
+
+    for (var i = 0; i < 3; i++) {
+      cubit.seed((cubit.state as ScannerActive).copyWith(scanning: i.isEven));
+      await tester.pumpAndSettle();
+    }
+
+    expect(locations.asked, before);
+    expect(find.textContaining('Regal'), findsOneWidget);
   });
 
   shelfTest('a staged book shows title and author', (tester) async {
