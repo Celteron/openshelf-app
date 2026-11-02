@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:openreads/core/helpers/maybe_read.dart';
 import 'package:openreads/core/helpers/isbn.dart';
 import 'package:openreads/core/helpers/price.dart';
 import 'package:openreads/core/helpers/rating.dart';
@@ -113,13 +114,8 @@ class _AddBookScreenState extends State<AddBookScreen> {
     }
   }
 
-  ReadingRepository? get _readingRepository {
-    try {
-      return context.read<ReadingRepository>();
-    } catch (_) {
-      return null; // not provided (isolated widget tests)
-    }
-  }
+  ReadingRepository? get _readingRepository =>
+      context.maybeRead<ReadingRepository>();
 
   Future<void> _loadReadingDates(int bookId) async {
     final sessions = await _reading?.watchSessions(bookId).first;
@@ -131,13 +127,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
     });
   }
 
-  SettingsState? get _settings {
-    try {
-      return context.read<SettingsCubit>().state;
-    } catch (_) {
-      return null;
-    }
-  }
+  SettingsState? get _settings => context.maybeRead<SettingsCubit>()?.state;
 
   @override
   void dispose() {

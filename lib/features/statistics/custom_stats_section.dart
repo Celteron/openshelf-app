@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:openreads/core/helpers/maybe_read.dart';
 import 'package:openreads/domain/models/stat_definition.dart';
 import 'package:openreads/domain/models/stat_tile.dart';
 import 'package:openreads/domain/services/stat_query.dart';
@@ -24,12 +25,9 @@ class CustomStatsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final CustomStatsCubit cubit;
-    try {
-      cubit = context.read<CustomStatsCubit>();
-    } catch (_) {
-      return const SliverToBoxAdapter(); // isolated widget tests
-    }
+    final cubit = context.maybeRead<CustomStatsCubit>();
+    // No cubit in isolated widget tests.
+    if (cubit == null) return const SliverToBoxAdapter();
     final l10n = AppLocalizations.of(context);
     return BlocBuilder<CustomStatsCubit, CustomStatsState>(
       bloc: cubit,

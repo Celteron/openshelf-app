@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:openreads/core/helpers/maybe_read.dart';
 import 'package:openreads/core/helpers/price.dart';
 import 'package:openreads/core/helpers/rating.dart';
 import 'package:openreads/data/cover/cover_cache_service.dart';
@@ -220,14 +221,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   /// The preferred rating style. With [watch] the screen rebuilds when the
   /// setting changes; without a settings cubit the star bar is used.
   RatingDisplay _ratingDisplay(BuildContext context, {bool watch = false}) {
-    try {
-      final settings = watch
-          ? context.watch<SettingsCubit>()
-          : context.read<SettingsCubit>();
-      return settings.state.ratingDisplay;
-    } catch (_) {
-      return RatingDisplay.bar;
-    }
+    final settings = watch
+        ? context.maybeWatch<SettingsCubit>()
+        : context.maybeRead<SettingsCubit>();
+    return settings?.state.ratingDisplay ?? RatingDisplay.bar;
   }
 
   Future<void> _quickRate(Book book) async {
