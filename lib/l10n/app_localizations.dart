@@ -2575,6 +2575,288 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Alle {count} anzeigen'**
   String statShowAll(int count);
+
+  /// No description provided for @statsSectionCustom.
+  ///
+  /// In de, this message translates to:
+  /// **'Eigene Statistiken'**
+  String get statsSectionCustom;
+
+  /// No description provided for @statAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Statistik hinzufügen'**
+  String get statAdd;
+
+  /// No description provided for @statNew.
+  ///
+  /// In de, this message translates to:
+  /// **'Neue Statistik'**
+  String get statNew;
+
+  /// No description provided for @statEdit.
+  ///
+  /// In de, this message translates to:
+  /// **'Statistik bearbeiten'**
+  String get statEdit;
+
+  /// No description provided for @statPresets.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorlagen'**
+  String get statPresets;
+
+  /// No description provided for @statStepMeasure.
+  ///
+  /// In de, this message translates to:
+  /// **'1 · Was wird gemessen?'**
+  String get statStepMeasure;
+
+  /// No description provided for @statStepGrouping.
+  ///
+  /// In de, this message translates to:
+  /// **'2 · Gruppiert nach'**
+  String get statStepGrouping;
+
+  /// No description provided for @statStepPeriod.
+  ///
+  /// In de, this message translates to:
+  /// **'3 · Zeitraum und Filter'**
+  String get statStepPeriod;
+
+  /// No description provided for @statStepChart.
+  ///
+  /// In de, this message translates to:
+  /// **'4 · Darstellung und Titel'**
+  String get statStepChart;
+
+  /// No description provided for @statPreview.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorschau'**
+  String get statPreview;
+
+  /// No description provided for @statTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Titel'**
+  String get statTitle;
+
+  /// No description provided for @statAllTime.
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamt'**
+  String get statAllTime;
+
+  /// No description provided for @statNoGrouping.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine (eine Zahl)'**
+  String get statNoGrouping;
+
+  /// No description provided for @statFilterStatus.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur mit Status'**
+  String get statFilterStatus;
+
+  /// No description provided for @statFilterFormat.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur Buchart'**
+  String get statFilterFormat;
+
+  /// No description provided for @statFilterTags.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur mit Tag'**
+  String get statFilterTags;
+
+  /// No description provided for @statMeasureBooks.
+  ///
+  /// In de, this message translates to:
+  /// **'Anzahl Bücher'**
+  String get statMeasureBooks;
+
+  /// No description provided for @statMeasurePagesRead.
+  ///
+  /// In de, this message translates to:
+  /// **'Gelesene Seiten'**
+  String get statMeasurePagesRead;
+
+  /// No description provided for @statMeasureReadingTime.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesezeit'**
+  String get statMeasureReadingTime;
+
+  /// No description provided for @statMeasureAverageRating.
+  ///
+  /// In de, this message translates to:
+  /// **'Durchschnittliche Bewertung'**
+  String get statMeasureAverageRating;
+
+  /// No description provided for @statMeasureSpending.
+  ///
+  /// In de, this message translates to:
+  /// **'Ausgaben'**
+  String get statMeasureSpending;
+
+  /// No description provided for @statGroupMonth.
+  ///
+  /// In de, this message translates to:
+  /// **'Monat'**
+  String get statGroupMonth;
+
+  /// No description provided for @statGroupYear.
+  ///
+  /// In de, this message translates to:
+  /// **'Jahr'**
+  String get statGroupYear;
+
+  /// No description provided for @statGroupStatus.
+  ///
+  /// In de, this message translates to:
+  /// **'Status'**
+  String get statGroupStatus;
+
+  /// No description provided for @statGroupFormat.
+  ///
+  /// In de, this message translates to:
+  /// **'Buchart'**
+  String get statGroupFormat;
+
+  /// No description provided for @statGroupGenre.
+  ///
+  /// In de, this message translates to:
+  /// **'Genre'**
+  String get statGroupGenre;
+
+  /// No description provided for @statGroupAuthor.
+  ///
+  /// In de, this message translates to:
+  /// **'Autor'**
+  String get statGroupAuthor;
+
+  /// No description provided for @statGroupLocation.
+  ///
+  /// In de, this message translates to:
+  /// **'Standort'**
+  String get statGroupLocation;
+
+  /// No description provided for @statGroupReceivedAs.
+  ///
+  /// In de, this message translates to:
+  /// **'Erhalten als'**
+  String get statGroupReceivedAs;
+
+  /// No description provided for @statGroupTag.
+  ///
+  /// In de, this message translates to:
+  /// **'Tag'**
+  String get statGroupTag;
+
+  /// No description provided for @statChartNumber.
+  ///
+  /// In de, this message translates to:
+  /// **'Zahl'**
+  String get statChartNumber;
+
+  /// No description provided for @statChartBar.
+  ///
+  /// In de, this message translates to:
+  /// **'Balken'**
+  String get statChartBar;
+
+  /// No description provided for @statChartLine.
+  ///
+  /// In de, this message translates to:
+  /// **'Linie'**
+  String get statChartLine;
+
+  /// No description provided for @statChartDonut.
+  ///
+  /// In de, this message translates to:
+  /// **'Ring'**
+  String get statChartDonut;
+
+  /// No description provided for @statPresetPagesPerMonth.
+  ///
+  /// In de, this message translates to:
+  /// **'Seiten pro Monat {year}'**
+  String statPresetPagesPerMonth(int year);
+
+  /// No description provided for @statPresetBooksByGenre.
+  ///
+  /// In de, this message translates to:
+  /// **'Bücher nach Genre'**
+  String get statPresetBooksByGenre;
+
+  /// No description provided for @statPresetSpendingPerYear.
+  ///
+  /// In de, this message translates to:
+  /// **'Ausgaben pro Jahr'**
+  String get statPresetSpendingPerYear;
+
+  /// No description provided for @statPresetReadingTimePerMonth.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesezeit pro Monat {year}'**
+  String statPresetReadingTimePerMonth(int year);
+
+  /// No description provided for @statPresetBooksByFormat.
+  ///
+  /// In de, this message translates to:
+  /// **'Bücher nach Buchart'**
+  String get statPresetBooksByFormat;
+
+  /// No description provided for @statAutoTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'{measure} nach {grouping}'**
+  String statAutoTitle(String measure, String grouping);
+
+  /// No description provided for @statDeleted.
+  ///
+  /// In de, this message translates to:
+  /// **'„{title}“ gelöscht'**
+  String statDeleted(String title);
+
+  /// No description provided for @statPin.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf Startseite anzeigen'**
+  String get statPin;
+
+  /// No description provided for @statUnpin.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht mehr auf Startseite'**
+  String get statUnpin;
+
+  /// No description provided for @statPinLimit.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf der Startseite sind höchstens 3 Statistiken möglich.'**
+  String get statPinLimit;
+
+  /// No description provided for @statMoveUp.
+  ///
+  /// In de, this message translates to:
+  /// **'Nach oben'**
+  String get statMoveUp;
+
+  /// No description provided for @statMoveDown.
+  ///
+  /// In de, this message translates to:
+  /// **'Nach unten'**
+  String get statMoveDown;
+
+  /// No description provided for @statMenu.
+  ///
+  /// In de, this message translates to:
+  /// **'Statistik-Menü'**
+  String get statMenu;
 }
 
 class _AppLocalizationsDelegate

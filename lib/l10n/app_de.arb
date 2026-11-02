@@ -859,5 +859,83 @@
         "format": "decimalPattern"
       }
     }
-  }
+  },
+  "statsSectionCustom": "Eigene Statistiken",
+  "statAdd": "Statistik hinzufügen",
+  "statNew": "Neue Statistik",
+  "statEdit": "Statistik bearbeiten",
+  "statPresets": "Vorlagen",
+  "statStepMeasure": "1 · Was wird gemessen?",
+  "statStepGrouping": "2 · Gruppiert nach",
+  "statStepPeriod": "3 · Zeitraum und Filter",
+  "statStepChart": "4 · Darstellung und Titel",
+  "statPreview": "Vorschau",
+  "statTitle": "Titel",
+  "statAllTime": "Gesamt",
+  "statNoGrouping": "Keine (eine Zahl)",
+  "statFilterStatus": "Nur mit Status",
+  "statFilterFormat": "Nur Buchart",
+  "statFilterTags": "Nur mit Tag",
+  "statMeasureBooks": "Anzahl Bücher",
+  "statMeasurePagesRead": "Gelesene Seiten",
+  "statMeasureReadingTime": "Lesezeit",
+  "statMeasureAverageRating": "Durchschnittliche Bewertung",
+  "statMeasureSpending": "Ausgaben",
+  "statGroupMonth": "Monat",
+  "statGroupYear": "Jahr",
+  "statGroupStatus": "Status",
+  "statGroupFormat": "Buchart",
+  "statGroupGenre": "Genre",
+  "statGroupAuthor": "Autor",
+  "statGroupLocation": "Standort",
+  "statGroupReceivedAs": "Erhalten als",
+  "statGroupTag": "Tag",
+  "statChartNumber": "Zahl",
+  "statChartBar": "Balken",
+  "statChartLine": "Linie",
+  "statChartDonut": "Ring",
+  "statPresetPagesPerMonth": "Seiten pro Monat {year}",
+  "@statPresetPagesPerMonth": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "statPresetBooksByGenre": "Bücher nach Genre",
+  "statPresetSpendingPerYear": "Ausgaben pro Jahr",
+  "statPresetReadingTimePerMonth": "Lesezeit pro Monat {year}",
+  "@statPresetReadingTimePerMonth": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "statPresetBooksByFormat": "Bücher nach Buchart",
+  "statAutoTitle": "{measure} nach {grouping}",
+  "@statAutoTitle": {
+    "placeholders": {
+      "measure": {
+        "type": "String"
+      },
+      "grouping": {
+        "type": "String"
+      }
+    }
+  },
+  "statDeleted": "„{title}“ gelöscht",
+  "@statDeleted": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "statPin": "Auf Startseite anzeigen",
+  "statUnpin": "Nicht mehr auf Startseite",
+  "statPinLimit": "Auf der Startseite sind höchstens 3 Statistiken möglich.",
+  "statMoveUp": "Nach oben",
+  "statMoveDown": "Nach unten",
+  "statMenu": "Statistik-Menü"
 }

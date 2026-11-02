@@ -1546,4 +1546,153 @@ class AppLocalizationsEn extends AppLocalizations {
 
     return 'Show all $countString';
   }
+
+  @override
+  String get statsSectionCustom => 'My statistics';
+
+  @override
+  String get statAdd => 'Add statistic';
+
+  @override
+  String get statNew => 'New statistic';
+
+  @override
+  String get statEdit => 'Edit statistic';
+
+  @override
+  String get statPresets => 'Presets';
+
+  @override
+  String get statStepMeasure => '1 · What is measured?';
+
+  @override
+  String get statStepGrouping => '2 · Grouped by';
+
+  @override
+  String get statStepPeriod => '3 · Period and filter';
+
+  @override
+  String get statStepChart => '4 · Chart and title';
+
+  @override
+  String get statPreview => 'Preview';
+
+  @override
+  String get statTitle => 'Title';
+
+  @override
+  String get statAllTime => 'All time';
+
+  @override
+  String get statNoGrouping => 'None (one number)';
+
+  @override
+  String get statFilterStatus => 'Only with status';
+
+  @override
+  String get statFilterFormat => 'Only format';
+
+  @override
+  String get statFilterTags => 'Only with tag';
+
+  @override
+  String get statMeasureBooks => 'Number of books';
+
+  @override
+  String get statMeasurePagesRead => 'Pages read';
+
+  @override
+  String get statMeasureReadingTime => 'Reading time';
+
+  @override
+  String get statMeasureAverageRating => 'Average rating';
+
+  @override
+  String get statMeasureSpending => 'Spending';
+
+  @override
+  String get statGroupMonth => 'Month';
+
+  @override
+  String get statGroupYear => 'Year';
+
+  @override
+  String get statGroupStatus => 'Status';
+
+  @override
+  String get statGroupFormat => 'Format';
+
+  @override
+  String get statGroupGenre => 'Genre';
+
+  @override
+  String get statGroupAuthor => 'Author';
+
+  @override
+  String get statGroupLocation => 'Location';
+
+  @override
+  String get statGroupReceivedAs => 'Received as';
+
+  @override
+  String get statGroupTag => 'Tag';
+
+  @override
+  String get statChartNumber => 'Number';
+
+  @override
+  String get statChartBar => 'Bars';
+
+  @override
+  String get statChartLine => 'Line';
+
+  @override
+  String get statChartDonut => 'Donut';
+
+  @override
+  String statPresetPagesPerMonth(int year) {
+    return 'Pages per month $year';
+  }
+
+  @override
+  String get statPresetBooksByGenre => 'Books by genre';
+
+  @override
+  String get statPresetSpendingPerYear => 'Spending per year';
+
+  @override
+  String statPresetReadingTimePerMonth(int year) {
+    return 'Reading time per month $year';
+  }
+
+  @override
+  String get statPresetBooksByFormat => 'Books by format';
+
+  @override
+  String statAutoTitle(String measure, String grouping) {
+    return '$measure by $grouping';
+  }
+
+  @override
+  String statDeleted(String title) {
+    return '\"$title\" deleted';
+  }
+
+  @override
+  String get statPin => 'Show on home';
+
+  @override
+  String get statUnpin => 'Remove from home';
+
+  @override
+  String get statPinLimit => 'The home tab shows at most 3 statistics.';
+
+  @override
+  String get statMoveUp => 'Move up';
+
+  @override
+  String get statMoveDown => 'Move down';
+
+  @override
+  String get statMenu => 'Statistic menu';
 }

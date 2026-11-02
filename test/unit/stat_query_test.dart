@@ -227,4 +227,24 @@ void main() {
       isEmpty,
     );
   });
+
+  test(
+    'the years a library offers, newest first, the current one included',
+    () {
+      final library = StatLibrary(
+        books: [
+          _book(1, finishedAt: DateTime(2024, 5, 1), createdAt: DateTime(2025)),
+          _book(2, status: BookStatus.unread, createdAt: DateTime(2022, 3)),
+        ],
+        sessions: [_session(1, DateTime(2023, 2, 1), 60)],
+      );
+      expect(library.years(now: DateTime(2026, 6)), [
+        2026,
+        2025,
+        2024,
+        2023,
+        2022,
+      ]);
+    },
+  );
 }

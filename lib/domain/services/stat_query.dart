@@ -118,6 +118,18 @@ class StatLibrary {
     this.locationNames = const {},
   });
 
+  /// The years a statistic can cover, newest first: every year with a book
+  /// added, received, finished or read in, and the current one.
+  List<int> years({required DateTime now}) => ({
+    now.year,
+    for (final b in books) ...[
+      b.createdAt.year,
+      ?b.receivedAt?.year,
+      ?b.finishedAt?.year,
+    ],
+    for (final s in sessions) s.startedAt.year,
+  }.toList()..sort((a, b) => b.compareTo(a)));
+
   StatResult evaluate(StatDefinition definition) => StatQuery.evaluate(
     definition,
     books: books,

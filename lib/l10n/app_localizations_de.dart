@@ -1550,4 +1550,154 @@ class AppLocalizationsDe extends AppLocalizations {
 
     return 'Alle $countString anzeigen';
   }
+
+  @override
+  String get statsSectionCustom => 'Eigene Statistiken';
+
+  @override
+  String get statAdd => 'Statistik hinzufügen';
+
+  @override
+  String get statNew => 'Neue Statistik';
+
+  @override
+  String get statEdit => 'Statistik bearbeiten';
+
+  @override
+  String get statPresets => 'Vorlagen';
+
+  @override
+  String get statStepMeasure => '1 · Was wird gemessen?';
+
+  @override
+  String get statStepGrouping => '2 · Gruppiert nach';
+
+  @override
+  String get statStepPeriod => '3 · Zeitraum und Filter';
+
+  @override
+  String get statStepChart => '4 · Darstellung und Titel';
+
+  @override
+  String get statPreview => 'Vorschau';
+
+  @override
+  String get statTitle => 'Titel';
+
+  @override
+  String get statAllTime => 'Gesamt';
+
+  @override
+  String get statNoGrouping => 'Keine (eine Zahl)';
+
+  @override
+  String get statFilterStatus => 'Nur mit Status';
+
+  @override
+  String get statFilterFormat => 'Nur Buchart';
+
+  @override
+  String get statFilterTags => 'Nur mit Tag';
+
+  @override
+  String get statMeasureBooks => 'Anzahl Bücher';
+
+  @override
+  String get statMeasurePagesRead => 'Gelesene Seiten';
+
+  @override
+  String get statMeasureReadingTime => 'Lesezeit';
+
+  @override
+  String get statMeasureAverageRating => 'Durchschnittliche Bewertung';
+
+  @override
+  String get statMeasureSpending => 'Ausgaben';
+
+  @override
+  String get statGroupMonth => 'Monat';
+
+  @override
+  String get statGroupYear => 'Jahr';
+
+  @override
+  String get statGroupStatus => 'Status';
+
+  @override
+  String get statGroupFormat => 'Buchart';
+
+  @override
+  String get statGroupGenre => 'Genre';
+
+  @override
+  String get statGroupAuthor => 'Autor';
+
+  @override
+  String get statGroupLocation => 'Standort';
+
+  @override
+  String get statGroupReceivedAs => 'Erhalten als';
+
+  @override
+  String get statGroupTag => 'Tag';
+
+  @override
+  String get statChartNumber => 'Zahl';
+
+  @override
+  String get statChartBar => 'Balken';
+
+  @override
+  String get statChartLine => 'Linie';
+
+  @override
+  String get statChartDonut => 'Ring';
+
+  @override
+  String statPresetPagesPerMonth(int year) {
+    return 'Seiten pro Monat $year';
+  }
+
+  @override
+  String get statPresetBooksByGenre => 'Bücher nach Genre';
+
+  @override
+  String get statPresetSpendingPerYear => 'Ausgaben pro Jahr';
+
+  @override
+  String statPresetReadingTimePerMonth(int year) {
+    return 'Lesezeit pro Monat $year';
+  }
+
+  @override
+  String get statPresetBooksByFormat => 'Bücher nach Buchart';
+
+  @override
+  String statAutoTitle(String measure, String grouping) {
+    return '$measure nach $grouping';
+  }
+
+  @override
+  String statDeleted(String title) {
+    return '„$title“ gelöscht';
+  }
+
+  @override
+  String get statPin => 'Auf Startseite anzeigen';
+
+  @override
+  String get statUnpin => 'Nicht mehr auf Startseite';
+
+  @override
+  String get statPinLimit =>
+      'Auf der Startseite sind höchstens 3 Statistiken möglich.';
+
+  @override
+  String get statMoveUp => 'Nach oben';
+
+  @override
+  String get statMoveDown => 'Nach unten';
+
+  @override
+  String get statMenu => 'Statistik-Menü';
 }
