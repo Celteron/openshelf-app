@@ -53,4 +53,4 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 - [X] T4-60 Home tab first (home, library, scan, statistics, shelf): animated donut read/reading/unread with total, segment or legend row opens the filtered library, goal, currently reading with progress, three recently added, six-month unread trend, favourites + tests. (FR-R2-19)
 
 ## Package 8: User-defined statistics
-- [ ] T4-70 Spec section and design. (FR-R2-20)
+- [X] T4-70 Spec and design draft in `specs/005-user-defined-statistics/spec.md`; open questions for the product owner listed there. (FR-R2-20)
