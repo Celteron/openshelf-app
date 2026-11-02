@@ -148,6 +148,21 @@ void main() {
       expect(await repo.watchBookIdsWithAllTags({}).first, isEmpty);
     });
 
+    test('the tags of every book, for the statistics', () async {
+      final b1 = await addBook('1');
+      final b2 = await addBook('2');
+      await addBook('ohne Tags');
+      final t1 = await repo.createTag('A');
+      final t2 = await repo.createTag('B');
+      await repo.setBookTags(b1, {t1, t2});
+      await repo.setBookTags(b2, {t2});
+
+      expect(await repo.watchTagsByBook().first, {
+        b1: {t1, t2},
+        b2: {t2},
+      });
+    });
+
     test('deleting a tag keeps the books', () async {
       final b = await addBook('1');
       final t = await repo.createTag('A');

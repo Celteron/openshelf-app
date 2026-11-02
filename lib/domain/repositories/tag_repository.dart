@@ -7,6 +7,10 @@ abstract class TagRepository {
 
   Stream<List<Tag>> watchTagsForBook(int bookId);
 
+  /// The tag ids of every tagged book, for the tag grouping of user-defined
+  /// statistics (spec 005).
+  Stream<Map<int, Set<int>>> watchTagsByBook();
+
   /// Ids of the books that carry *all* of [tagIds] (AND semantics).
   Stream<Set<int>> watchBookIdsWithAllTags(Set<int> tagIds);
 

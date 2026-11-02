@@ -35,6 +35,15 @@ class TagsDao {
     );
   }
 
+  Stream<Map<int, Set<int>>> watchTagsByBook() =>
+      db.select(db.bookTags).watch().map((rows) {
+        final result = <int, Set<int>>{};
+        for (final row in rows) {
+          (result[row.bookId] ??= {}).add(row.tagId);
+        }
+        return result;
+      });
+
   Stream<Set<int>> watchBookIdsWithAllTags(Set<int> tagIds) {
     final distinctTags = db.bookTags.tagId.count(distinct: true);
     final query = db.selectOnly(db.bookTags)

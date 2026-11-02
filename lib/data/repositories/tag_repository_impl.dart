@@ -15,6 +15,9 @@ class TagRepositoryImpl implements TagRepository {
   Stream<List<Tag>> watchTagsForBook(int bookId) => _dao.watchForBook(bookId);
 
   @override
+  Stream<Map<int, Set<int>>> watchTagsByBook() => _dao.watchTagsByBook();
+
+  @override
   Stream<Set<int>> watchBookIdsWithAllTags(Set<int> tagIds) => tagIds.isEmpty
       ? Stream.value(const <int>{})
       : _dao.watchBookIdsWithAllTags(tagIds);

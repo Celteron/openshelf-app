@@ -101,6 +101,31 @@ class StatSeries extends StatResult {
   const StatSeries(this.entries);
 }
 
+/// The local data user-defined statistics are computed from, plus the names
+/// their labels need.
+class StatLibrary {
+  final List<Book> books;
+  final List<ReadingSession> sessions;
+  final Map<int, Set<int>> tagsByBook;
+  final Map<int, String> tagNames;
+  final Map<int, String> locationNames;
+
+  const StatLibrary({
+    this.books = const [],
+    this.sessions = const [],
+    this.tagsByBook = const {},
+    this.tagNames = const {},
+    this.locationNames = const {},
+  });
+
+  StatResult evaluate(StatDefinition definition) => StatQuery.evaluate(
+    definition,
+    books: books,
+    sessions: sessions,
+    tagsByBook: tagsByBook,
+  );
+}
+
 /// One value a book adds to a statistic, dated for the period and the time
 /// groupings.
 typedef _Part = ({Book book, DateTime date, double value});
