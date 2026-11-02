@@ -340,10 +340,11 @@ class LibraryCubit extends Cubit<LibraryState> {
   Future<void> setReview(int bookId, String? review) =>
       _repository.updateReview(bookId, review);
 
-  /// Moves a book to the trash (it can be restored from there).
+  /// Marks a book whose cover no source has, for the "without cover" chip.
   Future<void> setCoverNotFound(int bookId) =>
       _repository.setCoverNotFound(bookId);
 
+  /// Moves a book to the trash (it can be restored from there).
   Future<void> deleteBook(int bookId) => _repository.deleteBook(bookId);
 
   Future<void> deleteBooks(List<int> bookIds) =>
