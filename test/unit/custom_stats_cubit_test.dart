@@ -176,8 +176,7 @@ void main() {
       }
       await settled(3);
 
-      // ReorderableListView counts the target with the item still in place.
-      await cubit.reorderTile(0, 3);
+      await cubit.reorderTile(0, 2);
 
       expect(await titles(), ['B', 'C', 'A']);
     });

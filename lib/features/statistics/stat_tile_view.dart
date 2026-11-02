@@ -60,7 +60,11 @@ class StatTileView extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(title, style: theme.textTheme.titleMedium),
+                  child: Text(
+                    title,
+                    key: const ValueKey('stat-tile-title'),
+                    style: theme.textTheme.titleMedium,
+                  ),
                 ),
                 ?trailing,
               ],

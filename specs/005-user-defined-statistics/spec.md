@@ -100,5 +100,5 @@ class StatDefinition {
 - [X] **T5-03** Schema v7 `stat_tiles`, migration test v6 → v7, repository + tests.
 - [X] **T5-04** JSON backup and restore of the tiles + tests.
 - [X] **T5-05** Builder with presets and live preview + widget tests; l10n DE and EN.
-- [ ] **T5-06** Section on the statistics screen with drill-down, reordering, delete/undo + widget tests.
+- [X] **T5-06** Section on the statistics screen with drill-down, reordering, delete/undo + widget tests.
 - [ ] **T5-07** Pinning to the home tab (at most 3 tiles) + widget tests.

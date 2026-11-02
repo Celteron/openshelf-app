@@ -36,6 +36,7 @@ import 'package:openreads/features/metadata/metadata_cubit.dart';
 import 'package:openreads/features/scanner/scanner_cubit.dart';
 import 'package:openreads/features/scanner/scanner_screen.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
+import 'package:openreads/features/statistics/custom_stats_cubit.dart';
 import 'package:openreads/features/statistics/statistics_cubit.dart';
 import 'package:openreads/features/tags/tags_cubit.dart';
 import 'package:openreads/features/statistics/statistics_screen.dart';
@@ -182,6 +183,15 @@ class OpenShelfApp extends StatelessWidget {
               goalRepository: deps.goalRepository,
               readingRepository: deps.readingRepository,
             ),
+          ),
+          BlocProvider(
+            create: (_) => CustomStatsCubit(
+              tiles: deps.statTileRepository,
+              books: deps.bookRepository,
+              reading: deps.readingRepository,
+              tags: deps.tagRepository,
+              locations: deps.locationRepository,
+            )..load(),
           ),
           BlocProvider.value(value: settingsCubit),
         ],

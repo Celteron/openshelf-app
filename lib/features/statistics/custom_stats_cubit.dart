@@ -122,13 +122,12 @@ class CustomStatsCubit extends Cubit<CustomStatsState> {
     await _tiles.reorder(ids);
   }
 
-  /// Stores the order after a drag from [from] to [to] (indices before the
-  /// move, as [ReorderableListView] reports them).
+  /// Stores the order after a drag of the tile at [from] to the index [to]
+  /// it ends up at.
   Future<void> reorderTile(int from, int to) async {
     final ids = _shownIds();
     if (from < 0 || from >= ids.length) return;
-    final id = ids.removeAt(from);
-    ids.insert((to > from ? to - 1 : to).clamp(0, ids.length), id);
+    ids.insert(to.clamp(0, ids.length - 1), ids.removeAt(from));
     await _tiles.reorder(ids);
   }
 

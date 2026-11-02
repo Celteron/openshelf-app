@@ -10,7 +10,9 @@ import 'package:openreads/features/common/format_count.dart';
 import 'package:openreads/features/common/format_duration.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/domain/models/statistics.dart';
+import 'package:openreads/features/statistics/custom_stats_section.dart';
 import 'package:openreads/features/statistics/statistics_books_screen.dart';
+import 'package:openreads/features/statistics/stats_section_header.dart';
 import 'package:openreads/features/statistics/statistics_cubit.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
@@ -57,12 +59,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 _YearSelector(stats: stats),
                 const SizedBox(height: 16),
               ],
-              _SectionHeader('section-overview', l10n.statsSectionOverview),
+              StatsSectionHeader('section-overview', l10n.statsSectionOverview),
               _SummaryCards(stats: stats),
               const SizedBox(height: 16),
               GoalCard(goal: stats.goal),
               const SizedBox(height: 16),
-              _SectionHeader('section-reading', l10n.statsSectionReading),
+              StatsSectionHeader('section-reading', l10n.statsSectionReading),
               _ReadingCard(stats: stats),
               const SizedBox(height: 16),
               if (stats.monthly.isNotEmpty) ...[
@@ -90,10 +92,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 ),
                 const SizedBox(height: 16),
               ],
-              _SectionHeader('section-records', l10n.statsSectionRecords),
+              StatsSectionHeader('section-records', l10n.statsSectionRecords),
               _AveragesCard(stats: stats),
               const SizedBox(height: 16),
-              _SectionHeader('section-library', l10n.statsSectionLibrary),
+              StatsSectionHeader('section-library', l10n.statsSectionLibrary),
               _StatusBreakdown(stats: stats),
               if (stats.unreadStack.isNotEmpty) ...[
                 const SizedBox(height: 16),
@@ -126,34 +128,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 entries: stats.topAuthors,
                 emptyText: l10n.noBooksYet,
               ),
+              const SizedBox(height: 16),
+              CustomStatsSection(onShowLibrary: widget.onShowLibrary),
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-/// Title of a group of statistics (FR-R2-15).
-class _SectionHeader extends StatelessWidget {
-  final String id;
-  final String title;
-  const _SectionHeader(this.id, this.title);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      key: ValueKey(id),
-      padding: const EdgeInsets.only(top: 8, bottom: 8),
-      child: Semantics(
-        header: true,
-        child: Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: theme.colorScheme.primary,
-          ),
-        ),
       ),
     );
   }
