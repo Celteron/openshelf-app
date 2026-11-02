@@ -400,6 +400,25 @@ void main() {
         expect(state.hasActiveFilters, isTrue);
       });
 
+      test('volumes of a slipcase with a cover do not count', () async {
+        final box = await addBook('Schuber', coverLocalPath: '/covers/box.jpg');
+        for (final title in ['Band 1', 'Band 2']) {
+          await books.insertBook(
+            BooksCompanion.insert(
+              title: title,
+              authors: const ['A'],
+              editedFields: const [],
+              parentId: Value(box),
+            ),
+          );
+        }
+        cubit.load();
+        final loaded =
+            await cubit.stream.firstWhere((s) => s is LibraryLoaded)
+                as LibraryLoaded;
+        expect(loaded.hasCoverless, isFalse);
+      });
+
       test('is not offered when every book has a cover', () async {
         await addBook('Mit', coverLocalPath: '/covers/mit.jpg');
         cubit.load();

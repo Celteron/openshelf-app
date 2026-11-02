@@ -278,7 +278,13 @@ class LibraryCubit extends Cubit<LibraryState> {
                 }.toList()..sort((a, b) => b.compareTo(a));
                 Iterable<Book> visible = books;
                 if (favoritesOnly) visible = visible.where((b) => b.isFavorite);
-                if (withoutCover) visible = visible.where(_coverless);
+                // The cover belongs to the physical object: a volume counts
+                // by its slipcase's cover (ADR-0003).
+                if (withoutCover) {
+                  visible = visible.where(
+                    (b) => _coverless(shelf.shelvedAs(b)),
+                  );
+                }
                 if (onlyIds != null) {
                   visible = visible.where((b) => onlyIds.contains(b.id));
                 }
@@ -304,7 +310,7 @@ class LibraryCubit extends Cubit<LibraryState> {
                     tagIds: _tagIds,
                     favoritesOnly: favoritesOnly,
                     withoutCoverOnly: withoutCover,
-                    hasCoverless: all.any(_coverless),
+                    hasCoverless: shelf.physical.any(_coverless),
                     onlyIds: onlyIds,
                     sort: sort,
                     yearFilter: year,
