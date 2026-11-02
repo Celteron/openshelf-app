@@ -2,6 +2,17 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // Tesseract4Android (OCR for quote photos) is published on JitPack
+        // only. Exclusive: this group is never looked up anywhere else, and
+        // nothing else is looked up on JitPack.
+        exclusiveContent {
+            forRepository {
+                maven { url 'https://jitpack.io' }
+            }
+            filter {
+                includeGroup 'cz.adaptech.tesseract4android'
+            }
+        }
     }
 }
 

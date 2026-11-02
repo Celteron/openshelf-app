@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:openreads/core/helpers/maybe_read.dart';
 import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/data/ocr/photo_picker.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/notes_repository.dart';
+import 'package:openreads/domain/services/text_recognizer.dart';
 import 'package:openreads/features/notes/notes_cubit.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
@@ -220,11 +223,51 @@ class _NoteDialogState extends State<_NoteDialog> {
     text: widget.note?.pageNumber?.toString() ?? '',
   );
 
+  /// Photo reading is offered where the platform provides both parts.
+  TextPhotoPicker? _photos;
+  TextRecognizer? _recognizer;
+  bool _reading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _photos = context.maybeRead<TextPhotoPicker>();
+    _recognizer = context.maybeRead<TextRecognizer>();
+  }
+
   @override
   void dispose() {
     _content.dispose();
     _page.dispose();
     super.dispose();
+  }
+
+  /// Photo → text → appended to what is typed; the user edits before saving.
+  Future<void> _readPhoto(PhotoSource source) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final photos = _photos;
+    final recognizer = _recognizer;
+    if (photos == null || recognizer == null) return;
+    try {
+      final bytes = await photos.pick(source);
+      if (bytes == null || !mounted) return;
+      setState(() => _reading = true);
+      final text = await recognizer.recognize(bytes);
+      if (!mounted) return;
+      if (text == null) {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.noteOcrNone)));
+        return;
+      }
+      final typed = _content.text.trim();
+      _content.text = typed.isEmpty ? text : '$typed\n\n$text';
+    } catch (_) {
+      // The engine, a refused camera permission or a full disk all end the
+      // same way for the user: no text, and the dialog stays as it was.
+      messenger.showSnackBar(SnackBar(content: Text(l10n.noteOcrFailed)));
+    } finally {
+      if (mounted) setState(() => _reading = false);
+    }
   }
 
   @override
@@ -251,6 +294,52 @@ class _NoteDialogState extends State<_NoteDialog> {
               onSelectionChanged: (s) => setState(() => _kind = s.single),
             ),
             const SizedBox(height: 12),
+            if (_photos != null && _recognizer != null)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: _reading
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(l10n.noteOcrWorking),
+                          ],
+                        ),
+                      )
+                    : MenuAnchor(
+                        menuChildren: [
+                          MenuItemButton(
+                            key: const ValueKey('note-photo-camera'),
+                            leadingIcon: const Icon(
+                              Icons.photo_camera_outlined,
+                            ),
+                            onPressed: () => _readPhoto(PhotoSource.camera),
+                            child: Text(l10n.notePhotoCamera),
+                          ),
+                          MenuItemButton(
+                            key: const ValueKey('note-photo-gallery'),
+                            leadingIcon: const Icon(Icons.photo_outlined),
+                            onPressed: () => _readPhoto(PhotoSource.gallery),
+                            child: Text(l10n.notePhotoGallery),
+                          ),
+                        ],
+                        builder: (context, controller, _) => TextButton.icon(
+                          key: const ValueKey('note-photo'),
+                          icon: const Icon(Icons.document_scanner_outlined),
+                          label: Text(l10n.notePhoto),
+                          onPressed: () => controller.isOpen
+                              ? controller.close()
+                              : controller.open(),
+                        ),
+                      ),
+              ),
             TextField(
               controller: _content,
               autofocus: true,
