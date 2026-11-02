@@ -1,6 +1,6 @@
 # Spec 005: User-defined statistics (draft)
 
-Status: **draft for review**. Implements FR-R2-20 from spec 004. No code yet.
+Status: **approved with the decisions in section 5** (2026-11-02). Implements FR-R2-20 from spec 004.
 
 ## 1. Goal
 
@@ -29,9 +29,10 @@ Everything is computed on the device from local data (Constitution I.1, I.2). No
   - status, format, genre, author, location, received-as, tag
 
   A tile without grouping shows one number.
-- **FR-05-03 Period:** all time, a chosen year, or the last 12 months. Reading measures use the finish date; collection measures (books, spending) use the date added or received.
+- **FR-05-03 Period:** all time or a chosen year. Reading measures use the finish date; collection measures (books, spending) use the date added or received.
 - **FR-05-04 Filter** (optional): status set, format set, tag set.
 - **FR-05-05 Chart type:** number, bar, line (time groupings only), donut (category groupings with at most 8 slices; the rest is grouped as "Other"). The builder offers only the types that fit the chosen grouping.
+  - **Tags:** A book counts once per tag. Tag groupings therefore offer only bar charts, never a donut. The tile shows the note "Bücher mit mehreren Tags zählen mehrfach".
 - **FR-05-06 Slipcases (ADR-0003):**
   - Reading measures count readable books (singles and volumes).
   - Collection measures (spending, received-as, location) count physical objects.
@@ -53,7 +54,7 @@ A tile definition is a typed value object:
 class StatDefinition {
   final StatMeasure measure;      // enum
   final StatGrouping? grouping;   // enum, null = single number
-  final StatPeriod period;        // sealed: AllTime | Year(int) | Last12Months
+  final StatPeriod period;        // sealed: AllTime | Year(int)
   final StatFilter filter;        // status/format/tag sets
   final StatChart chart;          // enum
 }
@@ -84,13 +85,13 @@ class StatDefinition {
   - spending per year
   - reading time per month
   - books by format
-- **Home tab:** a tile can be pinned to it. The home tab shows at most 3 pinned tiles below the donut.
+- **Home tab:** a tile can be pinned to it (part of the first release). The home tab shows at most 3 pinned tiles below the donut.
 
-## 5. Open questions for the product owner
+## 5. Decisions (product owner, 2026-11-02)
 
-1. Should tiles be pinnable to the home tab right away, or only in a later step?
-2. Is "last 12 months" needed, or are "year" and "all time" enough?
-3. Should tag groupings count a book once per tag (sum > number of books), or not offer tags as a grouping at all?
+1. **Pinning:** Tiles can be pinned to the home tab in the first release.
+2. **Periods:** "Year" and "all time" are enough; no "last 12 months".
+3. **Tags:** Tags are a grouping. A book counts once per tag, shown as bars only and with a note (see FR-05-05).
 
 ## 6. Tasks (once approved)
 
@@ -100,4 +101,4 @@ class StatDefinition {
 - **T5-04** JSON backup and restore of the tiles + tests.
 - **T5-05** Builder with presets and live preview + widget tests; l10n DE and EN.
 - **T5-06** Section on the statistics screen with drill-down, reordering, delete/undo + widget tests.
-- **T5-07** (optional) Pinning to the home tab.
+- **T5-07** Pinning to the home tab (at most 3 tiles) + widget tests.
