@@ -128,7 +128,8 @@ class BookRepositoryImpl implements BookRepository {
   Future<int> deleteAllBooksPermanently() => _dao.deleteAll();
 
   @override
-  Future<List<Book>> getVolumes(int id) => _dao.getVolumes(id);
+  Future<List<Book>> getVolumes(int id, {bool includeTrashed = false}) =>
+      _dao.getVolumes(id, includeTrashed: includeTrashed);
 
   @override
   Future<List<int>> splitIntoVolumes(int id, List<VolumeDraft> volumes) async {

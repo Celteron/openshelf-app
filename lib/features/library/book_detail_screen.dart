@@ -53,6 +53,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   /// The volumes when this book is a slipcase, its slipcase when it is a
   /// volume (ADR-0003).
   List<Book> _volumes = const [];
+  bool _hasVolumes = false;
   Book? _slipcase;
   late final Stream<List<ReadingSession>> _sessions;
 
@@ -68,16 +69,21 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     final repository = context.read<BookRepository>();
     final book = await repository.getBook(widget.bookId);
     final parentId = book?.parentId;
-    final volumes = book == null || parentId != null
+    // Trashed volumes still make a slipcase: it cannot be split again.
+    final allVolumes = book == null || parentId != null
         ? const <Book>[]
-        : await repository.getVolumes(book.id);
+        : await repository.getVolumes(book.id, includeTrashed: true);
     final slipcase = parentId == null
         ? null
         : await repository.getBook(parentId);
     if (!mounted) return;
     setState(() {
       _book = book;
-      _volumes = volumes;
+      _volumes = [
+        for (final v in allVolumes)
+          if (v.deletedAt == null) v,
+      ];
+      _hasVolumes = allVolumes.isNotEmpty;
       _slipcase = slipcase;
     });
   }
@@ -280,7 +286,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             tooltip: l10n.deleteBook,
           ),
           // Only a single book can become a slipcase (one level deep).
-          if (book.parentId == null && _volumes.isEmpty)
+          if (book.parentId == null && !_hasVolumes)
             PopupMenuButton<void>(
               key: const ValueKey('book-menu'),
               tooltip: l10n.moreActions,

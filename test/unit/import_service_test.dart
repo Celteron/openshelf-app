@@ -117,7 +117,8 @@ class _ThrowingRepository implements BookRepository {
       throw UnimplementedError();
 
   @override
-  Future<List<Book>> getVolumes(int id) async => const [];
+  Future<List<Book>> getVolumes(int id, {bool includeTrashed = false}) async =>
+      const [];
 
   @override
   Future<int> trashAllBooks() async => 0;

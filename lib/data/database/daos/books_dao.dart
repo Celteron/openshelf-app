@@ -412,9 +412,15 @@ class BooksDao {
         .go();
   });
 
-  Future<List<Book>> getVolumes(int id) =>
+  Future<List<Book>> getVolumes(int id, {bool includeTrashed = false}) =>
       (db.select(db.books)
-            ..where((t) => t.parentId.equals(id) & t.deletedAt.isNull())
+            ..where(
+              (t) =>
+                  t.parentId.equals(id) &
+                  (includeTrashed
+                      ? const Constant(true)
+                      : t.deletedAt.isNull()),
+            )
             ..orderBy([(t) => OrderingTerm.asc(t.id)]))
           .get();
 

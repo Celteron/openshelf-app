@@ -52,10 +52,11 @@ class FakeBookRepository implements BookRepository {
   Future<Book?> getBook(int id) async => byId[id] ?? book ?? trashedBook;
 
   @override
-  Future<List<Book>> getVolumes(int id) async => [
-    for (final v in volumes)
-      if (v.parentId == id) v,
-  ];
+  Future<List<Book>> getVolumes(int id, {bool includeTrashed = false}) async =>
+      [
+        for (final v in volumes)
+          if (v.parentId == id && (includeTrashed || v.deletedAt == null)) v,
+      ];
 
   @override
   Future<List<int>> splitIntoVolumes(int id, List<VolumeDraft> drafts) async {
@@ -837,6 +838,23 @@ void main() {
         book: sampleBook().copyWith(pageCount: const Value(1200)),
       );
       expect(find.text('1.200'), findsOneWidget);
+    });
+
+    testWidgets('a box whose volumes are all trashed cannot be split again', (
+      tester,
+    ) async {
+      await pumpDetail(
+        tester,
+        volumes: [
+          sampleBook().copyWith(
+            id: 2,
+            parentId: const Value(1),
+            deletedAt: Value(DateTime(2026, 3)),
+          ),
+        ],
+      );
+      expect(find.byKey(const ValueKey('book-menu')), findsNothing);
+      expect(find.byKey(const ValueKey('volumes-section')), findsNothing);
     });
 
     testWidgets('a book with an ISBN does not offer it', (tester) async {

@@ -36,6 +36,17 @@ void main() {
   });
   tearDown(() => db.close());
 
+  test('getVolumes can include trashed volumes', () async {
+    await books.deleteBook(vol1);
+    await books.deleteBook(vol2);
+
+    expect(await books.getVolumes(box), isEmpty);
+    expect(
+      (await books.getVolumes(box, includeTrashed: true)).map((b) => b.id),
+      [vol1, vol2],
+    );
+  });
+
   test('trashing a slipcase trashes its volumes at the same moment', () async {
     await books.deleteBook(box);
 
