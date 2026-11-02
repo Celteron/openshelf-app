@@ -113,17 +113,22 @@ class StatDefinition {
     this.tagIds = const {},
   });
 
-  /// The charts that fit [grouping]: a number without grouping, bars or
-  /// lines over time, bars or a donut over categories. A book counts once
-  /// per tag, so slices would add up to more than the whole: tags get bars
-  /// only.
-  static List<StatChart> chartsFor(StatGrouping? grouping) =>
-      switch (grouping) {
-        null => const [StatChart.number],
-        StatGrouping(isTime: true) => const [StatChart.bar, StatChart.line],
-        StatGrouping.tag => const [StatChart.bar],
-        StatGrouping() => const [StatChart.bar, StatChart.donut],
-      };
+  /// The charts that fit [grouping] and [measure]: a number without
+  /// grouping, bars or lines over time, bars or a donut over categories.
+  /// Slices must add up to the whole, so no donut where they do not: a book
+  /// counts once per tag, and averages are no shares.
+  static List<StatChart> chartsFor(
+    StatGrouping? grouping, [
+    StatMeasure? measure,
+  ]) => switch (grouping) {
+    null => const [StatChart.number],
+    StatGrouping(isTime: true) => const [StatChart.bar, StatChart.line],
+    StatGrouping.tag => const [StatChart.bar],
+    StatGrouping() when measure == StatMeasure.averageRating => const [
+      StatChart.bar,
+    ],
+    StatGrouping() => const [StatChart.bar, StatChart.donut],
+  };
 
   StatDefinition copyWith({
     StatMeasure? measure,
@@ -132,20 +137,26 @@ class StatDefinition {
     Set<BookStatus>? statuses,
     Set<BookFormat>? formats,
     Set<int>? tagIds,
-  }) => StatDefinition(
-    measure: measure ?? this.measure,
-    grouping: grouping,
-    period: period ?? this.period,
-    chart: chart ?? this.chart,
-    statuses: statuses ?? this.statuses,
-    formats: formats ?? this.formats,
-    tagIds: tagIds ?? this.tagIds,
-  );
+  }) {
+    final nextMeasure = measure ?? this.measure;
+    final charts = chartsFor(grouping, nextMeasure);
+    final nextChart = chart ?? this.chart;
+    return StatDefinition(
+      measure: nextMeasure,
+      grouping: grouping,
+      period: period ?? this.period,
+      // Another measure may rule out the chart (an average has no donut).
+      chart: charts.contains(nextChart) ? nextChart : charts.first,
+      statuses: statuses ?? this.statuses,
+      formats: formats ?? this.formats,
+      tagIds: tagIds ?? this.tagIds,
+    );
+  }
 
   /// Another grouping (`null`: one number). The chart stays if it fits the
   /// new grouping, else it becomes the first that does.
   StatDefinition withGrouping(StatGrouping? grouping) {
-    final charts = chartsFor(grouping);
+    final charts = chartsFor(grouping, measure);
     return StatDefinition(
       measure: measure,
       grouping: grouping,
@@ -198,7 +209,7 @@ class StatDefinition {
         (rawGrouping != null && grouping == null) ||
         period == null ||
         chart == null ||
-        !chartsFor(grouping).contains(chart)) {
+        !chartsFor(grouping, measure).contains(chart)) {
       return null;
     }
     final tags = json['tags'];

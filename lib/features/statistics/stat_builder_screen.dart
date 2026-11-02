@@ -228,7 +228,7 @@ class _StatBuilderScreenState extends State<StatBuilderScreen> {
           ],
           step(l10n.statStepChart),
           chips([
-            for (final c in StatDefinition.chartsFor(d.grouping))
+            for (final c in StatDefinition.chartsFor(d.grouping, d.measure))
               choice(
                 'chart-${c.code}',
                 statChartLabel(l10n, c),

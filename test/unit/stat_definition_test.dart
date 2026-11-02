@@ -90,6 +90,32 @@ void main() {
       expect(StatDefinition.chartsFor(StatGrouping.tag), [StatChart.bar]);
     });
 
+    test('an average has no donut: its shares and "Other" mean nothing', () {
+      expect(
+        StatDefinition.chartsFor(StatGrouping.genre, StatMeasure.averageRating),
+        [StatChart.bar],
+      );
+      const donut = StatDefinition(
+        measure: StatMeasure.books,
+        grouping: StatGrouping.genre,
+        period: StatAllTime(),
+        chart: StatChart.donut,
+      );
+      expect(
+        donut.copyWith(measure: StatMeasure.averageRating).chart,
+        StatChart.bar,
+      );
+      expect(
+        StatDefinition.tryFromJson({
+          'measure': 'average_rating',
+          'grouping': 'genre',
+          'period': 'all',
+          'chart': 'donut',
+        }),
+        isNull,
+      );
+    });
+
     test('a definition with a chart that does not fit is invalid', () {
       expect(
         StatDefinition.tryFromJson({
