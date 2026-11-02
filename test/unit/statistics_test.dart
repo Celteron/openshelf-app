@@ -236,6 +236,72 @@ void main() {
     });
   });
 
+  group('collection statistics (FR-R2-18)', () {
+    test('books added vs. finished per month of the year', () {
+      final books = [
+        _book(1, status: BookStatus.unread, createdAt: DateTime(2026, 1, 5)),
+        _book(
+          2,
+          status: BookStatus.read,
+          createdAt: DateTime(2026, 1, 9),
+          finishedAt: DateTime(2026, 2, 1),
+        ),
+        _book(3, status: BookStatus.unread, createdAt: DateTime(2025, 1, 5)),
+      ];
+      final stats = BookStatistics.compute(books, const [], year: 2026);
+      expect(stats.monthly[0].added, 2);
+      expect(stats.monthly[1].added, 0);
+      expect(stats.monthly[1].books, 1);
+    });
+
+    test('the unread stack at the end of each month', () {
+      final books = [
+        // Bought in 2025, still unread: in the stack all year.
+        _book(1, status: BookStatus.unread, createdAt: DateTime(2025, 6, 1)),
+        // Bought in March, read in May.
+        _book(
+          2,
+          status: BookStatus.read,
+          createdAt: DateTime(2026, 3, 1),
+          finishedAt: DateTime(2026, 5, 2),
+        ),
+        // Wishlist books are not owned: never in the stack.
+        _book(3, status: BookStatus.wishlist, createdAt: DateTime(2026, 1, 1)),
+      ];
+      final stats = BookStatistics.compute(
+        books,
+        const [],
+        year: 2026,
+        now: DateTime(2026, 6, 15),
+      );
+      expect(stats.unreadStack, [1, 1, 2, 2, 1, 1]);
+    });
+
+    test('received-as and spending count physical objects', () {
+      final books = [
+        _book(1, status: BookStatus.read).copyWith(
+          receivedAs: const Value(ReceivedAs.gift),
+          priceCents: const Value(1000),
+          receivedAt: Value(DateTime(2025, 4, 1)),
+        ),
+        _book(2, status: BookStatus.unread).copyWith(
+          receivedAs: const Value(ReceivedAs.purchase),
+          priceCents: const Value(2550),
+          receivedAt: Value(DateTime(2026, 4, 1)),
+        ),
+        // A volume of slipcase 2: its own price would count twice.
+        _book(
+          3,
+          status: BookStatus.read,
+          parentId: 2,
+        ).copyWith(priceCents: const Value(999)),
+      ];
+      final stats = BookStatistics.compute(books, const []);
+      expect(stats.receivedAs, {ReceivedAs.gift: 1, ReceivedAs.purchase: 1});
+      expect(stats.spendingByYear, {2025: 1000, 2026: 2550});
+    });
+  });
+
   group('averages and records', () {
     final books = [
       _book(1, status: BookStatus.read, pages: 100, title: 'Kurz', rating: 4),

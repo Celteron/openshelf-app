@@ -138,6 +138,7 @@ class StatisticsCubit extends Cubit<StatisticsState> {
           ),
           year: year,
           sessions: sessions,
+          now: _now(),
         ),
       );
     } catch (_) {

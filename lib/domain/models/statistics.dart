@@ -11,7 +11,10 @@ class MonthStat {
   final int books;
   final int pages;
 
-  const MonthStat(this.month, this.books, this.pages);
+  /// Books added to the library in this month (FR-R2-18).
+  final int added;
+
+  const MonthStat(this.month, this.books, this.pages, {this.added = 0});
 }
 
 /// Aggregated collection metrics shown on the statistics dashboard.
@@ -84,7 +87,20 @@ class BookStatistics {
     this.fastestBook,
     this.slowestBook,
     this.books = const [],
+    this.unreadStack = const [],
+    this.receivedAs = const {},
+    this.spendingByYear = const {},
   });
+
+  /// Owned, unfinished books at the end of each month of the year so far
+  /// (the "SUB"); wishlist and abandoned books are not part of it.
+  final List<int> unreadStack;
+
+  /// Physical objects by how they were received (ADR-0003: a slipcase once).
+  final Map<ReceivedAs, int> receivedAs;
+
+  /// Money spent per year (cents), by the date received, else added.
+  final Map<int, int> spendingByYear;
 
   /// The readable books in scope (all, or the year's finished ones); feeds
   /// the drill-down (FR-R2-17).
@@ -107,6 +123,17 @@ class BookStatistics {
   /// added.
   static DateTime finishedOn(Book book) => book.finishedAt ?? book.createdAt;
 
+  /// Owned books added before [end] and not finished by then.
+  static int _stackAt(Iterable<Book> readable, DateTime end) => readable
+      .where(
+        (b) =>
+            b.status != BookStatus.wishlist &&
+            b.status != BookStatus.dnf &&
+            b.createdAt.isBefore(end) &&
+            !(b.status == BookStatus.read && finishedOn(b).isBefore(end)),
+      )
+      .length;
+
   factory BookStatistics.compute(
     List<Book> allBooks,
     List<Location> locations, {
@@ -114,6 +141,7 @@ class BookStatistics {
     ReadingStats reading = const ReadingStats.empty(),
     int? year,
     Iterable<ReadingSession> sessions = const [],
+    DateTime? now,
   }) {
     // Reading numbers count single books and volumes, locations the physical
     // objects (ADR-0003): a slipcase is neither read nor shelved twice.
@@ -222,6 +250,37 @@ class BookStatistics {
       return best == null ? null : NameCount(best.$1.title, best.$2);
     }
 
+    // Added per month, the unread stack and the money spent (FR-R2-18).
+    final monthAdded = List<int>.filled(12, 0);
+    for (final b in shelf.readable) {
+      if (year == null || b.createdAt.year == year) {
+        monthAdded[b.createdAt.month - 1]++;
+      }
+    }
+    final today = now ?? DateTime.now();
+    final stackYear = year ?? today.year;
+    final lastMonth = stackYear < today.year
+        ? 12
+        : stackYear == today.year
+        ? today.month
+        : 0;
+    final unreadStack = [
+      for (var m = 1; m <= lastMonth; m++)
+        _stackAt(shelf.readable, DateTime(stackYear, m + 1)),
+    ];
+    final receivedAs = <ReceivedAs, int>{};
+    final spending = <int, int>{};
+    for (final b in shelf.physical) {
+      if (b.receivedAs case final how?) {
+        receivedAs[how] = (receivedAs[how] ?? 0) + 1;
+      }
+      final cents = b.priceCents ?? 0;
+      if (cents > 0) {
+        final y = (b.receivedAt ?? b.createdAt).year;
+        spending[y] = (spending[y] ?? 0) + cents;
+      }
+    }
+
     return BookStatistics(
       totalBooks: books.length,
       statusCounts: statusCounts,
@@ -234,7 +293,7 @@ class BookStatistics {
       years: years,
       monthly: [
         for (var m = 0; m < 12; m++)
-          MonthStat(m + 1, monthBooks[m], monthPages[m]),
+          MonthStat(m + 1, monthBooks[m], monthPages[m], added: monthAdded[m]),
       ],
       averageRating: rated.isEmpty
           ? null
@@ -254,6 +313,9 @@ class BookStatistics {
       shortestBook: pickPages(false),
       fastestBook: pickTimed(false),
       books: books,
+      unreadStack: unreadStack,
+      receivedAs: receivedAs,
+      spendingByYear: spending,
       slowestBook: pickTimed(true),
     );
   }
