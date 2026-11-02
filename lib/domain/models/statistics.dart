@@ -124,7 +124,7 @@ class BookStatistics {
   static DateTime finishedOn(Book book) => book.finishedAt ?? book.createdAt;
 
   /// Owned books added before [end] and not finished by then.
-  static int _stackAt(Iterable<Book> readable, DateTime end) => readable
+  static int unreadStackAt(Iterable<Book> readable, DateTime end) => readable
       .where(
         (b) =>
             b.status != BookStatus.wishlist &&
@@ -266,7 +266,7 @@ class BookStatistics {
         : 0;
     final unreadStack = [
       for (var m = 1; m <= lastMonth; m++)
-        _stackAt(shelf.readable, DateTime(stackYear, m + 1)),
+        unreadStackAt(shelf.readable, DateTime(stackYear, m + 1)),
     ];
     final receivedAs = <ReceivedAs, int>{};
     final spending = <int, int>{};
