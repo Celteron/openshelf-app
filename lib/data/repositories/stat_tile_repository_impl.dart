@@ -46,6 +46,19 @@ class StatTileRepositoryImpl implements StatTileRepository {
   Future<void> reorder(List<int> ids) => _dao.reorder(ids);
 
   @override
+  Future<bool> restoreTile(StatTile tile, List<int> order) async {
+    final (_, pinned) = await _dao.restore(
+      title: tile.title,
+      definition: jsonEncode(tile.definition.toJson()),
+      pinned: tile.pinned,
+      deletedId: tile.id,
+      order: order,
+      limit: StatTile.maxPinned,
+    );
+    return pinned == tile.pinned;
+  }
+
+  @override
   Future<bool> setPinned(int id, {required bool pinned}) async {
     if (!pinned) {
       await _dao.unpin(id);

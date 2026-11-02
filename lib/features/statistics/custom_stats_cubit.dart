@@ -132,15 +132,12 @@ class CustomStatsCubit extends Cubit<CustomStatsState> {
   }
 
   /// Deletes [tile] and returns what undoes it: the tile comes back at its
-  /// place with its pin (FR-05-08).
-  Future<Future<void> Function()> deleteTile(StatTile tile) async {
+  /// place with its pin (FR-05-08). The undo yields `false` when the pin no
+  /// longer fits on the home tab.
+  Future<Future<bool> Function()> deleteTile(StatTile tile) async {
     final order = _shownIds();
     await _tiles.deleteTile(tile.id);
-    return () async {
-      final id = await _tiles.addTile(tile.title, tile.definition);
-      if (tile.pinned) await _tiles.setPinned(id, pinned: true);
-      await _tiles.reorder([for (final i in order) i == tile.id ? id : i]);
-    };
+    return () => _tiles.restoreTile(tile, order);
   }
 
   List<int> _shownIds() => switch (state) {

@@ -5,9 +5,13 @@ class StatTilesDao {
   final AppDatabase db;
   StatTilesDao(this.db);
 
-  Stream<List<StatTileRow>> watchAll() => (db.select(
-    db.statTiles,
-  )..orderBy([(t) => OrderingTerm(expression: t.position)])).watch();
+  Stream<List<StatTileRow>> watchAll() =>
+      (db.select(db.statTiles)..orderBy([
+            (t) => OrderingTerm(expression: t.position),
+            // A stable order even if two tiles ever share a position.
+            (t) => OrderingTerm(expression: t.id),
+          ]))
+          .watch();
 
   /// Appends a tile after the last one.
   Future<int> add(String title, String definition) => db.transaction(() async {
@@ -49,6 +53,48 @@ class StatTilesDao {
         where: (t) => t.id.equals(id),
       );
     }
+  });
+
+  /// Inserts a deleted tile again, before the first tile that followed it in
+  /// [order] (the ids as shown when it was deleted) and still exists, else
+  /// at the end; then numbers all positions afresh. Pinned only if fewer
+  /// than [limit] tiles are. Returns the new id and whether it is pinned.
+  Future<(int, bool)> restore({
+    required String title,
+    required String definition,
+    required bool pinned,
+    required int deletedId,
+    required List<int> order,
+    required int limit,
+  }) => db.transaction(() async {
+    final rows =
+        await (db.select(db.statTiles)..orderBy([
+              (t) => OrderingTerm(expression: t.position),
+              (t) => OrderingTerm(expression: t.id),
+            ]))
+            .get();
+    final pin = pinned && rows.where((r) => r.pinned).length < limit;
+    final id = await db
+        .into(db.statTiles)
+        .insert(
+          StatTilesCompanion.insert(
+            position: 0,
+            title: title,
+            definition: definition,
+            pinned: Value(pin),
+            createdAt: DateTime.now(),
+          ),
+        );
+    final ids = [for (final r in rows) r.id];
+    final followers = order.skip(order.indexOf(deletedId) + 1);
+    final next = followers.where(ids.contains).firstOrNull;
+    ids.insert(next == null ? ids.length : ids.indexOf(next), id);
+    for (final (i, rowId) in ids.indexed) {
+      await (db.update(db.statTiles)..where((t) => t.id.equals(rowId))).write(
+        StatTilesCompanion(position: Value(i)),
+      );
+    }
+    return (id, pin);
   });
 
   /// Pins [id] unless [limit] tiles accepted by [counts] are pinned already;

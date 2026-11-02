@@ -64,6 +64,28 @@ class _Tiles implements StatTileRepository {
   }
 
   @override
+  Future<bool> restoreTile(StatTile tile, List<int> order) async {
+    final id = _next++;
+    final ids = [for (final t in tiles) t.id];
+    final next = order
+        .skip(order.indexOf(tile.id) + 1)
+        .where(ids.contains)
+        .firstOrNull;
+    final at = next == null ? tiles.length : ids.indexOf(next);
+    _subject.add([
+      ...tiles.take(at),
+      StatTile(
+        id: id,
+        title: tile.title,
+        definition: tile.definition,
+        pinned: tile.pinned,
+      ),
+      ...tiles.skip(at),
+    ]);
+    return true;
+  }
+
+  @override
   Future<bool> setPinned(int id, {required bool pinned}) async {
     if (pinned &&
         tiles.where((t) => t.pinned && t.id != id).length >=

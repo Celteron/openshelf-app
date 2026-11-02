@@ -5,6 +5,7 @@ import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/data/database/daos/stat_tiles_dao.dart';
 import 'package:openreads/data/repositories/stat_tile_repository_impl.dart';
 import 'package:openreads/domain/models/stat_definition.dart';
+import 'package:openreads/domain/models/stat_tile.dart';
 
 const _pages = StatDefinition(
   measure: StatMeasure.pagesRead,
@@ -116,4 +117,61 @@ void main() {
       );
     },
   );
+
+  group('restoring a deleted tile (undo)', () {
+    Future<List<String>> titles() async => [
+      for (final t in await tiles.watchTiles().first) t.title,
+    ];
+
+    test('comes back at its place with its pin', () async {
+      final a = await tiles.addTile('A', _books);
+      final b = await tiles.addTile('B', _books);
+      final c = await tiles.addTile('C', _books);
+      await tiles.deleteTile(b);
+
+      final pinned = await tiles.restoreTile(
+        StatTile(id: b, title: 'B', definition: _books, pinned: true),
+        [a, b, c],
+      );
+
+      expect(pinned, isTrue);
+      expect(await titles(), ['A', 'B', 'C']);
+      expect((await tiles.watchTiles().first)[1].pinned, isTrue);
+    });
+
+    test('two undos after two deletes give a full, stable order', () async {
+      final a = await tiles.addTile('A', _books);
+      final b = await tiles.addTile('B', _books);
+      final c = await tiles.addTile('C', _books);
+      await tiles.deleteTile(a);
+      await tiles.deleteTile(b);
+
+      // The first delete's snapshot still names b, which is gone by now.
+      await tiles.restoreTile(StatTile(id: a, title: 'A', definition: _books), [
+        a,
+        b,
+        c,
+      ]);
+      await tiles.restoreTile(StatTile(id: b, title: 'B', definition: _books), [
+        b,
+        c,
+      ]);
+
+      expect(await titles(), ['A', 'B', 'C']);
+    });
+
+    test('says so when the home tab has no room for its pin', () async {
+      for (var i = 0; i < 3; i++) {
+        await tiles.setPinned(await tiles.addTile('$i', _books), pinned: true);
+      }
+
+      final pinned = await tiles.restoreTile(
+        const StatTile(id: 99, title: 'X', definition: _books, pinned: true),
+        const [99],
+      );
+
+      expect(pinned, isFalse);
+      expect((await tiles.watchTiles().first).last.title, 'X');
+    });
+  });
 }

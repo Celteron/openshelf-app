@@ -197,7 +197,16 @@ class _TileMenu extends StatelessWidget {
         messenger.showSnackBar(
           SnackBar(
             content: Text(l10n.statDeleted(tile.title)),
-            action: SnackBarAction(label: l10n.undo, onPressed: undo),
+            action: SnackBarAction(
+              label: l10n.undo,
+              onPressed: () async {
+                if (!await undo()) {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(l10n.statPinLimit)),
+                  );
+                }
+              },
+            ),
           ),
         );
     }
