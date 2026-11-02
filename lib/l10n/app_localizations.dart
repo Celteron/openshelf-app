@@ -2551,6 +2551,30 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Speichern fehlgeschlagen. Prüfe den Standort und versuche es erneut.'**
   String get scanSaveFailed;
+
+  /// No description provided for @statNoData.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Daten.'**
+  String get statNoData;
+
+  /// No description provided for @statOther.
+  ///
+  /// In de, this message translates to:
+  /// **'Andere'**
+  String get statOther;
+
+  /// No description provided for @statTagsCountTwice.
+  ///
+  /// In de, this message translates to:
+  /// **'Bücher mit mehreren Tags zählen mehrfach.'**
+  String get statTagsCountTwice;
+
+  /// No description provided for @statShowAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle {count} anzeigen'**
+  String statShowAll(int count);
 }
 
 class _AppLocalizationsDelegate

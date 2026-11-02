@@ -1532,4 +1532,22 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get scanSaveFailed =>
       'Speichern fehlgeschlagen. Prüfe den Standort und versuche es erneut.';
+
+  @override
+  String get statNoData => 'Noch keine Daten.';
+
+  @override
+  String get statOther => 'Andere';
+
+  @override
+  String get statTagsCountTwice => 'Bücher mit mehreren Tags zählen mehrfach.';
+
+  @override
+  String statShowAll(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'Alle $countString anzeigen';
+  }
 }

@@ -1527,4 +1527,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get scanSaveFailed =>
       'Saving failed. Check the location and try again.';
+
+  @override
+  String get statNoData => 'No data yet.';
+
+  @override
+  String get statOther => 'Other';
+
+  @override
+  String get statTagsCountTwice =>
+      'Books with several tags count more than once.';
+
+  @override
+  String statShowAll(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'Show all $countString';
+  }
 }

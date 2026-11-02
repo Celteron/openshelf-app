@@ -715,5 +715,9 @@
   "homeCurrentlyReading": "Currently reading",
   "homeUnreadTrend": "Unread stack, last 6 months",
   "homeEmpty": "No books yet. Tap + in the library to get started.",
-  "scanSaveFailed": "Saving failed. Check the location and try again."
+  "scanSaveFailed": "Saving failed. Check the location and try again.",
+  "statNoData": "No data yet.",
+  "statOther": "Other",
+  "statTagsCountTwice": "Books with several tags count more than once.",
+  "statShowAll": "Show all {count}"
 }
