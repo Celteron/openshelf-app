@@ -102,4 +102,59 @@ void main() {
       );
     });
   });
+
+  group('editing (builder)', () {
+    const base = StatDefinition(
+      measure: StatMeasure.books,
+      grouping: StatGrouping.genre,
+      period: StatAllTime(),
+      chart: StatChart.donut,
+    );
+
+    test('a new grouping keeps a fitting chart, else takes the first', () {
+      expect(base.withGrouping(StatGrouping.author).chart, StatChart.donut);
+      expect(base.withGrouping(StatGrouping.month).chart, StatChart.bar);
+      expect(base.withGrouping(StatGrouping.tag).chart, StatChart.bar);
+      final single = base.withGrouping(null);
+      expect(single.grouping, isNull);
+      expect(single.chart, StatChart.number);
+    });
+
+    test('copyWith changes only what it is given', () {
+      final edited = base.copyWith(
+        measure: StatMeasure.spending,
+        period: const StatYear(2025),
+        statuses: {BookStatus.read},
+      );
+      expect(edited.measure, StatMeasure.spending);
+      expect(edited.period, const StatYear(2025));
+      expect(edited.statuses, {BookStatus.read});
+      expect(edited.grouping, StatGrouping.genre);
+      expect(edited.chart, StatChart.donut);
+    });
+  });
+
+  group('presets (spec 005, 4.3)', () {
+    test('every preset is a valid definition that survives storage', () {
+      for (final preset in StatPreset.values) {
+        final definition = preset.definition(2026);
+        expect(
+          StatDefinition.tryFromJson(definition.toJson()),
+          definition,
+          reason: preset.name,
+        );
+      }
+    });
+
+    test('time presets cover the given year, collection ones all time', () {
+      expect(
+        StatPreset.pagesPerMonth.definition(2026).period,
+        const StatYear(2026),
+      );
+      expect(
+        StatPreset.booksByGenre.definition(2026).period,
+        const StatAllTime(),
+      );
+    });
+  });
 }

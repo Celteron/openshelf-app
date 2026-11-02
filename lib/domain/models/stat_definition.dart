@@ -125,17 +125,37 @@ class StatDefinition {
         StatGrouping() => const [StatChart.bar, StatChart.donut],
       };
 
-  /// The same definition filtered by [ids], e.g. after a restore gave the
-  /// tags new ids.
-  StatDefinition withTagIds(Set<int> ids) => StatDefinition(
-    measure: measure,
+  StatDefinition copyWith({
+    StatMeasure? measure,
+    StatPeriod? period,
+    StatChart? chart,
+    Set<BookStatus>? statuses,
+    Set<BookFormat>? formats,
+    Set<int>? tagIds,
+  }) => StatDefinition(
+    measure: measure ?? this.measure,
     grouping: grouping,
-    period: period,
-    chart: chart,
-    statuses: statuses,
-    formats: formats,
-    tagIds: ids,
+    period: period ?? this.period,
+    chart: chart ?? this.chart,
+    statuses: statuses ?? this.statuses,
+    formats: formats ?? this.formats,
+    tagIds: tagIds ?? this.tagIds,
   );
+
+  /// Another grouping (`null`: one number). The chart stays if it fits the
+  /// new grouping, else it becomes the first that does.
+  StatDefinition withGrouping(StatGrouping? grouping) {
+    final charts = chartsFor(grouping);
+    return StatDefinition(
+      measure: measure,
+      grouping: grouping,
+      period: period,
+      chart: charts.contains(chart) ? chart : charts.first,
+      statuses: statuses,
+      formats: formats,
+      tagIds: tagIds,
+    );
+  }
 
   Map<String, Object?> toJson() => {
     'measure': measure.code,
@@ -229,4 +249,47 @@ class StatDefinition {
     Object.hashAllUnordered(formats),
     Object.hashAllUnordered(tagIds),
   );
+}
+
+/// Starting points of the builder (spec 005, 4.3).
+enum StatPreset {
+  pagesPerMonth,
+  booksByGenre,
+  spendingPerYear,
+  readingTimePerMonth,
+  booksByFormat;
+
+  /// The preset's definition; time presets cover [year].
+  StatDefinition definition(int year) => switch (this) {
+    pagesPerMonth => StatDefinition(
+      measure: StatMeasure.pagesRead,
+      grouping: StatGrouping.month,
+      period: StatYear(year),
+      chart: StatChart.bar,
+    ),
+    booksByGenre => const StatDefinition(
+      measure: StatMeasure.books,
+      grouping: StatGrouping.genre,
+      period: StatAllTime(),
+      chart: StatChart.donut,
+    ),
+    spendingPerYear => const StatDefinition(
+      measure: StatMeasure.spending,
+      grouping: StatGrouping.year,
+      period: StatAllTime(),
+      chart: StatChart.bar,
+    ),
+    readingTimePerMonth => StatDefinition(
+      measure: StatMeasure.readingTime,
+      grouping: StatGrouping.month,
+      period: StatYear(year),
+      chart: StatChart.line,
+    ),
+    booksByFormat => const StatDefinition(
+      measure: StatMeasure.books,
+      grouping: StatGrouping.format,
+      period: StatAllTime(),
+      chart: StatChart.donut,
+    ),
+  };
 }

@@ -209,7 +209,7 @@ class JsonBackupImporter implements BookImporter {
         rowNumber: ++row,
         tile: StatTileImport(
           title: title,
-          definition: definition.withTagIds(const {}),
+          definition: definition.copyWith(tagIds: const {}),
           tagNames: [
             for (final id in definition.tagIds)
               if (tagNames[id] case final name?) name,

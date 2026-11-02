@@ -253,9 +253,9 @@ class BooksDao {
     var position = rows.fold(-1, (m, r) => r.position > m ? r.position : m);
     var pinned = rows.where((r) => r.pinned).length;
     for (final tile in tiles) {
-      final definition = tile.definition.withTagIds({
-        for (final name in tile.tagNames) await context.tag(name),
-      });
+      final definition = tile.definition.copyWith(
+        tagIds: {for (final name in tile.tagNames) await context.tag(name)},
+      );
       if (!existing.add((tile.title, definition))) continue;
       final pin = tile.pinned && pinned < StatTile.maxPinned;
       if (pin) pinned++;
