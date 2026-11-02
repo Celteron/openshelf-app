@@ -2420,6 +2420,12 @@ abstract class AppLocalizations {
   /// **'Kein Cover online gefunden. Du kannst eins fotografieren oder aus der Galerie wählen.'**
   String get coverSearchEmpty;
 
+  /// No description provided for @coverSearchOffline.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Verbindung. Bitte später erneut versuchen.'**
+  String get coverSearchOffline;
+
   /// No description provided for @completeOnline.
   ///
   /// In de, this message translates to:

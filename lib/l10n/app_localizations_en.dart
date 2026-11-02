@@ -1449,6 +1449,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'No cover found online. You can take a photo or pick one from the gallery.';
 
   @override
+  String get coverSearchOffline => 'No connection. Please try again later.';
+
+  @override
   String get completeOnline => 'Complete online';
 
   @override

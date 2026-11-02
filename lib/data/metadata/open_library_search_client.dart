@@ -123,6 +123,16 @@ class OpenLibrarySearchClient {
     OlSearchType type, {
     int limit = 20,
     int offset = 0,
+  }) async =>
+      await trySearch(query, type, limit: limit, offset: offset) ?? const [];
+
+  /// Like [search], but `null` when Open Library could not be reached, so a
+  /// caller can tell "offline" from "nothing found".
+  Future<List<OlSearchResult>?> trySearch(
+    String query,
+    OlSearchType type, {
+    int limit = 20,
+    int offset = 0,
   }) async {
     final q = query.trim();
     if (q.isEmpty) return const [];
@@ -152,6 +162,7 @@ class OpenLibrarySearchClient {
     );
 
     final json = await _getJson(uri);
+    if (json == null) return null;
     final docs = json is Map<String, dynamic> ? json['docs'] : null;
     if (docs is! List) return const [];
     return [

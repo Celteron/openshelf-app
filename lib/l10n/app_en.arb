@@ -670,6 +670,7 @@
   "coverSearchOnline": "Search online",
   "coverSearchTitle": "Search cover online",
   "coverSearchEmpty": "No cover found online. You can take a photo or pick one from the gallery.",
+  "coverSearchOffline": "No connection. Please try again later.",
   "completeOnline": "Complete online",
   "completeOnlineHint": "Without an ISBN the app finds neither cover nor details. Search the book online to add them.",
   "withoutCoverFilter": "Without cover",

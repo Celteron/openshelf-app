@@ -1452,6 +1452,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Cover online gefunden. Du kannst eins fotografieren oder aus der Galerie wählen.';
 
   @override
+  String get coverSearchOffline =>
+      'Keine Verbindung. Bitte später erneut versuchen.';
+
+  @override
   String get completeOnline => 'Online vervollständigen';
 
   @override

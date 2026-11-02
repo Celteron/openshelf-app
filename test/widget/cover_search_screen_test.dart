@@ -22,11 +22,13 @@ void main() {
     String query = 'Der Vorleser Schlink',
     List<Map<String, Object>> docs = const [],
     VoidCallback? onNothingFound,
+    bool offline = false,
   }) async {
     asked.clear();
     final client = OpenLibrarySearchClient(
       client: MockClient((request) async {
         asked.add(request.url);
+        if (offline) throw http.ClientException('offline');
         return http.Response.bytes(
           utf8.encode(jsonEncode({'docs': docs})),
           200,
@@ -114,5 +116,16 @@ void main() {
 
     expect(find.byKey(const ValueKey('cover-search-empty')), findsOneWidget);
     expect(reported, 1);
+  });
+
+  testWidgets('offline is not "nothing found": the book stays unmarked', (
+    tester,
+  ) async {
+    var reported = 0;
+    await open(tester, offline: true, onNothingFound: () => reported++);
+
+    expect(find.byKey(const ValueKey('cover-search-offline')), findsOneWidget);
+    expect(find.byKey(const ValueKey('cover-search-empty')), findsNothing);
+    expect(reported, 0);
   });
 }

@@ -29,6 +29,7 @@ class CoverSearchScreen extends StatefulWidget {
 
 class _CoverSearchScreenState extends State<CoverSearchScreen> {
   List<String>? _candidates;
+  bool _offline = false;
 
   @override
   void initState() {
@@ -37,18 +38,22 @@ class _CoverSearchScreenState extends State<CoverSearchScreen> {
   }
 
   Future<void> _search() async {
-    final results = await context.read<OpenLibrarySearchClient>().search(
+    final results = await context.read<OpenLibrarySearchClient>().trySearch(
       widget.query,
       OlSearchType.general,
     );
     if (!mounted) return;
     final candidates = {
       ...coverCandidates(coverUrl: widget.coverUrl, isbn: widget.isbn),
-      for (final r in results)
+      for (final r in results ?? const <OlSearchResult>[])
         if (r.coverUrl case final url?) url,
     }.toList();
-    setState(() => _candidates = candidates);
-    if (candidates.isEmpty) widget.onNothingFound?.call();
+    setState(() {
+      _candidates = candidates;
+      _offline = results == null;
+    });
+    // Offline proves nothing: only a search that ran may mark the book.
+    if (candidates.isEmpty && !_offline) widget.onNothingFound?.call();
   }
 
   @override
@@ -61,10 +66,15 @@ class _CoverSearchScreenState extends State<CoverSearchScreen> {
           ? const Center(child: CircularProgressIndicator())
           : candidates.isEmpty
           ? Center(
-              key: const ValueKey('cover-search-empty'),
+              key: ValueKey(
+                _offline ? 'cover-search-offline' : 'cover-search-empty',
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text(l10n.coverSearchEmpty, textAlign: TextAlign.center),
+                child: Text(
+                  _offline ? l10n.coverSearchOffline : l10n.coverSearchEmpty,
+                  textAlign: TextAlign.center,
+                ),
               ),
             )
           : GridView.builder(
