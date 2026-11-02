@@ -39,6 +39,9 @@ class _SeededCubit extends ScannerCubit {
 
   @override
   void start({StagedDefaults defaults = const StagedDefaults()}) {}
+
+  /// Lets a test put the cubit into any state, e.g. a failed save.
+  void seed(ScannerState next) => emit(next);
 }
 
 /// Editing the staging shelf before saving (FR-R2-12).
@@ -92,6 +95,36 @@ void main() {
 
   StagedBook only(ScannerCubit cubit) =>
       (cubit.state as ScannerActive).staged.single;
+
+  shelfTest('a failed save says so; the books stay staged', (tester) async {
+    final cubit = await pump(tester);
+    final active = cubit.state as ScannerActive;
+
+    cubit.seed(active.copyWith(saveFailed: true));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500)); // snack bar in
+
+    expect(
+      find.text(
+        'Speichern fehlgeschlagen. Prüfe den Standort und versuche es erneut.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Der Vorleser'), findsOneWidget);
+  });
+
+  shelfTest('a deleted shared location is dropped', (tester) async {
+    final cubit = await pump(tester);
+    cubit.setShared(const StagedDefaults(locationId: 999));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('staged-shared')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('shared-apply')));
+    await tester.pumpAndSettle();
+
+    expect((cubit.state as ScannerActive).shared.locationId, isNull);
+  });
 
   shelfTest('a staged book shows title and author', (tester) async {
     await pump(tester);

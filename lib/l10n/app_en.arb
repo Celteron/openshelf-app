@@ -713,5 +713,6 @@
   "homeRecentlyAdded": "Recently added",
   "homeCurrentlyReading": "Currently reading",
   "homeUnreadTrend": "Unread stack, last 6 months",
-  "homeEmpty": "No books yet. Tap + in the library to get started."
+  "homeEmpty": "No books yet. Tap + in the library to get started.",
+  "scanSaveFailed": "Saving failed. Check the location and try again."
 }

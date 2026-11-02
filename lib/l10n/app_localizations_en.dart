@@ -1514,4 +1514,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeEmpty => 'No books yet. Tap + in the library to get started.';
+
+  @override
+  String get scanSaveFailed =>
+      'Saving failed. Check the location and try again.';
 }

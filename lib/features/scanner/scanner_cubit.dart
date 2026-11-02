@@ -53,11 +53,16 @@ class ScannerActive extends ScannerState {
   final bool saving;
   final StagedDefaults shared;
 
+  /// The last "save all" failed (e.g. a location deleted meanwhile); the
+  /// staged books are kept for another try.
+  final bool saveFailed;
+
   const ScannerActive({
     required this.staged,
     this.scanning = false,
     this.saving = false,
     this.shared = const StagedDefaults(),
+    this.saveFailed = false,
   });
 
   ScannerActive copyWith({
@@ -65,12 +70,14 @@ class ScannerActive extends ScannerState {
     bool? scanning,
     bool? saving,
     StagedDefaults? shared,
+    bool? saveFailed,
   }) {
     return ScannerActive(
       staged: staged ?? this.staged,
       scanning: scanning ?? this.scanning,
       saving: saving ?? this.saving,
       shared: shared ?? this.shared,
+      saveFailed: saveFailed ?? this.saveFailed,
     );
   }
 }
@@ -213,7 +220,7 @@ class ScannerCubit extends Cubit<ScannerState> {
   Future<void> saveAll() async {
     final current = state;
     if (current is! ScannerActive) return;
-    emit(current.copyWith(saving: true));
+    emit(current.copyWith(saving: true, saveFailed: false));
     final shared = current.shared;
 
     final companions = <BooksCompanion>[];
@@ -243,8 +250,17 @@ class ScannerCubit extends Cubit<ScannerState> {
       );
     }
 
-    if (companions.isNotEmpty) {
-      await _bookRepository.insertAll(companions);
+    try {
+      if (companions.isNotEmpty) {
+        await _bookRepository.insertAll(companions);
+      }
+    } catch (_) {
+      // Nothing is lost: the batch stays staged and the screen says so.
+      final now = state;
+      if (now is ScannerActive) {
+        emit(now.copyWith(saving: false, saveFailed: true));
+      }
+      return;
     }
 
     emit(ScannerActive(staged: const [], shared: shared));

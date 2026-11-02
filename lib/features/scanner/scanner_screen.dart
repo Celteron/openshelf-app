@@ -68,6 +68,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    return BlocListener<ScannerCubit, ScannerState>(
+      listenWhen: (before, now) =>
+          now is ScannerActive &&
+          now.saveFailed &&
+          !(before is ScannerActive && before.saveFailed),
+      listener: (context, _) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.scanSaveFailed))),
+      child: _scaffold(context, l10n),
+    );
+  }
+
+  Widget _scaffold(BuildContext context, AppLocalizations l10n) {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.scannerTitle)),
       body: Column(
@@ -377,9 +390,15 @@ class _SharedValuesSheetState extends State<_SharedValuesSheet> {
   late BookFormat? _format = widget.initial.format;
   late BookStatus _status = widget.initial.status;
   late ReceivedAs? _receivedAs = widget.initial.receivedAs;
+  // A location deleted meanwhile is dropped, so "save all" cannot fail on
+  // it.
   late final Future<List<Location>> _locations = context
       .read<LocationRepository>()
-      .getLocations();
+      .getLocations()
+      .then((list) {
+        if (!list.any((l) => l.id == _locationId)) _locationId = null;
+        return list;
+      });
 
   Widget _dropdown<T>({
     required String key,
@@ -427,7 +446,8 @@ class _SharedValuesSheetState extends State<_SharedValuesSheet> {
               builder: (context, snapshot) => _dropdown<int?>(
                 key: 'shared-location',
                 label: l10n.fieldLocation,
-                value: _locationId,
+                // Until the list is loaded only "no location" is an item.
+                value: snapshot.hasData ? _locationId : null,
                 items: [
                   (null, l10n.noLocation),
                   for (final l in snapshot.data ?? const <Location>[])

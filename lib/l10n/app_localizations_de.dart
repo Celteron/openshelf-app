@@ -1518,4 +1518,8 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get homeEmpty =>
       'Noch keine Bücher. Tippe in der Bibliothek auf +, um loszulegen.';
+
+  @override
+  String get scanSaveFailed =>
+      'Speichern fehlgeschlagen. Prüfe den Standort und versuche es erneut.';
 }

@@ -64,6 +64,26 @@ void main() {
     await db.close();
   });
 
+  test('a failed save keeps the staged books and can be retried', () async {
+    cubit.start();
+    await cubit.onScanned('978-3-86680-192-9');
+    // A location deleted on the shelf tab: the insert hits the foreign key.
+    cubit.setShared(const StagedDefaults(locationId: 999));
+
+    await cubit.saveAll();
+
+    final failed = cubit.state as ScannerActive;
+    expect(failed.saving, isFalse);
+    expect(failed.saveFailed, isTrue);
+    expect(failed.staged, hasLength(1));
+    expect(await books.getAllBooks(), isEmpty);
+
+    cubit.setShared(const StagedDefaults());
+    await cubit.saveAll();
+    expect(await books.getAllBooks(), hasLength(1));
+    expect((cubit.state as ScannerActive).saveFailed, isFalse);
+  });
+
   test('a new batch starts from the defaults it is given', () async {
     const defaults = StagedDefaults(
       format: BookFormat.hardcover,

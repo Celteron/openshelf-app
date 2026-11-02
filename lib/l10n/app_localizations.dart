@@ -2539,6 +2539,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Noch keine Bücher. Tippe in der Bibliothek auf +, um loszulegen.'**
   String get homeEmpty;
+
+  /// No description provided for @scanSaveFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Speichern fehlgeschlagen. Prüfe den Standort und versuche es erneut.'**
+  String get scanSaveFailed;
 }
 
 class _AppLocalizationsDelegate
