@@ -15,6 +15,7 @@ import 'package:openreads/features/library/widgets/book_grid_tile.dart';
 import 'package:openreads/features/library/widgets/book_list_tile.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/library/library_screen.dart';
+import 'package:openreads/features/statistics/statistics_books_screen.dart';
 import 'package:openreads/features/tags/tags_cubit.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
@@ -332,6 +333,42 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('favorites-filter')));
     await tester.pumpAndSettle();
     expect(find.text('Alpha'), findsOneWidget);
+  });
+
+  testWidgets('"show in library" from a statistic filters the library', (
+    tester,
+  ) async {
+    await pumpLibrary(tester);
+    var shown = 0;
+    final books = [book(1, 'Alpha', BookStatus.read)];
+    Navigator.of(tester.element(find.byType(LibraryScreen))).push(
+      MaterialPageRoute(
+        builder: (_) => StatisticsBooksScreen(
+          title: 'März 2026',
+          books: books,
+          onShowInLibrary: () => shown++,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('show-in-library')));
+    await tester.pumpAndSettle();
+
+    expect(shown, 1);
+    expect(find.byType(StatisticsBooksScreen), findsNothing);
+    expect(find.text('Alpha'), findsOneWidget);
+    expect(find.text('Beta'), findsNothing);
+
+    // The selection is a removable chip.
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('only-filter')),
+        matching: find.byIcon(Icons.close),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Beta'), findsOneWidget);
   });
 
   group('without-cover chip (FR-R2-14)', () {

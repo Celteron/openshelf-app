@@ -1491,4 +1491,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spendingByYear => 'Spending per year';
+
+  @override
+  String get showInLibrary => 'Show in library';
+
+  @override
+  String selectionFilter(int count) {
+    return 'Selection ($count)';
+  }
 }

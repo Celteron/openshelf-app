@@ -46,7 +46,7 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 ## Package 6: Statistics
 - [X] T4-50 Sections (overview, reading, averages & records, library) below the year filter; averages/records over readable books with a value; actual reading time only (sessions + manual) + tests. (FR-R2-15, -16)
 - [X] T4-53 Locale number grouping (statistics totals, page counts, goal pages), durations in days / h min / s + tests. (FR-R2-24)
-- [ ] T4-51 Drill-down month/status → books → library filter. (FR-R2-17) — done: month bars and status rows open a book list, a book opens its detail; open: "show in library".
+- [X] T4-51 Month bars and status rows open their books, a book opens its detail, "show in library" switches to the library filtered to them (removable selection chip) + tests. (FR-R2-17)
 - [X] T4-52 Unread stack at month end, books added per month (next to finished), received-as distribution and spending per year over physical objects + tests. (FR-R2-18)
 
 ## Package 7: Home

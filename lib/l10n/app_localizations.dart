@@ -2497,6 +2497,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Ausgaben pro Jahr'**
   String get spendingByYear;
+
+  /// No description provided for @showInLibrary.
+  ///
+  /// In de, this message translates to:
+  /// **'In Bibliothek zeigen'**
+  String get showInLibrary;
+
+  /// No description provided for @selectionFilter.
+  ///
+  /// In de, this message translates to:
+  /// **'Auswahl ({count})'**
+  String selectionFilter(int count);
 }
 
 class _AppLocalizationsDelegate

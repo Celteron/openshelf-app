@@ -46,6 +46,9 @@ class LibraryLoaded extends LibraryState {
   /// Whether any book lacks a cover; the filter is offered only then.
   final bool hasCoverless;
 
+  /// A fixed selection, e.g. the books behind a statistic (FR-R2-17).
+  final Set<int>? onlyIds;
+
   final LibrarySort sort;
 
   /// Only books finished in this year (Openreads year filter chip).
@@ -64,6 +67,7 @@ class LibraryLoaded extends LibraryState {
     this.favoritesOnly = false,
     this.withoutCoverOnly = false,
     this.hasCoverless = false,
+    this.onlyIds,
     this.sort = const LibrarySort(),
     this.yearFilter,
     this.availableYears = const [],
@@ -75,6 +79,7 @@ class LibraryLoaded extends LibraryState {
       tagIds.isNotEmpty ||
       favoritesOnly ||
       withoutCoverOnly ||
+      onlyIds != null ||
       yearFilter != null;
 }
 
@@ -100,6 +105,7 @@ class LibraryCubit extends Cubit<LibraryState> {
   Set<int> _tagIds = const {};
   bool _favoritesOnly = false;
   bool _withoutCover = false;
+  Set<int>? _onlyIds;
   LibrarySort _sort = const LibrarySort();
   int? _year;
 
@@ -141,12 +147,32 @@ class LibraryCubit extends Cubit<LibraryState> {
   /// drops the chip filters that could hide them (the typed search stays, it
   /// is visible in the search field).
   void showWithoutCover() {
+    _clearChips();
     _withoutCover = true;
+    _subscribe();
+  }
+
+  /// Shows exactly [ids], e.g. the books behind a statistic; drops the chip
+  /// filters that could hide some of them.
+  void showOnly(Set<int> ids) {
+    _clearChips();
+    _onlyIds = {...ids};
+    _subscribe();
+  }
+
+  void clearOnly() {
+    if (_onlyIds == null) return;
+    _onlyIds = null;
+    _subscribe();
+  }
+
+  void _clearChips() {
     _status = null;
     _favoritesOnly = false;
+    _withoutCover = false;
     _year = null;
     _tagIds = const {};
-    _subscribe();
+    _onlyIds = null;
   }
 
   /// Selecting the active sort field flips its direction.
@@ -208,6 +234,7 @@ class LibraryCubit extends Cubit<LibraryState> {
     final status = _status;
     final favoritesOnly = _favoritesOnly;
     final withoutCover = _withoutCover;
+    final onlyIds = _onlyIds;
     final sort = _sort;
     final year = _year;
     final sessions =
@@ -245,6 +272,9 @@ class LibraryCubit extends Cubit<LibraryState> {
                 Iterable<Book> visible = books;
                 if (favoritesOnly) visible = visible.where((b) => b.isFavorite);
                 if (withoutCover) visible = visible.where(_coverless);
+                if (onlyIds != null) {
+                  visible = visible.where((b) => onlyIds.contains(b.id));
+                }
                 if (year != null) {
                   visible = visible.where(
                     (b) => GoalProgress.countsForYear(b, year),
@@ -268,6 +298,7 @@ class LibraryCubit extends Cubit<LibraryState> {
                     favoritesOnly: favoritesOnly,
                     withoutCoverOnly: withoutCover,
                     hasCoverless: all.any(_coverless),
+                    onlyIds: onlyIds,
                     sort: sort,
                     yearFilter: year,
                     availableYears: years,

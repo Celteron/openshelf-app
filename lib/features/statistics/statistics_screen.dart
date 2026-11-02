@@ -17,7 +17,10 @@ import 'package:openreads/l10n/app_localizations.dart';
 /// Statistics dashboard: totals, status breakdown, pages read, top locations
 /// and top authors (spec §6.5).
 class StatisticsScreen extends StatefulWidget {
-  const StatisticsScreen({super.key});
+  /// Switches to the library tab ("show in library", FR-R2-17).
+  final VoidCallback? onShowLibrary;
+
+  const StatisticsScreen({super.key, this.onShowLibrary});
 
   @override
   State<StatisticsScreen> createState() => _StatisticsScreenState();
@@ -275,7 +278,13 @@ class _SpendingCard extends StatelessWidget {
 void _openBooks(BuildContext context, String title, List<Book> books) =>
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => StatisticsBooksScreen(title: title, books: books),
+        builder: (_) => StatisticsBooksScreen(
+          title: title,
+          books: books,
+          onShowInLibrary: context
+              .findAncestorWidgetOfExactType<StatisticsScreen>()
+              ?.onShowLibrary,
+        ),
       ),
     );
 

@@ -816,6 +816,7 @@ class _StatusFilterBar extends StatelessWidget {
         final favoritesOnly = state is LibraryLoaded && state.favoritesOnly;
         final withoutCover = state is LibraryLoaded && state.withoutCoverOnly;
         final hasCoverless = state is LibraryLoaded && state.hasCoverless;
+        final onlyIds = state is LibraryLoaded ? state.onlyIds : null;
         final years = state is LibraryLoaded
             ? state.availableYears
             : const <int>[];
@@ -824,6 +825,18 @@ class _StatusFilterBar extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
+              if (onlyIds != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: InputChip(
+                    key: const ValueKey('only-filter'),
+                    label: Text(l10n.selectionFilter(onlyIds.length)),
+                    selected: true,
+                    deleteIcon: const Icon(Icons.close, size: 18),
+                    deleteButtonTooltipMessage: l10n.clearFilters,
+                    onDeleted: () => context.read<LibraryCubit>().clearOnly(),
+                  ),
+                ),
               const _TagFilterChip(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),

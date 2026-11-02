@@ -699,5 +699,14 @@
   "statsSectionLibrary": "Library",
   "addedBooksByMonth": "Books added per month",
   "unreadStackByMonth": "Unread stack at month end",
-  "spendingByYear": "Spending per year"
+  "spendingByYear": "Spending per year",
+  "showInLibrary": "Show in library",
+  "selectionFilter": "Selection ({count})",
+  "@selectionFilter": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

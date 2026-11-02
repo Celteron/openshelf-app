@@ -831,5 +831,14 @@
   "statsSectionLibrary": "Bibliothek",
   "addedBooksByMonth": "Hinzugefügte Bücher pro Monat",
   "unreadStackByMonth": "Ungelesen-Stapel am Monatsende",
-  "spendingByYear": "Ausgaben pro Jahr"
+  "spendingByYear": "Ausgaben pro Jahr",
+  "showInLibrary": "In Bibliothek zeigen",
+  "selectionFilter": "Auswahl ({count})",
+  "@selectionFilter": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

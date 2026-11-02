@@ -351,6 +351,34 @@ void main() {
       },
     );
 
+    test('showOnly narrows to a selection until it is cleared', () async {
+      final a = await addBook('Aus Statistik');
+      await addBook('Andere', favorite: true);
+      cubit.load();
+      cubit.toggleFavoritesOnly();
+      await cubit.stream.firstWhere(
+        (s) => s is LibraryLoaded && s.favoritesOnly,
+      );
+
+      cubit.showOnly({a});
+      final only =
+          await cubit.stream.firstWhere(
+                (s) => s is LibraryLoaded && s.onlyIds != null,
+              )
+              as LibraryLoaded;
+      expect(only.books.map((b) => b.title), ['Aus Statistik']);
+      expect(only.favoritesOnly, isFalse);
+      expect(only.hasActiveFilters, isTrue);
+
+      cubit.clearOnly();
+      final all =
+          await cubit.stream.firstWhere(
+                (s) => s is LibraryLoaded && s.onlyIds == null,
+              )
+              as LibraryLoaded;
+      expect(all.books, hasLength(2));
+    });
+
     group('without-cover filter (FR-R2-14)', () {
       test('narrows to books without a cover file', () async {
         await addBook('Mit', coverLocalPath: '/covers/mit.jpg');

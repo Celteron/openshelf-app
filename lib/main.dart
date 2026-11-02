@@ -242,7 +242,7 @@ class _HomeShellState extends State<HomeShell> {
         const ScannerScreen()
       else
         const SizedBox.shrink(),
-      const StatisticsScreen(),
+      StatisticsScreen(onShowLibrary: () => setState(() => _index = 0)),
     ];
 
     return Scaffold(
