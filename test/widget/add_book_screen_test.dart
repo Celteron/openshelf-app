@@ -19,6 +19,7 @@ import 'package:openreads/domain/repositories/location_repository.dart';
 import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:openreads/domain/services/metadata_aggregator_service.dart';
+import 'package:openreads/features/common/widgets/book_cover.dart';
 import 'package:openreads/features/library/add_book_screen.dart';
 import 'package:openreads/features/library/cover_search_screen.dart';
 import 'package:openreads/features/library/library_cubit.dart';
@@ -452,6 +453,28 @@ void main() {
         expect(draft.coverUrl, OpenLibrarySearchClient.coverUrlForId(123));
         expect(File(draft.coverLocalPath!).existsSync(), isTrue);
         expect(draft.editedFields, contains('coverUrl'));
+      });
+
+      testWidgets('a pick leaves the stored cover alone until saving', (
+        tester,
+      ) async {
+        serveCovers();
+        serveSearch([
+          {'title': 'Bestehend', 'cover_i': 123},
+        ]);
+        // The stored cover sits under the book's own cache key.
+        final old = (await tester.runAsync(
+          () => cache.saveCover(BookCover.keyFor(existing()), testPng(seed: 9)),
+        ))!;
+        await pump(tester, book: existing(coverLocalPath: old));
+
+        await openSearch(tester);
+        await pickFirst(tester);
+
+        expect(File(old).readAsBytesSync(), testPng(seed: 9));
+        await tester.tap(find.text('Speichern'));
+        await tester.pumpAndSettle();
+        expect(books.updated.single.$2.coverLocalPath, isNot(old));
       });
 
       testWidgets('nothing online marks the book as without cover', (

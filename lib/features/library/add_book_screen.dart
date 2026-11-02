@@ -274,10 +274,13 @@ class _AddBookScreenState extends State<AddBookScreen> {
       ),
     );
     if (url == null || !mounted) return;
-    final key = book != null
-        ? BookCover.keyFor(book)
-        : isbn ?? 'draft-${DateTime.now().microsecondsSinceEpoch}';
-    final path = await cache.downloadAndCache(key, url);
+    // A fresh key: the stored cover stays untouched until the form is saved
+    // (cancelling keeps it), and a new path is not served from the image
+    // cache.
+    final path = await cache.downloadAndCache(
+      'online-${DateTime.now().microsecondsSinceEpoch}',
+      url,
+    );
     if (!mounted) return;
     if (path == null) {
       messenger.showSnackBar(SnackBar(content: Text(failed)));
