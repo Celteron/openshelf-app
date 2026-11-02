@@ -2509,6 +2509,36 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Auswahl ({count})'**
   String selectionFilter(int count);
+
+  /// No description provided for @navHome.
+  ///
+  /// In de, this message translates to:
+  /// **'Start'**
+  String get navHome;
+
+  /// No description provided for @homeRecentlyAdded.
+  ///
+  /// In de, this message translates to:
+  /// **'Zuletzt hinzugefügt'**
+  String get homeRecentlyAdded;
+
+  /// No description provided for @homeCurrentlyReading.
+  ///
+  /// In de, this message translates to:
+  /// **'Gerade am Lesen'**
+  String get homeCurrentlyReading;
+
+  /// No description provided for @homeUnreadTrend.
+  ///
+  /// In de, this message translates to:
+  /// **'Ungelesen-Stapel, letzte 6 Monate'**
+  String get homeUnreadTrend;
+
+  /// No description provided for @homeEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Bücher. Tippe in der Bibliothek auf +, um loszulegen.'**
+  String get homeEmpty;
 }
 
 class _AppLocalizationsDelegate

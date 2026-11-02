@@ -50,7 +50,7 @@ Legend: `[X]` done, `[ ]` open. Each task traces to FR-R2-xx in `spec.md`. Packa
 - [X] T4-52 Unread stack at month end, books added per month (next to finished), received-as distribution and spending per year over physical objects + tests. (FR-R2-18)
 
 ## Package 7: Home
-- [ ] T4-60 Home tab with donut, recently added, reading, goal, unread trend, favourites. (FR-R2-19)
+- [X] T4-60 Home tab first (home, library, scan, statistics, shelf): animated donut read/reading/unread with total, segment or legend row opens the filtered library, goal, currently reading with progress, three recently added, six-month unread trend, favourites + tests. (FR-R2-19)
 
 ## Package 8: User-defined statistics
 - [ ] T4-70 Spec section and design. (FR-R2-20)

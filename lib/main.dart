@@ -27,6 +27,8 @@ import 'package:openreads/domain/services/metadata_lookup_queue.dart';
 import 'package:openreads/features/importer/importer_cubit.dart';
 import 'package:openreads/features/lending/lending_cubit.dart';
 import 'package:openreads/features/library/library_cubit.dart';
+import 'package:openreads/features/home/home_cubit.dart';
+import 'package:openreads/features/home/home_screen.dart';
 import 'package:openreads/features/library/library_screen.dart';
 import 'package:openreads/features/locations/location_tree_cubit.dart';
 import 'package:openreads/features/locations/location_tree_screen.dart';
@@ -167,6 +169,7 @@ class OpenShelfApp extends StatelessWidget {
           ),
           BlocProvider(create: (_) => LendingCubit(deps.lendingRepository)),
           BlocProvider(create: (_) => MetadataCubit(aggregator)),
+          BlocProvider(create: (_) => HomeCubit(deps.bookRepository)),
           BlocProvider(
             create: (_) => ScannerCubit(deps.bookRepository, lookupQueue),
           ),
@@ -226,15 +229,17 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
+  static const _libraryIndex = 1;
   static const _scannerIndex = 2;
 
   int _index = 0;
 
   @override
   Widget build(BuildContext context) {
+    void showLibrary() => setState(() => _index = _libraryIndex);
     final screens = [
+      HomeScreen(onShowLibrary: showLibrary),
       LibraryScreen(onScan: () => setState(() => _index = _scannerIndex)),
-      const LocationTreeScreen(),
       // Built only while its tab is open: the IndexedStack would otherwise
       // start the camera (and its permission prompt) at app launch and keep it
       // running in the background. Staged scans live in the ScannerCubit.
@@ -242,7 +247,8 @@ class _HomeShellState extends State<HomeShell> {
         const ScannerScreen()
       else
         const SizedBox.shrink(),
-      StatisticsScreen(onShowLibrary: () => setState(() => _index = 0)),
+      StatisticsScreen(onShowLibrary: showLibrary),
+      const LocationTreeScreen(),
     ];
 
     return Scaffold(
@@ -252,12 +258,12 @@ class _HomeShellState extends State<HomeShell> {
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: [
           NavigationDestination(
-            icon: const Icon(Icons.library_books),
-            label: AppLocalizations.of(context).navLibrary,
+            icon: const Icon(Icons.home_outlined),
+            label: AppLocalizations.of(context).navHome,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.shelves),
-            label: AppLocalizations.of(context).navShelf,
+            icon: const Icon(Icons.library_books),
+            label: AppLocalizations.of(context).navLibrary,
           ),
           NavigationDestination(
             icon: const Icon(Icons.qr_code_scanner),
@@ -266,6 +272,10 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(
             icon: const Icon(Icons.bar_chart),
             label: AppLocalizations.of(context).navStats,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.shelves),
+            label: AppLocalizations.of(context).navShelf,
           ),
         ],
       ),

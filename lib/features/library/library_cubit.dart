@@ -160,6 +160,13 @@ class LibraryCubit extends Cubit<LibraryState> {
     _subscribe();
   }
 
+  /// Shows the books with [status], e.g. from the home donut (FR-R2-19).
+  void showStatus(BookStatus status) {
+    _clearChips();
+    _status = status;
+    _subscribe();
+  }
+
   void clearOnly() {
     if (_onlyIds == null) return;
     _onlyIds = null;

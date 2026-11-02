@@ -1502,4 +1502,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String selectionFilter(int count) {
     return 'Auswahl ($count)';
   }
+
+  @override
+  String get navHome => 'Start';
+
+  @override
+  String get homeRecentlyAdded => 'Zuletzt hinzugefügt';
+
+  @override
+  String get homeCurrentlyReading => 'Gerade am Lesen';
+
+  @override
+  String get homeUnreadTrend => 'Ungelesen-Stapel, letzte 6 Monate';
+
+  @override
+  String get homeEmpty =>
+      'Noch keine Bücher. Tippe in der Bibliothek auf +, um loszulegen.';
 }

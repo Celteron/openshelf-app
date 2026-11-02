@@ -1499,4 +1499,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String selectionFilter(int count) {
     return 'Selection ($count)';
   }
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get homeRecentlyAdded => 'Recently added';
+
+  @override
+  String get homeCurrentlyReading => 'Currently reading';
+
+  @override
+  String get homeUnreadTrend => 'Unread stack, last 6 months';
+
+  @override
+  String get homeEmpty => 'No books yet. Tap + in the library to get started.';
 }

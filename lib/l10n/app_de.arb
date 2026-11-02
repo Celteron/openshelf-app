@@ -840,5 +840,10 @@
         "type": "int"
       }
     }
-  }
+  },
+  "navHome": "Start",
+  "homeRecentlyAdded": "Zuletzt hinzugefügt",
+  "homeCurrentlyReading": "Gerade am Lesen",
+  "homeUnreadTrend": "Ungelesen-Stapel, letzte 6 Monate",
+  "homeEmpty": "Noch keine Bücher. Tippe in der Bibliothek auf +, um loszulegen."
 }

@@ -60,7 +60,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               _SectionHeader('section-overview', l10n.statsSectionOverview),
               _SummaryCards(stats: stats),
               const SizedBox(height: 16),
-              _GoalCard(goal: stats.goal),
+              GoalCard(goal: stats.goal),
               const SizedBox(height: 16),
               _SectionHeader('section-reading', l10n.statsSectionReading),
               _ReadingCard(stats: stats),
@@ -470,9 +470,9 @@ String _statusName(BuildContext context, BookStatus status) =>
 
 /// Yearly reading goal: progress towards the target, remaining books and the
 /// pace relative to an even distribution over the year (Phase 2, US-D).
-class _GoalCard extends StatelessWidget {
+class GoalCard extends StatelessWidget {
   final GoalProgress? goal;
-  const _GoalCard({required this.goal});
+  const GoalCard({super.key, required this.goal});
 
   @override
   Widget build(BuildContext context) {

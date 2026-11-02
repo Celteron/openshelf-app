@@ -11,6 +11,7 @@ import 'package:openreads/domain/services/data_wipe_service.dart';
 import 'package:openreads/domain/services/import_service.dart';
 import 'package:openreads/domain/services/metadata_aggregator_service.dart';
 import 'package:openreads/domain/services/metadata_lookup_queue.dart';
+import 'package:openreads/features/home/home_screen.dart';
 import 'package:openreads/features/scanner/scanner_screen.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/main.dart';
@@ -67,7 +68,16 @@ void main() {
     (tester) async {
       await pumpApp(tester);
 
-      expect(find.byType(NavigationDestination), findsNWidgets(4));
+      // Home, library, scan, statistics, shelf (FR-R2-19).
+      expect(find.byType(NavigationDestination), findsNWidgets(5));
+      final labels = [
+        for (final d in tester.widgetList<NavigationDestination>(
+          find.byType(NavigationDestination),
+        ))
+          d.label,
+      ];
+      expect(labels, ['Start', 'Bibliothek', 'Scannen', 'Statistik', 'Regal']);
+      expect(find.byType(HomeScreen), findsOneWidget);
       expect(find.byIcon(Icons.import_export), findsNothing);
 
       await tester.pumpWidget(const SizedBox());

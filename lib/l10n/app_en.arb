@@ -708,5 +708,10 @@
         "type": "int"
       }
     }
-  }
+  },
+  "navHome": "Home",
+  "homeRecentlyAdded": "Recently added",
+  "homeCurrentlyReading": "Currently reading",
+  "homeUnreadTrend": "Unread stack, last 6 months",
+  "homeEmpty": "No books yet. Tap + in the library to get started."
 }
