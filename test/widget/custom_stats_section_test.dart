@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -151,21 +152,21 @@ const _byGenre = StatDefinition(
 void main() {
   late _Tiles tiles;
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(WidgetTester tester, {double height = 3000}) async {
     tiles = _Tiles();
-    tester.view.physicalSize = const Size(800, 3000);
+    tester.view.physicalSize = Size(800, height);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       BlocProvider(
         // Owned by the tree: closing it in a tear-down hangs.
         create: (_) => CustomStatsCubit(tiles: tiles, books: _Books())..load(),
-        child: MaterialApp(
-          locale: const Locale('de'),
+        child: const MaterialApp(
+          locale: Locale('de'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: ListView(children: const [CustomStatsSection()]),
+            body: CustomScrollView(slivers: [CustomStatsSection()]),
           ),
         ),
       ),
@@ -274,5 +275,30 @@ void main() {
       findsOneWidget,
     );
     expect(tiles.tiles.last.pinned, isFalse);
+  });
+
+  testWidgets('dragging a tile to the bottom edge scrolls the page', (
+    tester,
+  ) async {
+    await pump(tester, height: 600);
+    final ids = [
+      for (var i = 0; i < 8; i++) await tiles.addTile('T$i', _count),
+    ];
+    await tester.pumpAndSettle();
+    final page = tester.state<ScrollableState>(find.byType(Scrollable).first);
+    expect(page.position.pixels, 0);
+
+    final drag = await tester.startGesture(
+      tester.getCenter(find.byKey(ValueKey('custom-tile-${ids.first}-value'))),
+    );
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
+    await drag.moveTo(const Offset(400, 595));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(page.position.pixels, greaterThan(0));
+    await drag.up();
+    await tester.pumpAndSettle();
   });
 }

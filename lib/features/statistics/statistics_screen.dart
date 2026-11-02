@@ -52,84 +52,109 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             return const SizedBox.shrink();
           }
           final stats = state.statistics;
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (stats.years.isNotEmpty) ...[
-                _YearSelector(stats: stats),
-                const SizedBox(height: 16),
-              ],
-              StatsSectionHeader('section-overview', l10n.statsSectionOverview),
-              _SummaryCards(stats: stats),
-              const SizedBox(height: 16),
-              GoalCard(goal: stats.goal),
-              const SizedBox(height: 16),
-              StatsSectionHeader('section-reading', l10n.statsSectionReading),
-              _ReadingCard(stats: stats),
-              const SizedBox(height: 16),
-              if (stats.monthly.isNotEmpty) ...[
-                _MonthlyBarChart(
-                  key: const ValueKey('chart-books'),
-                  id: 'chart-books',
-                  title: l10n.finishedBooksByMonth,
-                  values: [for (final m in stats.monthly) m.books],
-                  onMonth: (month) => _openMonth(context, stats, month),
+          // A CustomScrollView so the custom tiles' drag can scroll the page.
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverMainAxisGroup(
+                  slivers: [
+                    SliverList.list(
+                      children: [
+                        if (stats.years.isNotEmpty) ...[
+                          _YearSelector(stats: stats),
+                          const SizedBox(height: 16),
+                        ],
+                        StatsSectionHeader(
+                          'section-overview',
+                          l10n.statsSectionOverview,
+                        ),
+                        _SummaryCards(stats: stats),
+                        const SizedBox(height: 16),
+                        GoalCard(goal: stats.goal),
+                        const SizedBox(height: 16),
+                        StatsSectionHeader(
+                          'section-reading',
+                          l10n.statsSectionReading,
+                        ),
+                        _ReadingCard(stats: stats),
+                        const SizedBox(height: 16),
+                        if (stats.monthly.isNotEmpty) ...[
+                          _MonthlyBarChart(
+                            key: const ValueKey('chart-books'),
+                            id: 'chart-books',
+                            title: l10n.finishedBooksByMonth,
+                            values: [for (final m in stats.monthly) m.books],
+                            onMonth: (month) =>
+                                _openMonth(context, stats, month),
+                          ),
+                          const SizedBox(height: 16),
+                          _MonthlyBarChart(
+                            key: const ValueKey('chart-pages'),
+                            id: 'chart-pages',
+                            title: l10n.finishedPagesByMonth,
+                            values: [for (final m in stats.monthly) m.pages],
+                            onMonth: (month) =>
+                                _openMonth(context, stats, month),
+                          ),
+                          const SizedBox(height: 16),
+                          _MonthlyBarChart(
+                            key: const ValueKey('chart-added'),
+                            id: 'chart-added',
+                            title: l10n.addedBooksByMonth,
+                            values: [for (final m in stats.monthly) m.added],
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        StatsSectionHeader(
+                          'section-records',
+                          l10n.statsSectionRecords,
+                        ),
+                        _AveragesCard(stats: stats),
+                        const SizedBox(height: 16),
+                        StatsSectionHeader(
+                          'section-library',
+                          l10n.statsSectionLibrary,
+                        ),
+                        _StatusBreakdown(stats: stats),
+                        if (stats.unreadStack.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          _MonthlyBarChart(
+                            key: const ValueKey('chart-unread-stack'),
+                            id: 'chart-unread-stack',
+                            title: l10n.unreadStackByMonth,
+                            values: stats.unreadStack,
+                          ),
+                        ],
+                        if (stats.receivedAs.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          _ReceivedAsCard(stats: stats),
+                        ],
+                        if (stats.spendingByYear.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          _SpendingCard(stats: stats),
+                        ],
+                        const SizedBox(height: 16),
+                        _TopList(
+                          title: l10n.topLocations,
+                          icon: Icons.shelves,
+                          entries: stats.topLocations,
+                          emptyText: l10n.noLocationsYet,
+                        ),
+                        const SizedBox(height: 16),
+                        _TopList(
+                          title: l10n.topAuthors,
+                          icon: Icons.person,
+                          entries: stats.topAuthors,
+                          emptyText: l10n.noBooksYet,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                    CustomStatsSection(onShowLibrary: widget.onShowLibrary),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                _MonthlyBarChart(
-                  key: const ValueKey('chart-pages'),
-                  id: 'chart-pages',
-                  title: l10n.finishedPagesByMonth,
-                  values: [for (final m in stats.monthly) m.pages],
-                  onMonth: (month) => _openMonth(context, stats, month),
-                ),
-                const SizedBox(height: 16),
-                _MonthlyBarChart(
-                  key: const ValueKey('chart-added'),
-                  id: 'chart-added',
-                  title: l10n.addedBooksByMonth,
-                  values: [for (final m in stats.monthly) m.added],
-                ),
-                const SizedBox(height: 16),
-              ],
-              StatsSectionHeader('section-records', l10n.statsSectionRecords),
-              _AveragesCard(stats: stats),
-              const SizedBox(height: 16),
-              StatsSectionHeader('section-library', l10n.statsSectionLibrary),
-              _StatusBreakdown(stats: stats),
-              if (stats.unreadStack.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _MonthlyBarChart(
-                  key: const ValueKey('chart-unread-stack'),
-                  id: 'chart-unread-stack',
-                  title: l10n.unreadStackByMonth,
-                  values: stats.unreadStack,
-                ),
-              ],
-              if (stats.receivedAs.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _ReceivedAsCard(stats: stats),
-              ],
-              if (stats.spendingByYear.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _SpendingCard(stats: stats),
-              ],
-              const SizedBox(height: 16),
-              _TopList(
-                title: l10n.topLocations,
-                icon: Icons.shelves,
-                entries: stats.topLocations,
-                emptyText: l10n.noLocationsYet,
               ),
-              const SizedBox(height: 16),
-              _TopList(
-                title: l10n.topAuthors,
-                icon: Icons.person,
-                entries: stats.topAuthors,
-                emptyText: l10n.noBooksYet,
-              ),
-              const SizedBox(height: 16),
-              CustomStatsSection(onShowLibrary: widget.onShowLibrary),
             ],
           );
         },

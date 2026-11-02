@@ -13,6 +13,9 @@ import 'package:openreads/l10n/app_localizations.dart';
 /// "Eigene Statistiken", the last section of the statistics screen (spec
 /// 005, T5-06): the user's tiles, reorderable by drag and through their menu,
 /// and a button that builds a new one.
+///
+/// A sliver for the screen's [CustomScrollView]: the tiles live in the
+/// page's own scrollable, so dragging one to an edge scrolls the page.
 class CustomStatsSection extends StatelessWidget {
   /// Switches to the library tab from a drill-down.
   final VoidCallback? onShowLibrary;
@@ -25,65 +28,75 @@ class CustomStatsSection extends StatelessWidget {
     try {
       cubit = context.read<CustomStatsCubit>();
     } catch (_) {
-      return const SizedBox.shrink(); // isolated widget tests
+      return const SliverToBoxAdapter(); // isolated widget tests
     }
     final l10n = AppLocalizations.of(context);
     return BlocBuilder<CustomStatsCubit, CustomStatsState>(
       bloc: cubit,
-      builder: (context, state) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          StatsSectionHeader('section-custom', l10n.statsSectionCustom),
+      builder: (context, state) => SliverMainAxisGroup(
+        slivers: [
+          SliverToBoxAdapter(
+            child: StatsSectionHeader(
+              'section-custom',
+              l10n.statsSectionCustom,
+            ),
+          ),
           switch (state) {
-            CustomStatsLoading() => const SizedBox.shrink(),
-            CustomStatsError() => Text(l10n.errorLoadingLibrary),
+            CustomStatsLoading() => const SliverToBoxAdapter(),
+            CustomStatsError() => SliverToBoxAdapter(
+              child: Text(l10n.errorLoadingLibrary),
+            ),
             CustomStatsLoaded(:final tiles, :final library) =>
-              ReorderableListView(
+              SliverReorderableList(
                 key: const ValueKey('custom-tiles'),
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                buildDefaultDragHandles: false,
+                itemCount: tiles.length,
                 onReorderItem: cubit.reorderTile,
-                children: [
-                  for (final (i, t) in tiles.indexed)
-                    ReorderableDelayedDragStartListener(
-                      key: ValueKey(t.tile.id),
-                      index: i,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: StatTileView(
-                          id: 'custom-tile-${t.tile.id}',
-                          title: t.tile.title,
-                          definition: t.tile.definition,
-                          result: t.result,
+                // Unlike ReorderableListView, the sliver adds no Material for
+                // the dragged copy; the tile's card brings its own surface.
+                proxyDecorator: (child, _, _) =>
+                    Material(type: MaterialType.transparency, child: child),
+                itemBuilder: (context, i) {
+                  final t = tiles[i];
+                  return ReorderableDelayedDragStartListener(
+                    key: ValueKey(t.tile.id),
+                    index: i,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: StatTileView(
+                        id: 'custom-tile-${t.tile.id}',
+                        title: t.tile.title,
+                        definition: t.tile.definition,
+                        result: t.result,
+                        library: library,
+                        onBooks: (label, ids) => showStatBooks(
+                          context,
+                          library,
+                          label,
+                          ids,
+                          onShowLibrary: onShowLibrary,
+                        ),
+                        trailing: _TileMenu(
+                          tile: t.tile,
                           library: library,
-                          onBooks: (label, ids) => showStatBooks(
-                            context,
-                            library,
-                            label,
-                            ids,
-                            onShowLibrary: onShowLibrary,
-                          ),
-                          trailing: _TileMenu(
-                            tile: t.tile,
-                            library: library,
-                            first: i == 0,
-                            last: i == tiles.length - 1,
-                          ),
+                          first: i == 0,
+                          last: i == tiles.length - 1,
                         ),
                       ),
                     ),
-                ],
+                  );
+                },
               ),
           },
           if (state is CustomStatsLoaded)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: OutlinedButton.icon(
-                key: const ValueKey('custom-add'),
-                icon: const Icon(Icons.add),
-                label: Text(l10n.statAdd),
-                onPressed: () => _build(context, state.library),
+            SliverToBoxAdapter(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  key: const ValueKey('custom-add'),
+                  icon: const Icon(Icons.add),
+                  label: Text(l10n.statAdd),
+                  onPressed: () => _build(context, state.library),
+                ),
               ),
             ),
         ],
