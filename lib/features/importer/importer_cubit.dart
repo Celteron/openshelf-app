@@ -65,8 +65,16 @@ class ImporterCubit extends Cubit<ImporterState> {
   final ImportService _importService;
   final List<BookImporter> _importers;
 
-  ImporterCubit(this._importService, this._importers)
-    : super(const ImporterSelecting());
+  /// Called once after an import that added books, e.g. to look up their
+  /// covers. The import itself is the user action behind that network use.
+  final void Function()? _onBooksAdded;
+
+  ImporterCubit(
+    this._importService,
+    this._importers, {
+    void Function()? onBooksAdded,
+  }) : _onBooksAdded = onBooksAdded,
+       super(const ImporterSelecting());
 
   BookImporter? detect(ImportFile file) {
     for (final importer in _importers) {
@@ -155,6 +163,7 @@ class ImporterCubit extends Cubit<ImporterState> {
         onProgress: (handled) => emit(ImporterImporting(handled, rows.length)),
       );
       emit(ImporterDone(result));
+      if (result.imported > 0) _onBooksAdded?.call();
     } catch (e) {
       emit(ImporterError(ImportFailure.failed, e.toString()));
     }

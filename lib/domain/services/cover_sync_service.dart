@@ -33,9 +33,50 @@ class CoverSyncService {
   /// Cache key of a book: its ISBN-13, else its id.
   static String keyFor(Book book) => book.isbn13 ?? 'book-${book.id}';
 
+  /// The pass in progress. The automatic search after an import or scan and
+  /// the manual button share it, so no book is asked twice at once.
+  Future<CoverSyncResult>? _running;
+
+  /// Someone asked while a pass was running: that pass read the library
+  /// before, so one more pass follows to cover books added meanwhile.
+  var _again = false;
+
+  /// A call while a pass is running joins it ([onProgress] of the joining
+  /// caller is not called) and gets its summed result.
   Future<CoverSyncResult> downloadMissing({
     void Function(int done, int total)? onProgress,
-  }) async {
+  }) {
+    final running = _running;
+    if (running != null) {
+      _again = true;
+      return running;
+    }
+    return _running = _passes(onProgress).whenComplete(() {
+      _running = null;
+    });
+  }
+
+  Future<CoverSyncResult> _passes(
+    void Function(int done, int total)? onProgress,
+  ) async {
+    var result = await _downloadMissing(onProgress);
+    while (_again) {
+      _again = false;
+      final next = await _downloadMissing(onProgress);
+      // "No online cover" counts everything known, so the last pass has it.
+      result = CoverSyncResult(
+        total: result.total + next.total,
+        downloaded: result.downloaded + next.downloaded,
+        notFound: next.notFound,
+        failed: result.failed + next.failed,
+      );
+    }
+    return result;
+  }
+
+  Future<CoverSyncResult> _downloadMissing(
+    void Function(int done, int total)? onProgress,
+  ) async {
     var knownMissing = 0;
     final missing = <Book>[];
     for (final book in await _books.getAllBooks()) {

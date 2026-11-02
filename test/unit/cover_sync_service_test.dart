@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -23,9 +25,13 @@ class _Repo implements BookRepository {
   @override
   Future<List<Book>> getAllBooks() async => books;
 
+  /// Like the database: the book carries the path afterwards.
   @override
-  Future<void> setCoverLocalPath(int id, String? path) async =>
-      paths[id] = path;
+  Future<void> setCoverLocalPath(int id, String? path) async {
+    paths[id] = path;
+    final i = books.indexWhere((b) => b.id == id);
+    if (i >= 0) books[i] = books[i].copyWith(coverLocalPath: Value(path));
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -173,4 +179,67 @@ void main() {
     expect(requests, 0);
     expect((result.total, result.notFound), (0, 1));
   });
+
+  test('overlapping runs share one pass instead of asking twice', () async {
+    var requests = 0;
+    final repo = _Repo([book(1, isbn13: '9783000000201', url: 'https://x/a')]);
+    final covers = CoverCacheService(
+      baseDirectory: dir,
+      client: MockClient((_) async {
+        requests++;
+        return http.Response.bytes(
+          testPng(),
+          200,
+          headers: {'content-type': 'image/png'},
+        );
+      }),
+    );
+    final service = CoverSyncService(repo, covers);
+
+    final results = await Future.wait([
+      service.downloadMissing(),
+      service.downloadMissing(),
+    ]);
+
+    expect(requests, 1);
+    expect(results[0].downloaded, 1);
+    expect(identical(results[0], results[1]), isTrue);
+  });
+
+  test(
+    'books added while a pass runs are searched in a follow-up pass',
+    () async {
+      final gate = Completer<void>();
+      var firstRequest = true;
+      final repo = _Repo([
+        book(1, isbn13: '9783000000201', url: 'https://x/a'),
+      ]);
+      final covers = CoverCacheService(
+        baseDirectory: dir,
+        client: MockClient((_) async {
+          if (firstRequest) {
+            firstRequest = false;
+            await gate.future;
+          }
+          return http.Response.bytes(
+            testPng(),
+            200,
+            headers: {'content-type': 'image/png'},
+          );
+        }),
+      );
+      final service = CoverSyncService(repo, covers);
+
+      final first = service.downloadMissing();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      // A second batch is saved while the first pass still waits on the network.
+      repo.books.add(book(2, isbn13: '9783000000202', url: 'https://x/b'));
+      final second = service.downloadMissing();
+      gate.complete();
+      final results = await Future.wait([first, second]);
+
+      expect(repo.paths.keys, unorderedEquals([1, 2]));
+      expect(results.first.downloaded, 2, reason: 'both passes are summed');
+    },
+  );
 }

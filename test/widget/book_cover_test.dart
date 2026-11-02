@@ -10,6 +10,7 @@ import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/features/common/widgets/book_cover.dart';
+import 'package:openreads/l10n/app_localizations.dart';
 
 import '../helpers/test_images.dart';
 
@@ -78,8 +79,16 @@ void main() {
     Widget child, {
     CoverCacheService? cache,
     BookRepository? repo,
+    bool localized = false,
   }) async {
     final app = MaterialApp(
+      locale: localized ? const Locale('de') : null,
+      localizationsDelegates: localized
+          ? AppLocalizations.localizationsDelegates
+          : null,
+      supportedLocales: localized
+          ? AppLocalizations.supportedLocales
+          : const [Locale('en', 'US')],
       home: Scaffold(body: Center(child: child)),
     );
     final providers = <RepositoryProvider>[
@@ -178,6 +187,54 @@ void main() {
       );
       expect(find.byIcon(Icons.hide_image_outlined), findsOneWidget);
       expect(find.byIcon(Icons.menu_book_outlined), findsNothing);
+    });
+
+    testWidgets('a book not searched yet has no banner', (tester) async {
+      await pump(
+        tester,
+        BookCover(book: book(), width: 120, height: 170),
+        cache: service(),
+      );
+      expect(find.byKey(const ValueKey('cover-missing-banner')), findsNothing);
+    });
+
+    testWidgets('a book without an online cover carries the manual banner', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        BookCover(book: book(coverNotFound: true), width: 120, height: 170),
+        cache: service(),
+      );
+      expect(
+        find.byKey(const ValueKey('cover-missing-banner')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a large cover names what to do', (tester) async {
+      await pump(
+        tester,
+        BookCover(book: book(coverNotFound: true), width: 140, height: 200),
+        cache: service(),
+        localized: true,
+      );
+      expect(find.text('Cover fehlt – manuell ergänzen'), findsOneWidget);
+    });
+
+    testWidgets('a small tile shows the banner as an icon only', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        BookCover(book: book(coverNotFound: true), width: 40, height: 56),
+        cache: service(),
+        localized: true,
+      );
+      expect(
+        find.byKey(const ValueKey('cover-missing-banner')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a found cover beats the flag', (tester) async {

@@ -284,6 +284,39 @@ void main() {
     });
   });
 
+  group('cover search after an import (P1)', () {
+    test('runs once after books were added', () async {
+      var calls = 0;
+      final withHook = ImporterCubit(
+        ImportService(BookRepositoryImpl(BooksDao(db))),
+        defaultImporters(),
+        onBooksAdded: () => calls++,
+      );
+      addTearDown(withHook.close);
+      withHook.selectFile(file);
+
+      await withHook.runImport();
+
+      expect((withHook.state as ImporterDone).result.imported, greaterThan(0));
+      expect(calls, 1);
+    });
+
+    test('does not run when the import failed', () async {
+      var calls = 0;
+      final failing = ImporterCubit(
+        _ThrowingImportService(),
+        defaultImporters(),
+        onBooksAdded: () => calls++,
+      );
+      addTearDown(failing.close);
+      failing.selectFile(file);
+
+      await failing.runImport();
+
+      expect(calls, 0);
+    });
+  });
+
   test('a failing import ends in an error instead of a spinner', () async {
     final failing = ImporterCubit(_ThrowingImportService(), defaultImporters());
     addTearDown(failing.close);
