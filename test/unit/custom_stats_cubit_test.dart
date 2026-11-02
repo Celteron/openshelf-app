@@ -181,6 +181,21 @@ void main() {
       expect(await titles(), ['B', 'C', 'A']);
     });
 
+    test('a drag shows the new order before it is stored', () async {
+      for (final t in ['A', 'B', 'C']) {
+        await cubit.addTile(t, _count);
+      }
+      await settled(3);
+
+      final stored = cubit.reorderTile(0, 2);
+      final shown = [
+        for (final t in (cubit.state as CustomStatsLoaded).tiles) t.tile.title,
+      ];
+      await stored;
+
+      expect(shown, ['B', 'C', 'A']);
+    });
+
     test('a deleted tile comes back where it was, pinned as before', () async {
       await cubit.addTile('A', _count);
       final b = await cubit.addTile('B', _count);

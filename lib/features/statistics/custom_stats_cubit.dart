@@ -118,17 +118,26 @@ class CustomStatsCubit extends Cubit<CustomStatsState> {
     final from = ids.indexOf(id);
     final to = from + delta;
     if (from < 0 || to < 0 || to >= ids.length) return;
-    ids.insert(to, ids.removeAt(from));
-    await _tiles.reorder(ids);
+    await _move(from, to);
   }
 
   /// Stores the order after a drag of the tile at [from] to the index [to]
   /// it ends up at.
   Future<void> reorderTile(int from, int to) async {
-    final ids = _shownIds();
-    if (from < 0 || from >= ids.length) return;
-    ids.insert(to.clamp(0, ids.length - 1), ids.removeAt(from));
-    await _tiles.reorder(ids);
+    final count = _shownIds().length;
+    if (from < 0 || from >= count) return;
+    await _move(from, to.clamp(0, count - 1));
+  }
+
+  /// Shows the new order at once, so a dropped tile stays where it was
+  /// dropped instead of jumping back until the database reports the change.
+  Future<void> _move(int from, int to) async {
+    final current = state;
+    if (current is! CustomStatsLoaded) return;
+    final tiles = [...current.tiles];
+    tiles.insert(to, tiles.removeAt(from));
+    emit(CustomStatsLoaded(tiles, current.library));
+    await _tiles.reorder([for (final t in tiles) t.tile.id]);
   }
 
   /// Deletes [tile] and returns what undoes it: the tile comes back at its
