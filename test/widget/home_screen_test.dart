@@ -8,7 +8,11 @@ import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/features/home/home_cubit.dart';
 import 'package:openreads/features/home/home_screen.dart';
+import 'package:openreads/domain/models/stat_definition.dart';
+import 'package:openreads/domain/models/stat_tile.dart';
+import 'package:openreads/domain/repositories/stat_tile_repository.dart';
 import 'package:openreads/features/library/library_cubit.dart';
+import 'package:openreads/features/statistics/custom_stats_cubit.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
 class _Books implements BookRepository {
@@ -25,6 +29,28 @@ class _Books implements BookRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
+
+class _Tiles implements StatTileRepository {
+  final List<StatTile> tiles;
+  _Tiles(this.tiles);
+
+  @override
+  Stream<List<StatTile>> watchTiles() => Stream.value(tiles);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+StatTile _tile(int id, {bool pinned = false}) => StatTile(
+  id: id,
+  title: 'Kachel $id',
+  pinned: pinned,
+  definition: const StatDefinition(
+    measure: StatMeasure.books,
+    period: StatAllTime(),
+    chart: StatChart.number,
+  ),
+);
 
 Book _book(int id, String title, BookStatus status, {bool favorite = false}) =>
     Book(
@@ -47,6 +73,7 @@ void main() {
   Future<(LibraryCubit, List<int>)> pump(
     WidgetTester tester, {
     List<Book> more = const [],
+    List<StatTile>? tiles,
   }) async {
     final repo = _Books([
       _book(1, 'Fertig', BookStatus.read, favorite: true),
@@ -66,6 +93,11 @@ void main() {
             create: (_) => HomeCubit(repo, now: () => DateTime(2026, 6, 15)),
           ),
           BlocProvider(create: (_) => LibraryCubit(repo)),
+          if (tiles != null)
+            BlocProvider(
+              create: (_) =>
+                  CustomStatsCubit(tiles: _Tiles(tiles), books: repo)..load(),
+            ),
         ],
         child: MaterialApp(
           locale: const Locale('de'),
@@ -128,5 +160,23 @@ void main() {
 
     final state = library.state;
     expect(state is LibraryLoaded ? state.onlyIds : null, {2, 4});
+  });
+
+  testWidgets('pinned statistics show below the donut, others do not', (
+    tester,
+  ) async {
+    await pump(tester, tiles: [_tile(1, pinned: true), _tile(2)]);
+
+    expect(find.byKey(const ValueKey('home-tile-1')), findsOneWidget);
+    expect(find.text('Kachel 1'), findsOneWidget);
+    expect(find.text('Kachel 2'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('home-tile-1')),
+        matching: find.text('3'),
+      ),
+      findsOneWidget,
+      reason: 'evaluated over the library',
+    );
   });
 }

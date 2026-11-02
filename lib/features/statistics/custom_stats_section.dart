@@ -57,8 +57,13 @@ class CustomStatsSection extends StatelessWidget {
                           definition: t.tile.definition,
                           result: t.result,
                           library: library,
-                          onBooks: (label, ids) =>
-                              _openBooks(context, library, label, ids),
+                          onBooks: (label, ids) => showStatBooks(
+                            context,
+                            library,
+                            label,
+                            ids,
+                            onShowLibrary: onShowLibrary,
+                          ),
                           trailing: _TileMenu(
                             tile: t.tile,
                             library: library,
@@ -86,24 +91,6 @@ class CustomStatsSection extends StatelessWidget {
     );
   }
 
-  void _openBooks(
-    BuildContext context,
-    StatLibrary library,
-    String label,
-    Set<int> ids,
-  ) => Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (_) => StatisticsBooksScreen(
-        title: label,
-        books: [
-          for (final b in library.books)
-            if (ids.contains(b.id)) b,
-        ],
-        onShowInLibrary: onShowLibrary,
-      ),
-    ),
-  );
-
   Future<void> _build(BuildContext context, StatLibrary library) async {
     final cubit = context.read<CustomStatsCubit>();
     final result = await _openBuilder(context, library);
@@ -111,6 +98,26 @@ class CustomStatsSection extends StatelessWidget {
     await cubit.addTile(result.$1, result.$2);
   }
 }
+
+/// The books behind a value of a tile (FR-05-07).
+Future<void> showStatBooks(
+  BuildContext context,
+  StatLibrary library,
+  String label,
+  Set<int> ids, {
+  VoidCallback? onShowLibrary,
+}) => Navigator.of(context).push(
+  MaterialPageRoute(
+    builder: (_) => StatisticsBooksScreen(
+      title: label,
+      books: [
+        for (final b in library.books)
+          if (ids.contains(b.id)) b,
+      ],
+      onShowInLibrary: onShowLibrary,
+    ),
+  ),
+);
 
 Future<(String, StatDefinition)?> _openBuilder(
   BuildContext context,

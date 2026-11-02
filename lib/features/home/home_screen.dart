@@ -4,12 +4,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/home_summary.dart';
+import 'package:openreads/domain/models/stat_tile.dart';
 import 'package:openreads/features/common/format_count.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/features/common/widgets/book_cover.dart';
 import 'package:openreads/features/home/home_cubit.dart';
 import 'package:openreads/features/library/book_detail_screen.dart';
 import 'package:openreads/features/library/library_cubit.dart';
+import 'package:openreads/features/statistics/custom_stats_cubit.dart';
+import 'package:openreads/features/statistics/custom_stats_section.dart';
+import 'package:openreads/features/statistics/stat_tile_view.dart';
 import 'package:openreads/features/statistics/statistics_cubit.dart';
 import 'package:openreads/features/statistics/statistics_screen.dart';
 import 'package:openreads/l10n/app_localizations.dart';
@@ -70,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 summary: summary,
                 onStatus: (status) => _showStatus(status, summary),
               ),
+              _PinnedStats(onShowLibrary: widget.onShowLibrary),
               const _HomeGoal(),
               if (summary.currentlyReading.isNotEmpty)
                 _Section(
@@ -229,6 +234,52 @@ class _Donut extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The user-defined statistics pinned to the home tab (spec 005, T5-07).
+class _PinnedStats extends StatelessWidget {
+  final VoidCallback? onShowLibrary;
+  const _PinnedStats({required this.onShowLibrary});
+
+  @override
+  Widget build(BuildContext context) {
+    final CustomStatsCubit cubit;
+    try {
+      cubit = context.read<CustomStatsCubit>();
+    } catch (_) {
+      return const SizedBox.shrink(); // isolated widget tests
+    }
+    return BlocBuilder<CustomStatsCubit, CustomStatsState>(
+      bloc: cubit,
+      builder: (context, state) => switch (state) {
+        CustomStatsLoaded(:final tiles, :final library) => Column(
+          children: [
+            for (final t
+                in tiles.where((t) => t.tile.pinned).take(StatTile.maxPinned))
+              Padding(
+                key: ValueKey('home-tile-${t.tile.id}'),
+                padding: const EdgeInsets.only(top: 16),
+                child: StatTileView(
+                  id: 'home-tile-${t.tile.id}',
+                  title: t.tile.title,
+                  definition: t.tile.definition,
+                  result: t.result,
+                  library: library,
+                  onBooks: (label, ids) => showStatBooks(
+                    context,
+                    library,
+                    label,
+                    ids,
+                    onShowLibrary: onShowLibrary,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        CustomStatsLoading() || CustomStatsError() => const SizedBox.shrink(),
+      },
     );
   }
 }
