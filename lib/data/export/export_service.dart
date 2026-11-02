@@ -25,6 +25,9 @@ class ExportService {
     final tags = await _db.select(_db.tags).get();
     final bookTags = await _db.select(_db.bookTags).get();
     final goals = await _db.select(_db.readingGoals).get();
+    final tiles = await (_db.select(
+      _db.statTiles,
+    )..orderBy([(t) => OrderingTerm.asc(t.position)])).get();
 
     return jsonEncode({
       'version': 2,
@@ -48,6 +51,17 @@ class ExportService {
             },
           )
           .toList(),
+      // In display order; the definition as stored (its tag ids refer to
+      // `tags` above).
+      'statTiles': [
+        for (final t in tiles)
+          {
+            'title': t.title,
+            'pinned': t.pinned,
+            'definition': t.definition,
+            'createdAt': t.createdAt.toIso8601String(),
+          },
+      ],
     });
   }
 

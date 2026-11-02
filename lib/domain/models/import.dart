@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/stat_definition.dart';
 
 enum ImportFileType { csv, json, zip }
 
@@ -97,6 +98,24 @@ class GoalImport {
     required this.year,
     required this.targetBooks,
     this.targetPages,
+  });
+}
+
+/// A statistic tile from a backup (spec 005, T5-04). Tag ids differ between
+/// libraries, so its tag filter travels by name.
+class StatTileImport {
+  final String title;
+
+  /// Without tags; [tagNames] are resolved to ids on restore.
+  final StatDefinition definition;
+  final List<String> tagNames;
+  final bool pinned;
+
+  const StatTileImport({
+    required this.title,
+    required this.definition,
+    this.tagNames = const [],
+    this.pinned = false,
   });
 }
 
@@ -296,20 +315,23 @@ class ImportedBook {
   });
 }
 
-/// Locations, tags and goals that come with a backup independent of any book
-/// (an empty shelf, an unused tag, a yearly goal).
+/// Locations, tags, goals and statistic tiles that come with a backup
+/// independent of any book (an empty shelf, an unused tag, a yearly goal).
 class ImportExtras {
   final List<List<LocationRef>> locationPaths;
   final List<GoalImport> goals;
   final List<String> tags;
+  final List<StatTileImport> tiles;
 
   const ImportExtras({
     this.locationPaths = const [],
     this.goals = const [],
     this.tags = const [],
+    this.tiles = const [],
   });
 
-  bool get isEmpty => locationPaths.isEmpty && goals.isEmpty && tags.isEmpty;
+  bool get isEmpty =>
+      locationPaths.isEmpty && goals.isEmpty && tags.isEmpty && tiles.isEmpty;
 }
 
 /// A single parsed row: either a candidate [book] or an [error] for a skipped
@@ -328,6 +350,9 @@ class ImportRow {
   /// A tag that exists independent of any book (backups only).
   final String? tag;
 
+  /// A statistic tile (backups only).
+  final StatTileImport? tile;
+
   const ImportRow({
     required this.rowNumber,
     this.book,
@@ -335,6 +360,7 @@ class ImportRow {
     this.goal,
     this.location,
     this.tag,
+    this.tile,
   });
 }
 

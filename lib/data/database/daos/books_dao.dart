@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/data/database/daos/import_context.dart';
 import 'package:openreads/data/database/daos/import_merge.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/import.dart';
+import 'package:openreads/domain/models/stat_definition.dart';
+import 'package:openreads/domain/models/stat_tile.dart';
 
 class BooksDao {
   final AppDatabase db;
@@ -230,7 +234,43 @@ class BooksDao {
           );
         }
       }
+      await _importTiles(extras.tiles, context);
     });
+  }
+
+  /// Appends restored statistic tiles after the existing ones. A tile that
+  /// is already there (same title and definition) is skipped, so restoring
+  /// twice changes nothing; pins stay within the home tab's three slots.
+  Future<void> _importTiles(
+    List<StatTileImport> tiles,
+    ImportContext context,
+  ) async {
+    if (tiles.isEmpty) return;
+    final rows = await db.select(db.statTiles).get();
+    final existing = {
+      for (final r in rows) (r.title, StatDefinition.tryDecode(r.definition)),
+    };
+    var position = rows.fold(-1, (m, r) => r.position > m ? r.position : m);
+    var pinned = rows.where((r) => r.pinned).length;
+    for (final tile in tiles) {
+      final definition = tile.definition.withTagIds({
+        for (final name in tile.tagNames) await context.tag(name),
+      });
+      if (!existing.add((tile.title, definition))) continue;
+      final pin = tile.pinned && pinned < StatTile.maxPinned;
+      if (pin) pinned++;
+      await db
+          .into(db.statTiles)
+          .insert(
+            StatTilesCompanion.insert(
+              position: ++position,
+              title: tile.title,
+              definition: jsonEncode(definition.toJson()),
+              pinned: Value(pin),
+              createdAt: DateTime.now(),
+            ),
+          );
+    }
   }
 
   /// Adds the tags, notes and sessions of [item] to [bookId]. When [merging],

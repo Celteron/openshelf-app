@@ -4,14 +4,15 @@ import 'package:openreads/data/importers/book_importer.dart';
 import 'package:openreads/data/importers/import_parsing.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/import.dart';
+import 'package:openreads/domain/models/stat_definition.dart';
 
 /// Restores an OpenShelf JSON backup (the file written by
 /// `ExportService.exportJson`, schema v1 or v2/v3).
 ///
 /// Everything the backup holds comes back: books with all their fields,
 /// tags, notes and quotes, reading sessions, lending records, series, the
-/// room → shelf → compartment hierarchy (also empty shelves), yearly goals and
-/// the trash state. Rows are restored *exactly* as written — no derived
+/// room → shelf → compartment hierarchy (also empty shelves), yearly goals,
+/// statistic tiles and the trash state. Rows are restored *exactly* as written — no derived
 /// progress — and flow through the normal import pipeline, so restoring into a
 /// library that already has some of the books merges instead of duplicating.
 ///
@@ -192,6 +193,28 @@ class JsonBackupImporter implements BookImporter {
           year: year,
           targetBooks: target,
           targetPages: _int(goal['targetPages']),
+        ),
+      );
+    }
+
+    for (final tile in _maps(root['statTiles'])) {
+      final title = _str(tile['title']);
+      final stored = tile['definition'];
+      final definition = stored is String
+          ? StatDefinition.tryDecode(stored)
+          : null;
+      // Broken or from a newer app version: the app could not show it.
+      if (title == null || definition == null) continue;
+      yield ImportRow(
+        rowNumber: ++row,
+        tile: StatTileImport(
+          title: title,
+          definition: definition.withTagIds(const {}),
+          tagNames: [
+            for (final id in definition.tagIds)
+              if (tagNames[id] case final name?) name,
+          ],
+          pinned: tile['pinned'] == true,
         ),
       );
     }

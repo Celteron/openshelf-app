@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:openreads/domain/models/enums.dart';
 
@@ -123,6 +125,18 @@ class StatDefinition {
         StatGrouping() => const [StatChart.bar, StatChart.donut],
       };
 
+  /// The same definition filtered by [ids], e.g. after a restore gave the
+  /// tags new ids.
+  StatDefinition withTagIds(Set<int> ids) => StatDefinition(
+    measure: measure,
+    grouping: grouping,
+    period: period,
+    chart: chart,
+    statuses: statuses,
+    formats: formats,
+    tagIds: ids,
+  );
+
   Map<String, Object?> toJson() => {
     'measure': measure.code,
     if (grouping != null) 'grouping': grouping!.code,
@@ -181,6 +195,17 @@ class StatDefinition {
             if (t is int) t,
       },
     );
+  }
+
+  /// Reads a definition as stored (JSON text); `null` when it is broken or
+  /// from a newer app version.
+  static StatDefinition? tryDecode(String stored) {
+    try {
+      final json = jsonDecode(stored);
+      return json is Map<String, Object?> ? tryFromJson(json) : null;
+    } on FormatException {
+      return null;
+    }
   }
 
   @override

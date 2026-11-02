@@ -40,6 +40,7 @@ class ImportService {
     final extraLocations = <List<LocationRef>>[];
     final extraGoals = <GoalImport>[];
     final extraTags = <String>[];
+    final extraTiles = <StatTileImport>[];
 
     var handled = 0;
     await for (final row in rows) {
@@ -55,6 +56,10 @@ class ImportService {
       }
       if (row.tag != null) {
         extraTags.add(row.tag!);
+        continue;
+      }
+      if (row.tile != null) {
+        extraTiles.add(row.tile!);
         continue;
       }
       if (row.error != null) {
@@ -86,17 +91,15 @@ class ImportService {
     }
 
     if (pending.isNotEmpty) await _flush(pending, tally);
-    if (extraLocations.isNotEmpty ||
-        extraGoals.isNotEmpty ||
-        extraTags.isNotEmpty) {
+    final extras = ImportExtras(
+      locationPaths: extraLocations,
+      goals: extraGoals,
+      tags: extraTags,
+      tiles: extraTiles,
+    );
+    if (!extras.isEmpty) {
       try {
-        await _repository.importExtras(
-          ImportExtras(
-            locationPaths: extraLocations,
-            goals: extraGoals,
-            tags: extraTags,
-          ),
-        );
+        await _repository.importExtras(extras);
       } catch (e) {
         tally.errors.add(
           RowError(

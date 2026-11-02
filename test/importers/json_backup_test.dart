@@ -238,6 +238,37 @@ void main() {
     await source
         .into(source.tags)
         .insert(TagsCompanion.insert(name: 'Ohne Bücher'));
+    await source
+        .into(source.statTiles)
+        .insert(
+          StatTilesCompanion.insert(
+            position: 0,
+            title: 'Seiten 2026',
+            definition: jsonEncode({
+              'measure': 'pages_read',
+              'grouping': 'month',
+              'period': 'year:2026',
+              'chart': 'bar',
+              'tags': [uncanny],
+            }),
+            pinned: const Value(true),
+            createdAt: DateTime(2026, 2, 1),
+          ),
+        );
+    await source
+        .into(source.statTiles)
+        .insert(
+          StatTilesCompanion.insert(
+            position: 1,
+            title: 'Alle Bücher',
+            definition: jsonEncode({
+              'measure': 'books',
+              'period': 'all',
+              'chart': 'number',
+            }),
+            createdAt: DateTime(2026, 2, 2),
+          ),
+        );
     for (final (book, tag) in [
       (full, crime),
       (full, uncanny),
@@ -288,6 +319,27 @@ void main() {
             targetPages: const Value(5000),
           ),
         );
+  }
+
+  /// The statistic tiles in display order, tag ids replaced by names.
+  Future<List<String>> tiles(AppDatabase db) async {
+    final tagName = {
+      for (final t in await db.select(db.tags).get()) t.id: t.name,
+    };
+    final rows = await (db.select(
+      db.statTiles,
+    )..orderBy([(t) => OrderingTerm(expression: t.position)])).get();
+    return [
+      for (final r in rows)
+        () {
+          final definition = jsonDecode(r.definition) as Map<String, dynamic>;
+          final tags = [
+            for (final id in definition.remove('tags') as List? ?? const [])
+              tagName[id],
+          ];
+          return '${r.title}|${r.pinned}|${jsonEncode(definition)}|$tags';
+        }(),
+    ];
   }
 
   /// Everything about a library, with database ids replaced by names, so that
@@ -406,6 +458,7 @@ void main() {
         for (final g in await db.select(db.readingGoals).get())
           '${g.year}:${g.targetBooks}:${g.targetPages}',
       ]..sort(),
+      'tiles': await tiles(db),
     };
   }
 
@@ -439,6 +492,7 @@ void main() {
       expect((after['notes']! as List), hasLength(2));
       expect((after['lending']! as List), hasLength(2));
       expect(after['goals'], ['2025:0:5000', '2026:24:8000']);
+      expect(after['tiles'], hasLength(2));
     });
 
     test('empty locations, unused tags and goals survive', () async {
@@ -554,6 +608,63 @@ void main() {
       expect(second.updated, 0);
       expect(second.duplicates, 4);
       expect(await snapshot(target), once);
+    });
+
+    test('tiles are appended and keep their tags by name', () async {
+      await fillSource();
+      // Shifts every tag id of the restore.
+      await target
+          .into(target.tags)
+          .insert(TagsCompanion.insert(name: 'Vorher'));
+      await target
+          .into(target.statTiles)
+          .insert(
+            StatTilesCompanion.insert(
+              position: 0,
+              title: 'Eigene',
+              definition: jsonEncode({
+                'measure': 'books',
+                'period': 'all',
+                'chart': 'number',
+              }),
+              createdAt: DateTime(2026),
+            ),
+          );
+
+      await restore(target, await ExportService(source).exportJson());
+
+      expect(await tiles(target), [
+        'Eigene|false|{"measure":"books","period":"all","chart":"number"}|[]',
+        ...await tiles(source),
+      ]);
+    });
+
+    test('a restored tile is not pinned beyond three', () async {
+      await fillSource();
+      for (var i = 0; i < 3; i++) {
+        await target
+            .into(target.statTiles)
+            .insert(
+              StatTilesCompanion.insert(
+                position: i,
+                title: 'Angepinnt $i',
+                definition: jsonEncode({
+                  'measure': 'books',
+                  'period': 'all',
+                  'chart': 'number',
+                }),
+                pinned: const Value(true),
+                createdAt: DateTime(2026),
+              ),
+            );
+      }
+
+      await restore(target, await ExportService(source).exportJson());
+
+      final restored = await (target.select(
+        target.statTiles,
+      )..where((t) => t.title.equals('Seiten 2026'))).getSingle();
+      expect(restored.pinned, isFalse);
     });
 
     test('existing data wins; the backup only fills gaps', () async {
