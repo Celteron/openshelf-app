@@ -1,0 +1,10 @@
+<p>OpenShelf behält den Überblick über deine physische Bibliothek: Was liest du gerade, besitzt du ein Buch schon, und wo steht es? Kein Konto, keine Werbung, kein Tracking. Das Netz wird nur genutzt, wenn du ein Cover oder Buchdaten abrufst.</p>
+<ul>
+<li>Bibliothek mit Räumen, Regalen und Fächern, Schubern, Reihen, Tags und Verleih</li>
+<li>Regalwand mit Buchrücken in Cover-Farben, Suche und Drag-and-drop</li>
+<li>Barcode scannen und sofort wissen, ob du das Buch besitzt und welche Bände einer Reihe fehlen, dazu eine Einkaufsliste</li>
+<li>Lesesitzungen, Ziele, Notizen und Zitate, Zitate aus einem Foto mit Offline-Texterkennung</li>
+<li>Statistiken mit eigenen Kacheln, Lesekalender und Jahresrückblick</li>
+<li>Export und Import als CSV und JSON, auch Dateien von Openreads, Goodreads und StoryGraph</li>
+</ul>
+<p>OpenShelf ist ein Fork von Openreads und freie Software unter der GPL-2.0.</p>

@@ -1,6 +1,1 @@
-</br>
-### :gift_heart: Consider donating to show your appreciation
-[Become a Github Sponsor](https://github.com/sponsors/mateusz-bak)
-[Give a one time donation](https://www.buymeacoffee.com/mateuszbak)
-</br>
-#### [Join our community on Matrix.org](https://matrix.to/#/#openreads:matrix.org) to be involved in app's development.
+OpenShelf is a fork of [Openreads](https://github.com/mateusz-bak/openreads) and free software under the GPL-2.0.
