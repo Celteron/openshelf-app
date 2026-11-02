@@ -205,6 +205,9 @@ class ReadingGoals extends Table {
 
 /// A user-defined statistic tile (spec 005, ADR-0005): the typed definition
 /// is stored as validated JSON so new measures need no schema change.
+/// The row is `StatTileRow`; `StatTile` is the domain tile with its parsed
+/// definition.
+@DataClassName('StatTileRow')
 class StatTiles extends Table {
   IntColumn get id => integer().autoIncrement()();
 

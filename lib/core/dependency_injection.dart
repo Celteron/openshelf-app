@@ -6,6 +6,7 @@ import 'package:openreads/data/database/daos/locations_dao.dart';
 import 'package:openreads/data/database/daos/notes_dao.dart';
 import 'package:openreads/data/database/daos/reading_dao.dart';
 import 'package:openreads/data/database/daos/series_dao.dart';
+import 'package:openreads/data/database/daos/stat_tiles_dao.dart';
 import 'package:openreads/data/database/daos/tags_dao.dart';
 import 'package:openreads/data/export/export_service.dart';
 import 'package:openreads/data/repositories/book_repository_impl.dart';
@@ -17,6 +18,7 @@ import 'package:openreads/data/repositories/notes_repository_impl.dart';
 import 'package:openreads/data/repositories/reading_repository_impl.dart';
 import 'package:openreads/data/repositories/series_repository_impl.dart';
 import 'package:openreads/data/repositories/settings_repository_impl.dart';
+import 'package:openreads/data/repositories/stat_tile_repository_impl.dart';
 import 'package:openreads/data/repositories/tag_repository_impl.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/domain/repositories/data_reset_repository.dart';
@@ -27,6 +29,7 @@ import 'package:openreads/domain/repositories/notes_repository.dart';
 import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/domain/repositories/series_repository.dart';
 import 'package:openreads/domain/repositories/settings_repository.dart';
+import 'package:openreads/domain/repositories/stat_tile_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
 import 'package:openreads/domain/services/reading_tracker_service.dart';
 
@@ -47,6 +50,7 @@ class AppDependencies {
   late final NotesRepository notesRepository;
   late final TagRepository tagRepository;
   late final GoalRepository goalRepository;
+  late final StatTileRepository statTileRepository;
   late final ReadingTrackerService readingTracker;
   late final DataResetRepository dataResetRepository;
 
@@ -61,6 +65,7 @@ class AppDependencies {
     notesRepository = NotesRepositoryImpl(NotesDao(database));
     tagRepository = TagRepositoryImpl(TagsDao(database));
     goalRepository = GoalRepositoryImpl(GoalsDao(database));
+    statTileRepository = StatTileRepositoryImpl(StatTilesDao(database));
     readingTracker = ReadingTrackerService(bookRepository, readingRepository);
     dataResetRepository = DataResetRepositoryImpl(database);
   }

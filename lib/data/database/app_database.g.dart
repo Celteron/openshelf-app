@@ -4580,7 +4580,7 @@ class ReadingGoalsCompanion extends UpdateCompanion<ReadingGoal> {
 }
 
 class $StatTilesTable extends StatTiles
-    with TableInfo<$StatTilesTable, StatTile> {
+    with TableInfo<$StatTilesTable, StatTileRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -4669,7 +4669,7 @@ class $StatTilesTable extends StatTiles
   static const String $name = 'stat_tiles';
   @override
   VerificationContext validateIntegrity(
-    Insertable<StatTile> instance, {
+    Insertable<StatTileRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -4721,9 +4721,9 @@ class $StatTilesTable extends StatTiles
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  StatTile map(Map<String, dynamic> data, {String? tablePrefix}) {
+  StatTileRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return StatTile(
+    return StatTileRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -4757,7 +4757,7 @@ class $StatTilesTable extends StatTiles
   }
 }
 
-class StatTile extends DataClass implements Insertable<StatTile> {
+class StatTileRow extends DataClass implements Insertable<StatTileRow> {
   final int id;
 
   /// Order on the statistics screen, ascending.
@@ -4770,7 +4770,7 @@ class StatTile extends DataClass implements Insertable<StatTile> {
   /// Shown on the home tab too (at most three, enforced by the repository).
   final bool pinned;
   final DateTime createdAt;
-  const StatTile({
+  const StatTileRow({
     required this.id,
     required this.position,
     required this.title,
@@ -4801,12 +4801,12 @@ class StatTile extends DataClass implements Insertable<StatTile> {
     );
   }
 
-  factory StatTile.fromJson(
+  factory StatTileRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return StatTile(
+    return StatTileRow(
       id: serializer.fromJson<int>(json['id']),
       position: serializer.fromJson<int>(json['position']),
       title: serializer.fromJson<String>(json['title']),
@@ -4828,14 +4828,14 @@ class StatTile extends DataClass implements Insertable<StatTile> {
     };
   }
 
-  StatTile copyWith({
+  StatTileRow copyWith({
     int? id,
     int? position,
     String? title,
     String? definition,
     bool? pinned,
     DateTime? createdAt,
-  }) => StatTile(
+  }) => StatTileRow(
     id: id ?? this.id,
     position: position ?? this.position,
     title: title ?? this.title,
@@ -4843,8 +4843,8 @@ class StatTile extends DataClass implements Insertable<StatTile> {
     pinned: pinned ?? this.pinned,
     createdAt: createdAt ?? this.createdAt,
   );
-  StatTile copyWithCompanion(StatTilesCompanion data) {
-    return StatTile(
+  StatTileRow copyWithCompanion(StatTilesCompanion data) {
+    return StatTileRow(
       id: data.id.present ? data.id.value : this.id,
       position: data.position.present ? data.position.value : this.position,
       title: data.title.present ? data.title.value : this.title,
@@ -4858,7 +4858,7 @@ class StatTile extends DataClass implements Insertable<StatTile> {
 
   @override
   String toString() {
-    return (StringBuffer('StatTile(')
+    return (StringBuffer('StatTileRow(')
           ..write('id: $id, ')
           ..write('position: $position, ')
           ..write('title: $title, ')
@@ -4875,7 +4875,7 @@ class StatTile extends DataClass implements Insertable<StatTile> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is StatTile &&
+      (other is StatTileRow &&
           other.id == this.id &&
           other.position == this.position &&
           other.title == this.title &&
@@ -4884,7 +4884,7 @@ class StatTile extends DataClass implements Insertable<StatTile> {
           other.createdAt == this.createdAt);
 }
 
-class StatTilesCompanion extends UpdateCompanion<StatTile> {
+class StatTilesCompanion extends UpdateCompanion<StatTileRow> {
   final Value<int> id;
   final Value<int> position;
   final Value<String> title;
@@ -4910,7 +4910,7 @@ class StatTilesCompanion extends UpdateCompanion<StatTile> {
        title = Value(title),
        definition = Value(definition),
        createdAt = Value(createdAt);
-  static Insertable<StatTile> custom({
+  static Insertable<StatTileRow> custom({
     Expression<int>? id,
     Expression<int>? position,
     Expression<String>? title,
@@ -9152,14 +9152,17 @@ class $$StatTilesTableTableManager
         RootTableManager<
           _$AppDatabase,
           $StatTilesTable,
-          StatTile,
+          StatTileRow,
           $$StatTilesTableFilterComposer,
           $$StatTilesTableOrderingComposer,
           $$StatTilesTableAnnotationComposer,
           $$StatTilesTableCreateCompanionBuilder,
           $$StatTilesTableUpdateCompanionBuilder,
-          (StatTile, BaseReferences<_$AppDatabase, $StatTilesTable, StatTile>),
-          StatTile,
+          (
+            StatTileRow,
+            BaseReferences<_$AppDatabase, $StatTilesTable, StatTileRow>,
+          ),
+          StatTileRow,
           PrefetchHooks Function()
         > {
   $$StatTilesTableTableManager(_$AppDatabase db, $StatTilesTable table)
@@ -9208,8 +9211,8 @@ class $$StatTilesTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<$StatTilesTable, StatTile>(table),
-                  BaseReferences<_$AppDatabase, $StatTilesTable, StatTile>(
+                  e.readTable<$StatTilesTable, StatTileRow>(table),
+                  BaseReferences<_$AppDatabase, $StatTilesTable, StatTileRow>(
                     db,
                     table,
                     e,
@@ -9226,14 +9229,17 @@ typedef $$StatTilesTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
       $StatTilesTable,
-      StatTile,
+      StatTileRow,
       $$StatTilesTableFilterComposer,
       $$StatTilesTableOrderingComposer,
       $$StatTilesTableAnnotationComposer,
       $$StatTilesTableCreateCompanionBuilder,
       $$StatTilesTableUpdateCompanionBuilder,
-      (StatTile, BaseReferences<_$AppDatabase, $StatTilesTable, StatTile>),
-      StatTile,
+      (
+        StatTileRow,
+        BaseReferences<_$AppDatabase, $StatTilesTable, StatTileRow>,
+      ),
+      StatTileRow,
       PrefetchHooks Function()
     >;
 

@@ -142,6 +142,7 @@ class OpenShelfApp extends StatelessWidget {
         RepositoryProvider.value(value: deps.notesRepository),
         RepositoryProvider.value(value: deps.tagRepository),
         RepositoryProvider.value(value: deps.goalRepository),
+        RepositoryProvider.value(value: deps.statTileRepository),
         RepositoryProvider.value(value: deps.readingTracker),
         RepositoryProvider.value(value: coverCache),
         RepositoryProvider(create: (_) => OpenLibrarySearchClient()),
