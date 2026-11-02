@@ -152,4 +152,23 @@ void main() {
     expect(saved?.$2.chart, StatChart.line);
     expect(saved?.$2.grouping, StatGrouping.month);
   });
+
+  testWidgets('a deleted tag drops out of the filter when edited', (
+    tester,
+  ) async {
+    await open(
+      tester,
+      tile: StatTile(
+        id: 1,
+        title: 'Krimis',
+        definition: StatPreset.booksByGenre
+            .definition(2026)
+            .copyWith(tagIds: {99}),
+      ),
+    );
+
+    await save(tester);
+
+    expect(saved?.$2.tagIds, isEmpty);
+  });
 }

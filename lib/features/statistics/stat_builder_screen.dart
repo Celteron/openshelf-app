@@ -36,13 +36,14 @@ class _StatBuilderScreenState extends State<StatBuilderScreen> {
   @override
   void initState() {
     super.initState();
-    _definition =
-        widget.tile?.definition ??
-        const StatDefinition(
-          measure: StatMeasure.books,
-          period: StatAllTime(),
-          chart: StatChart.number,
-        );
+    final tile = widget.tile;
+    _definition = tile != null
+        ? widget.library.withKnownTags(tile.definition)
+        : const StatDefinition(
+            measure: StatMeasure.books,
+            period: StatAllTime(),
+            chart: StatChart.number,
+          );
     _title = TextEditingController(text: widget.tile?.title ?? '');
   }
 

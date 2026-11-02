@@ -130,8 +130,18 @@ class StatLibrary {
     for (final s in sessions) s.startedAt.year,
   }.toList()..sort((a, b) => b.compareTo(a)));
 
+  /// [definition] without tag ids that no longer exist: deleting a tag
+  /// leaves the stored tiles untouched, and a filter on a deleted tag must
+  /// not turn into a filter on nothing.
+  StatDefinition withKnownTags(StatDefinition definition) =>
+      definition.tagIds.every(tagNames.containsKey)
+      ? definition
+      : definition.copyWith(
+          tagIds: {...definition.tagIds.where(tagNames.containsKey)},
+        );
+
   StatResult evaluate(StatDefinition definition) => StatQuery.evaluate(
-    definition,
+    withKnownTags(definition),
     books: books,
     sessions: sessions,
     tagsByBook: tagsByBook,

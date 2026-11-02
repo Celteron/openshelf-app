@@ -247,4 +247,19 @@ void main() {
       ]);
     },
   );
+
+  test('a deleted tag in a filter is ignored, not a filter on nothing', () {
+    final library = StatLibrary(
+      books: [_book(1), _book(2)],
+      tagsByBook: {
+        1: {10},
+      },
+      tagNames: {10: 'Krimi'},
+    );
+    expect(_single(library.evaluate(_def(StatMeasure.books, tagIds: {99}))), 2);
+    expect(
+      _single(library.evaluate(_def(StatMeasure.books, tagIds: {10, 99}))),
+      1,
+    );
+  });
 }
