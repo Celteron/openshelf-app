@@ -106,7 +106,7 @@ void main() {
     expect(s.startedAt.isAfter(s.endedAt!), isFalse);
   });
 
-  test('a running session keeps running', () async {
+  test('a running session is never moved: its time would change', () async {
     await reading.startSession(
       book,
       startedAt: DateTime(2024, 3, 8, 20),
@@ -115,8 +115,23 @@ void main() {
 
     await reading.setReadingDates(book, start: DateTime(2024, 3, 1));
 
+    final all = await sessions();
+    final running = all.singleWhere((s) => s.endedAt == null);
+    expect(running.startedAt, DateTime(2024, 3, 8, 20));
+    // The new start is a dated session without reading time.
+    final dated = all.singleWhere((s) => s.endedAt != null);
+    expect(dated.startedAt, DateTime(2024, 3, 1));
+    expect(dated.durationSeconds, 0);
+  });
+
+  test('without sessions an end before the start is clamped', () async {
+    await reading.setReadingDates(
+      book,
+      start: DateTime(2024, 3, 9),
+      end: DateTime(2024, 3, 1),
+    );
+
     final s = (await sessions()).single;
-    expect(s.startedAt, DateTime(2024, 3, 1));
-    expect(s.endedAt, isNull);
+    expect(s.startedAt.isAfter(s.endedAt!), isFalse);
   });
 }

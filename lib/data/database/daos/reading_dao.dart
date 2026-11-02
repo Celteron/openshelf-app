@@ -81,11 +81,13 @@ class ReadingDao {
 
         final existing = await sessions();
         if (existing.isEmpty) {
+          final from = (start ?? end)!;
+          final to = end ?? start!;
           await log(
             ReadingSessionsCompanion.insert(
               bookId: bookId,
-              startedAt: (start ?? end)!,
-              endedAt: Value(end ?? start),
+              startedAt: from,
+              endedAt: Value(to.isBefore(from) ? from : to),
             ),
           );
         } else {
@@ -94,11 +96,24 @@ class ReadingDao {
               (a, b) => b.startedAt.isBefore(a.startedAt) ? b : a,
             );
             final ended = first.endedAt;
-            await _move(
-              first.id,
-              startedAt: start,
-              endedAt: ended != null && ended.isBefore(start) ? start : ended,
-            );
+            if (ended == null) {
+              // A running session's time is "now - start": moving its start
+              // would add reading time. The new start gets its own dated
+              // session without time instead.
+              await log(
+                ReadingSessionsCompanion.insert(
+                  bookId: bookId,
+                  startedAt: start,
+                  endedAt: Value(start),
+                ),
+              );
+            } else {
+              await _move(
+                first.id,
+                startedAt: start,
+                endedAt: ended.isBefore(start) ? start : ended,
+              );
+            }
           }
           final finished = [
             for (final s in await sessions())
