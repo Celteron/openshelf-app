@@ -10,6 +10,7 @@ import 'package:openreads/domain/services/data_wipe_service.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/features/importer/import_export_screen.dart';
 import 'package:openreads/features/library/library_cubit.dart';
+import 'package:openreads/features/home/home_layout_screen.dart';
 import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/tags/tags_cubit.dart';
 import 'package:openreads/features/tags/tags_screen.dart';
@@ -118,6 +119,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 subtitle: Text(l10n.amoledDarkHint),
                 value: state.amoled,
                 onChanged: cubit.setAmoled,
+              ),
+              ListTile(
+                key: const ValueKey('home-layout-tile'),
+                leading: const Icon(Icons.dashboard_customize_outlined),
+                title: Text(l10n.homeCustomizeTitle),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const HomeLayoutScreen()),
+                ),
               ),
               ListTile(
                 key: const ValueKey('font-tile'),

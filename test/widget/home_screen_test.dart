@@ -13,7 +13,11 @@ import 'package:openreads/domain/models/stat_tile.dart';
 import 'package:openreads/domain/repositories/stat_tile_repository.dart';
 import 'package:openreads/features/library/library_cubit.dart';
 import 'package:openreads/features/statistics/custom_stats_cubit.dart';
+import 'package:openreads/domain/models/home_layout.dart';
+import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/l10n/app_localizations.dart';
+
+import '../helpers/fake_settings_repository.dart';
 
 class _Books implements BookRepository {
   final List<Book> books;
@@ -68,12 +72,19 @@ Book _book(int id, String title, BookStatus status, {bool favorite = false}) =>
       updatedAt: DateTime(2026),
     );
 
+class _LayoutSettings extends SettingsCubit {
+  _LayoutSettings(HomeLayout layout) : super(FakeSettingsRepository()) {
+    emit(const SettingsState().copyWith(homeLayout: layout));
+  }
+}
+
 /// The home tab (FR-R2-19).
 void main() {
   Future<(LibraryCubit, List<int>)> pump(
     WidgetTester tester, {
     List<Book> more = const [],
     List<StatTile>? tiles,
+    HomeLayout? layout,
   }) async {
     final repo = _Books([
       _book(1, 'Fertig', BookStatus.read, favorite: true),
@@ -93,6 +104,8 @@ void main() {
             create: (_) => HomeCubit(repo, now: () => DateTime(2026, 6, 15)),
           ),
           BlocProvider(create: (_) => LibraryCubit(repo)),
+          if (layout != null)
+            BlocProvider<SettingsCubit>(create: (_) => _LayoutSettings(layout)),
           if (tiles != null)
             BlocProvider(
               create: (_) =>
@@ -178,5 +191,53 @@ void main() {
       findsOneWidget,
       reason: 'evaluated over the library',
     );
+  });
+
+  group('customizable layout', () {
+    testWidgets('a hidden block is not built', (tester) async {
+      await pump(
+        tester,
+        layout: HomeLayout.standard
+            .toggle(HomeModule.recent)
+            .toggle(HomeModule.favourites),
+      );
+
+      expect(find.byKey(const ValueKey('home-recent')), findsNothing);
+      expect(find.byKey(const ValueKey('home-favourites')), findsNothing);
+      expect(find.byKey(const ValueKey('home-reading')), findsOneWidget);
+    });
+
+    testWidgets('the blocks follow the stored order', (tester) async {
+      await pump(
+        tester,
+        layout: HomeLayout.standard.move(HomeModule.favourites.index, 0),
+      );
+
+      final favourites = tester.getTopLeft(
+        find.byKey(const ValueKey('home-favourites')),
+      );
+      final total = tester.getTopLeft(find.byKey(const ValueKey('home-total')));
+      expect(favourites.dy, lessThan(total.dy));
+    });
+
+    testWidgets('all blocks hidden says how to get them back', (tester) async {
+      var layout = HomeLayout.standard;
+      for (final m in HomeModule.values) {
+        layout = layout.toggle(m);
+      }
+      await pump(tester, layout: layout);
+
+      expect(
+        find.textContaining('Alle Blöcke sind ausgeblendet'),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('home-customize')), findsOneWidget);
+    });
+
+    testWidgets('the reading tile starts reading with one tap', (tester) async {
+      await pump(tester);
+
+      expect(find.byKey(const ValueKey('home-read-2')), findsOneWidget);
+    });
   });
 }

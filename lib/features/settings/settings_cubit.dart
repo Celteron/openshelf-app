@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/domain/models/app_preferences.dart';
 import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/home_layout.dart';
 import 'package:openreads/domain/repositories/settings_repository.dart';
 
 class SettingsState {
@@ -33,6 +34,9 @@ class SettingsState {
   /// Sent with Google Books lookups; `null` = the shared anonymous quota.
   final String? googleBooksApiKey;
 
+  /// Which blocks the home tab shows, in which order.
+  final HomeLayout homeLayout;
+
   const SettingsState({
     this.themeMode = ThemeMode.system,
     this.localeCode = 'de',
@@ -46,6 +50,7 @@ class SettingsState {
     this.defaultStatus = BookStatus.unread,
     this.defaultTagIds = const {},
     this.googleBooksApiKey,
+    this.homeLayout = HomeLayout.standard,
   });
 
   SettingsState copyWith({
@@ -64,6 +69,7 @@ class SettingsState {
     Set<int>? defaultTagIds,
     String? googleBooksApiKey,
     bool clearGoogleBooksApiKey = false,
+    HomeLayout? homeLayout,
   }) {
     return SettingsState(
       themeMode: themeMode ?? this.themeMode,
@@ -80,6 +86,7 @@ class SettingsState {
       googleBooksApiKey: clearGoogleBooksApiKey
           ? null
           : googleBooksApiKey ?? this.googleBooksApiKey,
+      homeLayout: homeLayout ?? this.homeLayout,
     );
   }
 }
@@ -97,6 +104,7 @@ class SettingsCubit extends Cubit<SettingsState> {
   static const _status = 'defaultStatus';
   static const _tags = 'defaultTags';
   static const _googleKey = 'googleBooksApiKey';
+  static const _homeLayout = 'homeLayout';
 
   final SettingsRepository _repository;
 
@@ -122,6 +130,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     final tags = await _repository.getValue(_tags);
     // Never stored = the baked-in default; stored empty = cleared on purpose.
     final googleKey = await _repository.getValue(_googleKey);
+    final homeLayout = await _repository.getValue(_homeLayout);
 
     emit(
       SettingsState(
@@ -148,8 +157,20 @@ class SettingsCubit extends Cubit<SettingsState> {
         googleBooksApiKey: googleKey == null
             ? _defaultGoogleKey
             : _normalizeKey(googleKey),
+        homeLayout: HomeLayout.parse(homeLayout),
       ),
     );
+  }
+
+  /// The standard layout is stored as "nothing", so a later version's new
+  /// blocks reach everyone who never customized.
+  Future<void> setHomeLayout(HomeLayout layout) async {
+    final isStandard = layout.encode() == HomeLayout.standard.encode();
+    await _repository.setValue(
+      _homeLayout,
+      isStandard ? null : layout.encode(),
+    );
+    emit(state.copyWith(homeLayout: layout));
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {

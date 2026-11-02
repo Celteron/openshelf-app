@@ -1,17 +1,24 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:openreads/core/helpers/maybe_read.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/home_layout.dart';
 import 'package:openreads/domain/models/home_summary.dart';
 import 'package:openreads/domain/models/stat_tile.dart';
 import 'package:openreads/features/common/format_count.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/features/common/widgets/book_cover.dart';
+import 'package:openreads/features/common/widgets/hyphenated_text.dart';
 import 'package:openreads/features/home/home_cubit.dart';
+import 'package:openreads/features/home/home_layout_screen.dart';
+import 'package:openreads/features/settings/settings_cubit.dart';
 import 'package:openreads/features/library/book_detail_screen.dart';
 import 'package:openreads/features/library/library_cubit.dart';
+import 'package:openreads/features/reading/reading_screen.dart';
 import 'package:openreads/features/statistics/custom_stats_cubit.dart';
+import 'package:openreads/features/statistics/reading_heatmap.dart';
 import 'package:openreads/features/statistics/custom_stats_section.dart';
 import 'package:openreads/features/statistics/stat_tile_view.dart';
 import 'package:openreads/features/statistics/statistics_cubit.dart';
@@ -50,11 +57,109 @@ class _HomeScreenState extends State<HomeScreen> {
     widget.onShowLibrary?.call();
   }
 
+  /// The settings, or `null` in isolated widget tests without them.
+  SettingsState? _settings(BuildContext context) =>
+      context.maybeWatch<SettingsCubit>()?.state;
+
+  Widget _module(
+    BuildContext context,
+    HomeModule module,
+    HomeSummary summary,
+    AppLocalizations l10n,
+  ) => switch (module) {
+    HomeModule.donut => _Donut(
+      summary: summary,
+      onStatus: (status) => _showStatus(status, summary),
+    ),
+    HomeModule.pinnedStats => _PinnedStats(onShowLibrary: widget.onShowLibrary),
+    HomeModule.goal => const _HomeGoal(),
+    HomeModule.currentlyReading =>
+      summary.currentlyReading.isEmpty
+          ? const SizedBox.shrink()
+          : _Section(
+              key: const ValueKey('home-reading'),
+              title: l10n.homeCurrentlyReading,
+              child: Column(
+                children: [
+                  for (final book in summary.currentlyReading)
+                    _ReadingTile(book: book),
+                ],
+              ),
+            ),
+    HomeModule.recent =>
+      summary.recent.isEmpty
+          ? const SizedBox.shrink()
+          : _Section(
+              key: const ValueKey('home-recent'),
+              title: l10n.homeRecentlyAdded,
+              child: _CoverRow(books: summary.recent),
+            ),
+    HomeModule.unreadTrend => _Section(
+      key: const ValueKey('home-unread-trend'),
+      title: l10n.homeUnreadTrend,
+      child: _Trend(values: summary.unreadTrend),
+    ),
+    HomeModule.favourites =>
+      summary.favourites.isEmpty
+          ? const SizedBox.shrink()
+          : _Section(
+              key: const ValueKey('home-favourites'),
+              title: l10n.favoritesFilter,
+              child: _CoverRow(books: summary.favourites),
+            ),
+    HomeModule.heatmap => const ReadingHeatmapCard(),
+  };
+
+  Widget _modules(
+    BuildContext context,
+    HomeSummary summary,
+    HomeLayout layout,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final visible = layout.visible;
+    if (visible.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(l10n.homeAllHidden, textAlign: TextAlign.center),
+        ),
+      );
+    }
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        for (final (i, module) in visible.indexed)
+          // These cards carry no top gap of their own.
+          (module == HomeModule.donut || module == HomeModule.heatmap) && i > 0
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: _module(context, module, summary, l10n),
+                )
+              : _module(context, module, summary, l10n),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final settings = _settings(context);
+    final layout = settings?.homeLayout ?? HomeLayout.standard;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navHome)),
+      appBar: AppBar(
+        title: Text(l10n.navHome),
+        actions: [
+          if (settings != null)
+            IconButton(
+              key: const ValueKey('home-customize'),
+              icon: const Icon(Icons.tune),
+              tooltip: l10n.homeCustomizeTitle,
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const HomeLayoutScreen()),
+              ),
+            ),
+        ],
+      ),
       body: BlocBuilder<HomeCubit, HomeState>(
         builder: (context, state) => switch (state) {
           HomeLoading() => const Center(child: CircularProgressIndicator()),
@@ -67,45 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text(l10n.homeEmpty, textAlign: TextAlign.center),
               ),
             ),
-          HomeLoaded(:final summary) => ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              _Donut(
-                summary: summary,
-                onStatus: (status) => _showStatus(status, summary),
-              ),
-              _PinnedStats(onShowLibrary: widget.onShowLibrary),
-              const _HomeGoal(),
-              if (summary.currentlyReading.isNotEmpty)
-                _Section(
-                  key: const ValueKey('home-reading'),
-                  title: l10n.homeCurrentlyReading,
-                  child: Column(
-                    children: [
-                      for (final book in summary.currentlyReading)
-                        _ReadingTile(book: book),
-                    ],
-                  ),
-                ),
-              if (summary.recent.isNotEmpty)
-                _Section(
-                  key: const ValueKey('home-recent'),
-                  title: l10n.homeRecentlyAdded,
-                  child: _CoverRow(books: summary.recent),
-                ),
-              _Section(
-                key: const ValueKey('home-unread-trend'),
-                title: l10n.homeUnreadTrend,
-                child: _Trend(values: summary.unreadTrend),
-              ),
-              if (summary.favourites.isNotEmpty)
-                _Section(
-                  key: const ValueKey('home-favourites'),
-                  title: l10n.favoritesFilter,
-                  child: _CoverRow(books: summary.favourites),
-                ),
-            ],
-          ),
+          HomeLoaded(:final summary) => _modules(context, summary, layout),
         },
       ),
     );
@@ -127,7 +194,7 @@ class _Section extends StatelessWidget {
         children: [
           Semantics(
             header: true,
-            child: Text(
+            child: HyphenatedText(
               title,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.primary,
@@ -245,12 +312,8 @@ class _PinnedStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final CustomStatsCubit cubit;
-    try {
-      cubit = context.read<CustomStatsCubit>();
-    } catch (_) {
-      return const SizedBox.shrink(); // isolated widget tests
-    }
+    final cubit = context.maybeRead<CustomStatsCubit>();
+    if (cubit == null) return const SizedBox.shrink(); // isolated widget tests
     return BlocBuilder<CustomStatsCubit, CustomStatsState>(
       bloc: cubit,
       builder: (context, state) => switch (state) {
@@ -290,12 +353,8 @@ class _HomeGoal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final StatisticsCubit cubit;
-    try {
-      cubit = context.read<StatisticsCubit>();
-    } catch (_) {
-      return const SizedBox.shrink(); // isolated widget tests
-    }
+    final cubit = context.maybeRead<StatisticsCubit>();
+    if (cubit == null) return const SizedBox.shrink(); // isolated widget tests
     return BlocBuilder<StatisticsCubit, StatisticsState>(
       bloc: cubit,
       builder: (context, state) => switch (state) {
@@ -333,6 +392,15 @@ class _ReadingTile extends StatelessWidget {
               padding: const EdgeInsets.only(top: 6),
               child: LinearProgressIndicator(value: progress, minHeight: 6),
             ),
+      trailing: IconButton(
+        key: ValueKey('home-read-${book.id}'),
+        icon: const Icon(Icons.play_circle_outline),
+        iconSize: 32,
+        tooltip: AppLocalizations.of(context).homeReadAction,
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => ReadingScreen(bookId: book.id)),
+        ),
+      ),
       onTap: () => _openBook(context, book),
     );
   }
