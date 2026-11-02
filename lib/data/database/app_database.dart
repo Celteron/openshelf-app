@@ -15,13 +15,14 @@ part 'app_database.g.dart';
     Tags,
     BookTags,
     ReadingGoals,
+    StatTiles,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -62,6 +63,10 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(books, books.receivedAs);
         await m.addColumn(books, books.coverNotFound);
         await m.addColumn(books, books.parentId);
+      }
+      if (from < 7) {
+        // v7 (spec 005): user-defined statistic tiles; additive only.
+        await m.createTable(statTiles);
       }
     },
     beforeOpen: (details) async {

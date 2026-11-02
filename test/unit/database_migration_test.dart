@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:openreads/data/database/app_database.dart';
 
 void main() {
-  test('fresh install creates the full v2 schema', () async {
+  test('fresh install creates every table', () async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
 
@@ -25,6 +25,7 @@ void main() {
       'reading_goals',
       'reading_sessions',
       'series',
+      'stat_tiles',
       'tags',
     ]);
   });

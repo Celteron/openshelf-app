@@ -4579,6 +4579,411 @@ class ReadingGoalsCompanion extends UpdateCompanion<ReadingGoal> {
   }
 }
 
+class $StatTilesTable extends StatTiles
+    with TableInfo<$StatTilesTable, StatTile> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StatTilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _definitionMeta = const VerificationMeta(
+    'definition',
+  );
+  @override
+  late final GeneratedColumn<String> definition = GeneratedColumn<String>(
+    'definition',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pinnedMeta = const VerificationMeta('pinned');
+  @override
+  late final GeneratedColumn<bool> pinned = GeneratedColumn<bool>(
+    'pinned',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("pinned" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    position,
+    title,
+    definition,
+    pinned,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stat_tiles';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StatTile> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('definition')) {
+      context.handle(
+        _definitionMeta,
+        definition.isAcceptableOrUnknown(data['definition']!, _definitionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_definitionMeta);
+    }
+    if (data.containsKey('pinned')) {
+      context.handle(
+        _pinnedMeta,
+        pinned.isAcceptableOrUnknown(data['pinned']!, _pinnedMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StatTile map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StatTile(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      definition: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}definition'],
+      )!,
+      pinned: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}pinned'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $StatTilesTable createAlias(String alias) {
+    return $StatTilesTable(attachedDatabase, alias);
+  }
+}
+
+class StatTile extends DataClass implements Insertable<StatTile> {
+  final int id;
+
+  /// Order on the statistics screen, ascending.
+  final int position;
+  final String title;
+
+  /// `StatDefinition.toJson()`.
+  final String definition;
+
+  /// Shown on the home tab too (at most three, enforced by the repository).
+  final bool pinned;
+  final DateTime createdAt;
+  const StatTile({
+    required this.id,
+    required this.position,
+    required this.title,
+    required this.definition,
+    required this.pinned,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['position'] = Variable<int>(position);
+    map['title'] = Variable<String>(title);
+    map['definition'] = Variable<String>(definition);
+    map['pinned'] = Variable<bool>(pinned);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  StatTilesCompanion toCompanion(bool nullToAbsent) {
+    return StatTilesCompanion(
+      id: Value(id),
+      position: Value(position),
+      title: Value(title),
+      definition: Value(definition),
+      pinned: Value(pinned),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory StatTile.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StatTile(
+      id: serializer.fromJson<int>(json['id']),
+      position: serializer.fromJson<int>(json['position']),
+      title: serializer.fromJson<String>(json['title']),
+      definition: serializer.fromJson<String>(json['definition']),
+      pinned: serializer.fromJson<bool>(json['pinned']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'position': serializer.toJson<int>(position),
+      'title': serializer.toJson<String>(title),
+      'definition': serializer.toJson<String>(definition),
+      'pinned': serializer.toJson<bool>(pinned),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  StatTile copyWith({
+    int? id,
+    int? position,
+    String? title,
+    String? definition,
+    bool? pinned,
+    DateTime? createdAt,
+  }) => StatTile(
+    id: id ?? this.id,
+    position: position ?? this.position,
+    title: title ?? this.title,
+    definition: definition ?? this.definition,
+    pinned: pinned ?? this.pinned,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  StatTile copyWithCompanion(StatTilesCompanion data) {
+    return StatTile(
+      id: data.id.present ? data.id.value : this.id,
+      position: data.position.present ? data.position.value : this.position,
+      title: data.title.present ? data.title.value : this.title,
+      definition: data.definition.present
+          ? data.definition.value
+          : this.definition,
+      pinned: data.pinned.present ? data.pinned.value : this.pinned,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StatTile(')
+          ..write('id: $id, ')
+          ..write('position: $position, ')
+          ..write('title: $title, ')
+          ..write('definition: $definition, ')
+          ..write('pinned: $pinned, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, position, title, definition, pinned, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StatTile &&
+          other.id == this.id &&
+          other.position == this.position &&
+          other.title == this.title &&
+          other.definition == this.definition &&
+          other.pinned == this.pinned &&
+          other.createdAt == this.createdAt);
+}
+
+class StatTilesCompanion extends UpdateCompanion<StatTile> {
+  final Value<int> id;
+  final Value<int> position;
+  final Value<String> title;
+  final Value<String> definition;
+  final Value<bool> pinned;
+  final Value<DateTime> createdAt;
+  const StatTilesCompanion({
+    this.id = const Value.absent(),
+    this.position = const Value.absent(),
+    this.title = const Value.absent(),
+    this.definition = const Value.absent(),
+    this.pinned = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  StatTilesCompanion.insert({
+    this.id = const Value.absent(),
+    required int position,
+    required String title,
+    required String definition,
+    this.pinned = const Value.absent(),
+    required DateTime createdAt,
+  }) : position = Value(position),
+       title = Value(title),
+       definition = Value(definition),
+       createdAt = Value(createdAt);
+  static Insertable<StatTile> custom({
+    Expression<int>? id,
+    Expression<int>? position,
+    Expression<String>? title,
+    Expression<String>? definition,
+    Expression<bool>? pinned,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (position != null) 'position': position,
+      if (title != null) 'title': title,
+      if (definition != null) 'definition': definition,
+      if (pinned != null) 'pinned': pinned,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  StatTilesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? position,
+    Value<String>? title,
+    Value<String>? definition,
+    Value<bool>? pinned,
+    Value<DateTime>? createdAt,
+  }) {
+    return StatTilesCompanion(
+      id: id ?? this.id,
+      position: position ?? this.position,
+      title: title ?? this.title,
+      definition: definition ?? this.definition,
+      pinned: pinned ?? this.pinned,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (definition.present) {
+      map['definition'] = Variable<String>(definition.value);
+    }
+    if (pinned.present) {
+      map['pinned'] = Variable<bool>(pinned.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StatTilesCompanion(')
+          ..write('id: $id, ')
+          ..write('position: $position, ')
+          ..write('title: $title, ')
+          ..write('definition: $definition, ')
+          ..write('pinned: $pinned, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4593,6 +4998,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TagsTable tags = $TagsTable(this);
   late final $BookTagsTable bookTags = $BookTagsTable(this);
   late final $ReadingGoalsTable readingGoals = $ReadingGoalsTable(this);
+  late final $StatTilesTable statTiles = $StatTilesTable(this);
   late final Index idxBooksIsbn10 = Index(
     'idx_books_isbn10',
     'CREATE INDEX idx_books_isbn10 ON books (isbn10)',
@@ -4635,6 +5041,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     tags,
     bookTags,
     readingGoals,
+    statTiles,
     idxBooksIsbn10,
     idxBooksLocation,
     idxBooksStatus,
@@ -8611,6 +9018,224 @@ typedef $$ReadingGoalsTableProcessedTableManager =
       ReadingGoal,
       PrefetchHooks Function()
     >;
+typedef $$StatTilesTableCreateCompanionBuilder =
+    StatTilesCompanion Function({
+      Value<int> id,
+      required int position,
+      required String title,
+      required String definition,
+      Value<bool> pinned,
+      required DateTime createdAt,
+    });
+typedef $$StatTilesTableUpdateCompanionBuilder =
+    StatTilesCompanion Function({
+      Value<int> id,
+      Value<int> position,
+      Value<String> title,
+      Value<String> definition,
+      Value<bool> pinned,
+      Value<DateTime> createdAt,
+    });
+
+class $$StatTilesTableFilterComposer
+    extends Composer<_$AppDatabase, $StatTilesTable> {
+  $$StatTilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get definition => $composableBuilder(
+    column: $table.definition,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get pinned => $composableBuilder(
+    column: $table.pinned,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$StatTilesTableOrderingComposer
+    extends Composer<_$AppDatabase, $StatTilesTable> {
+  $$StatTilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get definition => $composableBuilder(
+    column: $table.definition,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get pinned => $composableBuilder(
+    column: $table.pinned,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StatTilesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StatTilesTable> {
+  $$StatTilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get definition => $composableBuilder(
+    column: $table.definition,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get pinned =>
+      $composableBuilder(column: $table.pinned, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$StatTilesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StatTilesTable,
+          StatTile,
+          $$StatTilesTableFilterComposer,
+          $$StatTilesTableOrderingComposer,
+          $$StatTilesTableAnnotationComposer,
+          $$StatTilesTableCreateCompanionBuilder,
+          $$StatTilesTableUpdateCompanionBuilder,
+          (StatTile, BaseReferences<_$AppDatabase, $StatTilesTable, StatTile>),
+          StatTile,
+          PrefetchHooks Function()
+        > {
+  $$StatTilesTableTableManager(_$AppDatabase db, $StatTilesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StatTilesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StatTilesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StatTilesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> definition = const Value.absent(),
+                Value<bool> pinned = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => StatTilesCompanion(
+                id: id,
+                position: position,
+                title: title,
+                definition: definition,
+                pinned: pinned,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int position,
+                required String title,
+                required String definition,
+                Value<bool> pinned = const Value.absent(),
+                required DateTime createdAt,
+              }) => StatTilesCompanion.insert(
+                id: id,
+                position: position,
+                title: title,
+                definition: definition,
+                pinned: pinned,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StatTilesTable, StatTile>(table),
+                  BaseReferences<_$AppDatabase, $StatTilesTable, StatTile>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StatTilesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StatTilesTable,
+      StatTile,
+      $$StatTilesTableFilterComposer,
+      $$StatTilesTableOrderingComposer,
+      $$StatTilesTableAnnotationComposer,
+      $$StatTilesTableCreateCompanionBuilder,
+      $$StatTilesTableUpdateCompanionBuilder,
+      (StatTile, BaseReferences<_$AppDatabase, $StatTilesTable, StatTile>),
+      StatTile,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8632,4 +9257,6 @@ class $AppDatabaseManager {
       $$BookTagsTableTableManager(_db, _db.bookTags);
   $$ReadingGoalsTableTableManager get readingGoals =>
       $$ReadingGoalsTableTableManager(_db, _db.readingGoals);
+  $$StatTilesTableTableManager get statTiles =>
+      $$StatTilesTableTableManager(_db, _db.statTiles);
 }

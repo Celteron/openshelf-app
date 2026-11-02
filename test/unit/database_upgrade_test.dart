@@ -22,8 +22,36 @@ void main() {
 
   setUpAll(() => verifier = SchemaVerifier(GeneratedHelper()));
 
-  test('the current schema version is 6', () {
-    expect(AppDatabase(NativeDatabase.memory()).schemaVersion, 6);
+  test('the current schema version is 7', () {
+    expect(AppDatabase(NativeDatabase.memory()).schemaVersion, 7);
+  });
+
+  group('v6 → v7', () {
+    test('produces exactly the v7 schema', () async {
+      final schema = await verifier.schemaAt(6);
+      final db = AppDatabase(schema.newConnection());
+      addTearDown(db.close);
+      await verifier.migrateAndValidate(db, 7);
+    });
+
+    test('keeps every book; the statistic tiles start empty', () async {
+      final schema = await verifier.schemaAt(6);
+      schema.rawDatabase.execute('''
+        INSERT INTO books
+          (id, title, authors, status, rating, edited_fields, current_page,
+           is_favorite, cover_not_found, created_at, updated_at)
+        VALUES
+          (1, 'Buch', '["A"]', 'read', 4.5, '[]', 0, 0, 0,
+           1700000000, 1700000000);
+      ''');
+      final db = AppDatabase(schema.newConnection());
+      addTearDown(db.close);
+      await verifier.migrateAndValidate(db, 7);
+
+      final books = await db.select(db.books).get();
+      expect(books.single.title, 'Buch');
+      expect(await db.select(db.statTiles).get(), isEmpty);
+    });
   });
 
   group('v1 → v6', () {
@@ -31,7 +59,7 @@ void main() {
       final schema = await verifier.schemaAt(1);
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 6);
+      await verifier.migrateAndValidate(db, 7);
     });
 
     test('preserves every Phase 1 row and defaults the new columns', () async {
@@ -59,7 +87,7 @@ void main() {
 
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 6);
+      await verifier.migrateAndValidate(db, 7);
 
       final book = await db.select(db.books).getSingle();
       expect(book.title, 'Der Vorleser');
@@ -94,7 +122,7 @@ void main() {
       final schema = await verifier.schemaAt(2);
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 6);
+      await verifier.migrateAndValidate(db, 7);
     });
 
     test(
@@ -134,7 +162,7 @@ void main() {
 
         final db = AppDatabase(schema.newConnection());
         addTearDown(db.close);
-        await verifier.migrateAndValidate(db, 6);
+        await verifier.migrateAndValidate(db, 7);
 
         final book = await db.select(db.books).getSingle();
         expect(book.title, 'Der Vorleser');
@@ -169,7 +197,7 @@ void main() {
       ''');
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 6);
+      await verifier.migrateAndValidate(db, 7);
 
       await (db.update(
         db.books,
@@ -183,7 +211,7 @@ void main() {
       final schema = await verifier.schemaAt(3);
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 6);
+      await verifier.migrateAndValidate(db, 7);
     });
 
     test('keeps every book and leaves genre, price and date empty', () async {
@@ -198,7 +226,7 @@ void main() {
       ''');
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 6);
+      await verifier.migrateAndValidate(db, 7);
 
       final book = await db.select(db.books).getSingle();
       expect(book.title, 'Der Vorleser');
@@ -220,7 +248,7 @@ void main() {
       ''');
         final db = AppDatabase(schema.newConnection());
         addTearDown(db.close);
-        await verifier.migrateAndValidate(db, 6);
+        await verifier.migrateAndValidate(db, 7);
 
         await (db.update(db.books)).write(
           BooksCompanion(
@@ -244,7 +272,7 @@ void main() {
       final schema = await verifier.schemaAt(4);
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 6);
+      await verifier.migrateAndValidate(db, 7);
     });
 
     test('keeps genre, price and date; reading time starts empty', () async {
@@ -259,7 +287,7 @@ void main() {
       ''');
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 6);
+      await verifier.migrateAndValidate(db, 7);
 
       final book = await db.select(db.books).getSingle();
       expect((book.genre, book.priceCents), ('Krimi', 1290));
@@ -278,7 +306,7 @@ void main() {
       final schema = await verifier.schemaAt(5);
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 6);
+      await verifier.migrateAndValidate(db, 7);
     });
 
     test('keeps every v5 value; the new columns start empty', () async {
@@ -294,7 +322,7 @@ void main() {
       ''');
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 6);
+      await verifier.migrateAndValidate(db, 7);
 
       final book = await db.select(db.books).getSingle();
       expect(

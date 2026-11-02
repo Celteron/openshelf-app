@@ -202,3 +202,20 @@ class ReadingGoals extends Table {
   @override
   Set<Column> get primaryKey => {year};
 }
+
+/// A user-defined statistic tile (spec 005, ADR-0005): the typed definition
+/// is stored as validated JSON so new measures need no schema change.
+class StatTiles extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Order on the statistics screen, ascending.
+  IntColumn get position => integer()();
+  TextColumn get title => text()();
+
+  /// `StatDefinition.toJson()`.
+  TextColumn get definition => text()();
+
+  /// Shown on the home tab too (at most three, enforced by the repository).
+  BoolColumn get pinned => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime()();
+}
