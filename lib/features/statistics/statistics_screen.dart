@@ -159,14 +159,19 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// One invisible tap target per month over a monthly chart (FR-R2-17).
+/// Makes a monthly chart one large tap target (FR-R2-17): twelve bars are
+/// too narrow to hit, so a tap opens the months as list rows of full height.
 class _MonthTapTargets extends StatelessWidget {
   final String id;
+  final String title;
+  final List<int> values;
   final ValueChanged<int>? onMonth;
   final Widget child;
 
   const _MonthTapTargets({
     required this.id,
+    required this.title,
+    required this.values,
     required this.onMonth,
     required this.child,
   });
@@ -175,28 +180,50 @@ class _MonthTapTargets extends StatelessWidget {
   Widget build(BuildContext context) {
     final onMonth = this.onMonth;
     if (onMonth == null) return child;
+    return InkWell(
+      key: ValueKey('$id-months'),
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => _pickMonth(context, onMonth),
+      child: child,
+    );
+  }
+
+  Future<void> _pickMonth(BuildContext context, ValueChanged<int> onMonth) {
     final locale = Localizations.localeOf(context).toLanguageTag();
-    return Stack(
-      children: [
-        child,
-        Positioned.fill(
-          child: Row(
-            children: [
-              for (var m = 1; m <= 12; m++)
-                Expanded(
-                  child: Semantics(
-                    button: true,
-                    label: DateFormat.MMMM(locale).format(DateTime(2000, m)),
-                    child: InkWell(
-                      key: ValueKey('$id-month-$m'),
-                      onTap: () => onMonth(m),
-                    ),
+    return showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(
+                title,
+                style: Theme.of(sheetContext).textTheme.titleMedium,
+              ),
+            ),
+            for (var m = 1; m <= 12; m++)
+              ListTile(
+                key: ValueKey('$id-month-$m'),
+                enabled: m <= values.length && values[m - 1] > 0,
+                title: Text(DateFormat.MMMM(locale).format(DateTime(2000, m))),
+                trailing: Text(
+                  formatCount(
+                    sheetContext,
+                    m <= values.length ? values[m - 1] : 0,
                   ),
                 ),
-            ],
-          ),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  onMonth(m);
+                },
+              ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -777,6 +804,8 @@ class _MonthlyBarChart extends StatelessWidget {
             const SizedBox(height: 12),
             _MonthTapTargets(
               id: id,
+              title: title,
+              values: values,
               onMonth: onMonth,
               child: Semantics(
                 label: '$title: ${values.join(', ')}',

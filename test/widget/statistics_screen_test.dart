@@ -196,6 +196,13 @@ void main() {
 
     testWidgets('a month opens its finished books', (tester) async {
       await pumpStats(tester);
+      // The whole chart opens a month list with large rows.
+      await tester.tap(find.byKey(const ValueKey('chart-books-months')));
+      await tester.pumpAndSettle();
+      final empty = tester.widget<ListTile>(
+        find.byKey(const ValueKey('chart-books-month-5')),
+      );
+      expect(empty.enabled, isFalse, reason: 'no books in May');
       await tester.tap(find.byKey(const ValueKey('chart-books-month-3')));
       await tester.pumpAndSettle();
 
