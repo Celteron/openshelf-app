@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openreads/features/common/widgets/hyphenated_text.dart';
 
 /// Title of a group of statistics (FR-R2-15).
 class StatsSectionHeader extends StatelessWidget {
@@ -14,7 +15,7 @@ class StatsSectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8, bottom: 8),
       child: Semantics(
         header: true,
-        child: Text(
+        child: HyphenatedText(
           title,
           style: theme.textTheme.titleMedium?.copyWith(
             color: theme.colorScheme.primary,

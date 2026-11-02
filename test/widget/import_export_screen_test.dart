@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -28,6 +29,13 @@ class _Export extends Fake implements ExportService {
 }
 
 class _Saver implements ExportFileSaver {
+  @override
+  Future<String?> saveBytes(
+    String fileName,
+    Uint8List bytes, {
+    required String mimeType,
+  }) async => null;
+
   final saved = <String, String>{};
   String? result = '/storage/Download/export';
   Object? error;

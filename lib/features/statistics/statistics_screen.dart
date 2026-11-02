@@ -12,7 +12,10 @@ import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/domain/models/statistics.dart';
 import 'package:openreads/features/statistics/custom_stats_section.dart';
 import 'package:openreads/features/statistics/statistics_books_screen.dart';
+import 'package:openreads/features/common/widgets/hyphenated_text.dart';
+import 'package:openreads/features/statistics/reading_heatmap.dart';
 import 'package:openreads/features/statistics/stats_section_header.dart';
+import 'package:openreads/features/statistics/year_review_screen.dart';
 import 'package:openreads/features/statistics/statistics_cubit.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
@@ -71,6 +74,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         ),
                         _SummaryCards(stats: stats),
                         const SizedBox(height: 16),
+                        if (stats.years.isNotEmpty) ...[
+                          _ReviewButton(year: stats.year ?? stats.years.first),
+                          const SizedBox(height: 16),
+                        ],
                         GoalCard(goal: stats.goal),
                         const SizedBox(height: 16),
                         StatsSectionHeader(
@@ -78,6 +85,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           l10n.statsSectionReading,
                         ),
                         _ReadingCard(stats: stats),
+                        const SizedBox(height: 16),
+                        const ReadingHeatmapCard(),
                         const SizedBox(height: 16),
                         if (stats.monthly.isNotEmpty) ...[
                           _MonthlyBarChart(
@@ -328,6 +337,28 @@ void _openMonth(BuildContext context, BookStatistics stats, int month) {
   _openBooks(context, title, stats.finishedIn(month));
 }
 
+/// Opens the year-in-review cards.
+class _ReviewButton extends StatelessWidget {
+  final int year;
+  const _ReviewButton({required this.year});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: FilledButton.tonalIcon(
+        key: const ValueKey('open-year-review'),
+        icon: const Icon(Icons.auto_awesome),
+        label: Text(l10n.reviewOpen(year)),
+        onPressed: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => YearReviewScreen(year: year))),
+      ),
+    );
+  }
+}
+
 class _SummaryCards extends StatelessWidget {
   final BookStatistics stats;
   const _SummaryCards({required this.stats});
@@ -373,7 +404,11 @@ class _Card extends StatelessWidget {
             Icon(icon, color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: 8),
             Text(value, style: Theme.of(context).textTheme.headlineMedium),
-            Text(label, style: Theme.of(context).textTheme.bodySmall),
+            HyphenatedText(
+              label,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ],
         ),
       ),

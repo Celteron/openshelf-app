@@ -11,6 +11,13 @@ abstract class ExportFileSaver {
   /// Where the file was saved (a path on desktop, the file name on mobile), or
   /// `null` when the user cancelled.
   Future<String?> save(String fileName, String content);
+
+  /// Like [save] for binary content such as an image.
+  Future<String?> saveBytes(
+    String fileName,
+    Uint8List bytes, {
+    required String mimeType,
+  });
 }
 
 class PlatformExportFileSaver implements ExportFileSaver {
@@ -20,8 +27,18 @@ class PlatformExportFileSaver implements ExportFileSaver {
           defaultTargetPlatform == TargetPlatform.iOS);
 
   @override
-  Future<String?> save(String fileName, String content) async {
-    final bytes = Uint8List.fromList(utf8.encode(content));
+  Future<String?> save(String fileName, String content) => saveBytes(
+    fileName,
+    Uint8List.fromList(utf8.encode(content)),
+    mimeType: fileName.endsWith('.json') ? 'application/json' : 'text/csv',
+  );
+
+  @override
+  Future<String?> saveBytes(
+    String fileName,
+    Uint8List bytes, {
+    required String mimeType,
+  }) async {
     if (_isMobile) {
       // The app's own storage is invisible to the user on Android/iOS, so the
       // system "save as" dialog writes the file where they choose. Its URI is
@@ -29,7 +46,7 @@ class PlatformExportFileSaver implements ExportFileSaver {
       final saved = await FilePicker.saveFile(
         fileName: fileName,
         bytes: bytes,
-        mimeType: fileName.endsWith('.json') ? 'application/json' : 'text/csv',
+        mimeType: mimeType,
       );
       return saved == null ? null : fileName;
     }
