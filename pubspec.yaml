@@ -56,16 +56,12 @@ flutter_launcher_icons:
   adaptive_icon_background: "doc/logo/generated/background.png"
   adaptive_icon_monochrome: "doc/logo/generated/monochrome.png"
   min_sdk_android: 24
-  ios: true
-  image_path_ios: "doc/logo/generated/icon_ios.png"
-  remove_alpha_ios: true
+  ios: false
 
 flutter:
   uses-material-design: true
   generate: true
   assets:
-    - assets/images/
-    - assets/translations/
     - assets/tessdata/
   fonts:
     - family: Montserrat
