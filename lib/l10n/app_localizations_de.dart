@@ -1485,4 +1485,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statsSectionLibrary => 'Bibliothek';
+
+  @override
+  String get addedBooksByMonth => 'Hinzugefügte Bücher pro Monat';
+
+  @override
+  String get unreadStackByMonth => 'Ungelesen-Stapel am Monatsende';
+
+  @override
+  String get spendingByYear => 'Ausgaben pro Jahr';
 }

@@ -828,5 +828,8 @@
   "statsSectionOverview": "Überblick",
   "statsSectionReading": "Lesen",
   "statsSectionRecords": "Durchschnitt & Rekorde",
-  "statsSectionLibrary": "Bibliothek"
+  "statsSectionLibrary": "Bibliothek",
+  "addedBooksByMonth": "Hinzugefügte Bücher pro Monat",
+  "unreadStackByMonth": "Ungelesen-Stapel am Monatsende",
+  "spendingByYear": "Ausgaben pro Jahr"
 }

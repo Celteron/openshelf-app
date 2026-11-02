@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:openreads/core/helpers/price.dart';
 import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/goal_progress.dart';
@@ -78,12 +79,36 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   onMonth: (month) => _openMonth(context, stats, month),
                 ),
                 const SizedBox(height: 16),
+                _MonthlyBarChart(
+                  key: const ValueKey('chart-added'),
+                  id: 'chart-added',
+                  title: l10n.addedBooksByMonth,
+                  values: [for (final m in stats.monthly) m.added],
+                ),
+                const SizedBox(height: 16),
               ],
               _SectionHeader('section-records', l10n.statsSectionRecords),
               _AveragesCard(stats: stats),
               const SizedBox(height: 16),
               _SectionHeader('section-library', l10n.statsSectionLibrary),
               _StatusBreakdown(stats: stats),
+              if (stats.unreadStack.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _MonthlyBarChart(
+                  key: const ValueKey('chart-unread-stack'),
+                  id: 'chart-unread-stack',
+                  title: l10n.unreadStackByMonth,
+                  values: stats.unreadStack,
+                ),
+              ],
+              if (stats.receivedAs.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _ReceivedAsCard(stats: stats),
+              ],
+              if (stats.spendingByYear.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _SpendingCard(stats: stats),
+              ],
               const SizedBox(height: 16),
               _TopList(
                 title: l10n.topLocations,
@@ -134,7 +159,7 @@ class _SectionHeader extends StatelessWidget {
 /// One invisible tap target per month over a monthly chart (FR-R2-17).
 class _MonthTapTargets extends StatelessWidget {
   final String id;
-  final ValueChanged<int> onMonth;
+  final ValueChanged<int>? onMonth;
   final Widget child;
 
   const _MonthTapTargets({
@@ -145,6 +170,8 @@ class _MonthTapTargets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onMonth = this.onMonth;
+    if (onMonth == null) return child;
     final locale = Localizations.localeOf(context).toLanguageTag();
     return Stack(
       children: [
@@ -167,6 +194,80 @@ class _MonthTapTargets extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Physical objects by how they were received (FR-R2-18).
+class _ReceivedAsCard extends StatelessWidget {
+  final BookStatistics stats;
+  const _ReceivedAsCard({required this.stats});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final total = stats.receivedAs.values.fold(0, (sum, n) => sum + n);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.fieldReceivedAs,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            for (final how in ReceivedAs.values)
+              if (stats.receivedAs[how] case final count?)
+                _StatusRow(
+                  label: receivedAsLabel(l10n, how),
+                  count: count,
+                  total: total,
+                ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Money spent per year, newest first (FR-R2-18).
+class _SpendingCard extends StatelessWidget {
+  final BookStatistics stats;
+  const _SpendingCard({required this.stats});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final years = stats.spendingByYear.keys.toList()
+      ..sort((a, b) => b.compareTo(a));
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.spendingByYear,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            for (final year in years)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('$year'),
+                    Text(formatPriceCents(stats.spendingByYear[year]!, locale)),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -642,15 +743,15 @@ class _MonthlyBarChart extends StatelessWidget {
   final String title;
   final List<int> values;
 
-  /// Opens the books of a month (1–12).
-  final ValueChanged<int> onMonth;
+  /// Opens the books of a month (1–12); without it the bars are not tappable.
+  final ValueChanged<int>? onMonth;
 
   const _MonthlyBarChart({
     super.key,
     required this.id,
     required this.title,
     required this.values,
-    required this.onMonth,
+    this.onMonth,
   });
 
   @override

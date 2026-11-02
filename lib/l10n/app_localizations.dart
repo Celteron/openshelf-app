@@ -2479,6 +2479,24 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Bibliothek'**
   String get statsSectionLibrary;
+
+  /// No description provided for @addedBooksByMonth.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinzugefügte Bücher pro Monat'**
+  String get addedBooksByMonth;
+
+  /// No description provided for @unreadStackByMonth.
+  ///
+  /// In de, this message translates to:
+  /// **'Ungelesen-Stapel am Monatsende'**
+  String get unreadStackByMonth;
+
+  /// No description provided for @spendingByYear.
+  ///
+  /// In de, this message translates to:
+  /// **'Ausgaben pro Jahr'**
+  String get spendingByYear;
 }
 
 class _AppLocalizationsDelegate

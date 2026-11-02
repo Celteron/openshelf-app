@@ -130,7 +130,10 @@ void main() {
 
       expect(find.byKey(const ValueKey('chart-books')), findsOneWidget);
       expect(find.byKey(const ValueKey('chart-pages')), findsOneWidget);
-      expect(find.byType(BarChart), findsNWidgets(2));
+      expect(
+        find.byType(BarChart),
+        findsNWidgets(3),
+      ); // finished books, pages, added
       expect(find.text('Gelesene Bücher pro Monat'), findsOneWidget);
       expect(find.text('Gelesene Seiten pro Monat'), findsOneWidget);
       expect(
@@ -160,7 +163,7 @@ void main() {
         stats(monthly: [for (var m = 1; m <= 12; m++) MonthStat(m, 0, 0)]),
       );
       expect(tester.takeException(), isNull);
-      expect(find.byType(BarChart), findsNWidgets(2));
+      expect(find.byType(BarChart), findsNWidgets(3));
     });
 
     testWidgets('are left out for hand-built stats without months', (

@@ -215,4 +215,41 @@ void main() {
       expect(find.text('Märzbuch'), findsNothing);
     });
   });
+
+  testWidgets('collection statistics are shown (FR-R2-18)', (tester) async {
+    final stats = BookStatistics(
+      totalBooks: 3,
+      statusCounts: const {BookStatus.unread: 3},
+      pagesRead: 0,
+      topLocations: const [],
+      topAuthors: const [],
+      monthly: [for (var m = 1; m <= 12; m++) MonthStat(m, 0, 0, added: 1)],
+      unreadStack: const [3, 3, 4],
+      receivedAs: const {ReceivedAs.gift: 2},
+      spendingByYear: const {2025: 1000, 2026: 2550},
+    );
+    final cubit = _LoadedStatisticsCubit(stats);
+    addTearDown(cubit.close);
+    tester.view.physicalSize = const Size(800, 5000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: BlocProvider<StatisticsCubit>.value(
+          value: cubit,
+          child: const StatisticsScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('chart-added')), findsOneWidget);
+    expect(find.byKey(const ValueKey('chart-unread-stack')), findsOneWidget);
+    expect(find.text('Geschenk'), findsOneWidget);
+    expect(find.text('25,50\u00A0€'), findsOneWidget);
+    expect(find.text('10,00\u00A0€'), findsOneWidget);
+  });
 }

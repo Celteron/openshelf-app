@@ -1482,4 +1482,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsSectionLibrary => 'Library';
+
+  @override
+  String get addedBooksByMonth => 'Books added per month';
+
+  @override
+  String get unreadStackByMonth => 'Unread stack at month end';
+
+  @override
+  String get spendingByYear => 'Spending per year';
 }

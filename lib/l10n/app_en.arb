@@ -696,5 +696,8 @@
   "statsSectionOverview": "Overview",
   "statsSectionReading": "Reading",
   "statsSectionRecords": "Averages & records",
-  "statsSectionLibrary": "Library"
+  "statsSectionLibrary": "Library",
+  "addedBooksByMonth": "Books added per month",
+  "unreadStackByMonth": "Unread stack at month end",
+  "spendingByYear": "Spending per year"
 }
