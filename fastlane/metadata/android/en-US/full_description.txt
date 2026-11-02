@@ -1,9 +1,10 @@
-<p>Openreads is the best app for keeping track of your books that is free, open source, with no ads and no tracking!</p>
-<p>It is a reading list app that will help you organize your library with four lists provided:<ul>
-   <li>books you finished,</li>
-   <li>books you are currently reading,</li>
-   <li>books you want to read later,</li>
-   <li>books you didn't finish.</li></ul>
-You can also use custom tags and filter through them.</p>
-<p>Openreads supports adding a book by looking it up in the Open Library database, scanning its barcode or entering the book's details manually.</p>
-<p>You can also view some cool statistics!</p>
+<p>OpenShelf keeps track of your physical library: what you are reading, whether you already own a book, and where it stands. No account, no ads, no tracking. The network is only used when you ask for a cover or book details.</p>
+<ul>
+<li>Library with rooms, shelves and compartments, slipcases, series, tags and lending</li>
+<li>Shelf wall with book spines in cover colours, search and drag-and-drop</li>
+<li>Scan a barcode and learn at once whether you own the book, which volumes of a series are missing, and keep a shopping list</li>
+<li>Reading sessions, goals, notes and quotes, quotes from a photo with offline text recognition</li>
+<li>Statistics with your own tiles, a reading calendar and a year in review</li>
+<li>CSV and JSON export and import, including Openreads, Goodreads and StoryGraph files</li>
+</ul>
+<p>OpenShelf is a fork of Openreads and free software under the GPL-2.0.</p>

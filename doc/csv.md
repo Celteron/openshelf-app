@@ -1,4 +1,6 @@
-## Openreads CSV format
+## CSV format
+
+The first 19 columns are the Openreads columns, so the file can be read by Openreads-compatible tools. OpenShelf appends further columns (`isbn13`, `publisher`, `series`, `location`, `lending_status`, `quotes`, `id`, `slipcase_id`, …); the full list is `ExportService.csvColumns` in `lib/data/export/export_service.dart`.
 
 Column | Values
 --- | ---

@@ -1,1 +1,1 @@
-Private and open source books tracker, organizer and reading list.
+Offline library app for your physical books: find, check, remember.

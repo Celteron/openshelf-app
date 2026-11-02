@@ -1,2 +1,0 @@
-- Improved Ukrainian, German and Spanish translations.
-- Added Russian translation.

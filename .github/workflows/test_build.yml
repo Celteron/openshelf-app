@@ -78,27 +78,3 @@ jobs:
 
     - name: Build appbundle
       run: flutter build -v appbundle
-
-  ios_build:
-    name: iOS ipa
-    runs-on: macos-14
-    steps:
-    - name: Check out code
-      uses: actions/checkout@v4
-
-    - name: Set up Flutter version
-      run: echo "VERSION=$(cat .flutter-version)" >> $GITHUB_ENV
-
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: ${{ env.VERSION }}
-
-    - name: Configure Flutter
-      run: flutter config --no-analytics
-
-    - name: Get Flutter packages
-      run: flutter pub get
-
-    - name: Build iOS
-      run: flutter build ios --no-codesign

@@ -1,2 +1,0 @@
-- Improved backup for bigger libraries
-- Improved translations.

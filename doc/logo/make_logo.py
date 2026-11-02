@@ -3,7 +3,6 @@
 Outputs, next to this script:
   openshelf-logo.svg / openshelf-logo-alt-a.svg   1024x1024 sources (rounded)
   generated/icon.png                              legacy launcher icon, rounded
-  generated/icon_ios.png                          full-bleed, opaque (iOS)
   generated/foreground.png                        adaptive icon foreground
   generated/background.png                        adaptive icon background
   generated/monochrome.png                        Android 13 themed icon
@@ -161,7 +160,6 @@ def main() -> None:
     (HERE / "openshelf-logo-alt-a.svg").write_text(svg(A_COLORS, background(), artwork_a()))
 
     png(svg(B_COLORS, background(), artwork_b())).save(GEN / "icon.png")
-    png(svg(B_COLORS, background(rx=0), artwork_b())).convert("RGB").save(GEN / "icon_ios.png")
 
     # Adaptive layers: the background fills the whole 108dp canvas.
     png(svg(B_COLORS, "", artwork_b())).save(GEN / "foreground.png")

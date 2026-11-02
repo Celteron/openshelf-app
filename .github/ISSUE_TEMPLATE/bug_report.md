@@ -3,7 +3,7 @@ name: Bug report
 about: Create a report to help me improve the app
 title: "[BUG] "
 labels: bug
-assignees: mateusz-bak
+assignees: Celteron
 
 ---
 
@@ -21,7 +21,7 @@ assignees: mateusz-bak
 
 **Additional info(please complete the following information):**
 - App version:
-- App source (F-Droid, Google Play, Github, AppStore):
+- App source (F-Droid, GitHub, own build):
 - Device manufacturer and model:
 - Device OS and version:
 
