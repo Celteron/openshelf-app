@@ -73,7 +73,7 @@ class StatDefinition {
 
 **Recommendation: A.** User data belongs in Drift (Constitution II.2), and the migration is additive, so not destructive.
 - **Validation:** The definition JSON is validated at the edge. An unknown code drops only that tile and logs nothing to the network.
-- **ADR:** An ADR-0005 records the decision when implementation starts.
+- **ADR:** [ADR-0005](../../doc/adr/0005-statistik-kacheln-als-drift-tabelle.md) records the decision.
 
 ### 4.3 UI
 
