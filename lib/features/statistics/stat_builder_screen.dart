@@ -33,6 +33,10 @@ class _StatBuilderScreenState extends State<StatBuilderScreen> {
   late StatDefinition _definition;
   late final TextEditingController _title;
 
+  /// The preview of [_definition]; typing the title rebuilds the screen on
+  /// every keystroke, and a large library should not be re-evaluated then.
+  late StatResult _result;
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +48,7 @@ class _StatBuilderScreenState extends State<StatBuilderScreen> {
             period: StatAllTime(),
             chart: StatChart.number,
           );
+    _result = widget.library.evaluate(_definition);
     _title = TextEditingController(text: widget.tile?.title ?? '');
   }
 
@@ -55,8 +60,13 @@ class _StatBuilderScreenState extends State<StatBuilderScreen> {
 
   /// Applies [change] to the current definition, not to the one of the last
   /// build, so quick taps never undo each other.
-  void _edit(StatDefinition Function(StatDefinition current) change) =>
-      setState(() => _definition = change(_definition));
+  void _edit(StatDefinition Function(StatDefinition current) change) {
+    final next = change(_definition);
+    setState(() {
+      if (next != _definition) _result = widget.library.evaluate(next);
+      _definition = next;
+    });
+  }
 
   void _save() {
     final typed = _title.text.trim();
@@ -258,7 +268,7 @@ class _StatBuilderScreenState extends State<StatBuilderScreen> {
                 ? statAutoTitle(l10n, d)
                 : _title.text.trim(),
             definition: d,
-            result: library.evaluate(d),
+            result: _result,
             library: library,
           ),
         ],

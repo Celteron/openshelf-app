@@ -25,6 +25,19 @@ Book _book(int id, {String? genre, int? pages}) => Book(
   updatedAt: DateTime(2026),
 );
 
+/// Counts how often the preview computes its result.
+class _CountingLibrary extends StatLibrary {
+  var evaluations = 0;
+
+  _CountingLibrary({super.books});
+
+  @override
+  StatResult evaluate(StatDefinition definition) {
+    evaluations++;
+    return super.evaluate(definition);
+  }
+}
+
 /// Building a statistic (spec 005, T5-05).
 void main() {
   (String, StatDefinition)? saved;
@@ -170,5 +183,34 @@ void main() {
     await save(tester);
 
     expect(saved?.$2.tagIds, isEmpty);
+  });
+
+  testWidgets('typing the title does not recompute the preview', (
+    tester,
+  ) async {
+    final library = _CountingLibrary(books: [_book(1, genre: 'Krimi')]);
+    tester.view.physicalSize = const Size(800, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: StatBuilderScreen(
+          library: library,
+          now: () => DateTime(2026, 6, 1),
+        ),
+      ),
+    );
+    final before = library.evaluations;
+
+    for (final text in ['M', 'Me', 'Mei']) {
+      await tester.enterText(find.byKey(const ValueKey('builder-title')), text);
+      await tester.pump();
+    }
+
+    expect(library.evaluations, before);
+    expect(find.text('Mei'), findsWidgets); // the preview still follows
   });
 }
