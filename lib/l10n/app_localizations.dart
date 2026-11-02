@@ -2455,6 +2455,30 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'{seconds} Sek.'**
   String durationSec(int seconds);
+
+  /// No description provided for @statsSectionOverview.
+  ///
+  /// In de, this message translates to:
+  /// **'Überblick'**
+  String get statsSectionOverview;
+
+  /// No description provided for @statsSectionReading.
+  ///
+  /// In de, this message translates to:
+  /// **'Lesen'**
+  String get statsSectionReading;
+
+  /// No description provided for @statsSectionRecords.
+  ///
+  /// In de, this message translates to:
+  /// **'Durchschnitt & Rekorde'**
+  String get statsSectionRecords;
+
+  /// No description provided for @statsSectionLibrary.
+  ///
+  /// In de, this message translates to:
+  /// **'Bibliothek'**
+  String get statsSectionLibrary;
 }
 
 class _AppLocalizationsDelegate

@@ -824,5 +824,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "statsSectionOverview": "Überblick",
+  "statsSectionReading": "Lesen",
+  "statsSectionRecords": "Durchschnitt & Rekorde",
+  "statsSectionLibrary": "Bibliothek"
 }

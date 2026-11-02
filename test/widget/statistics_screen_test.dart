@@ -71,6 +71,19 @@ void main() {
     );
     await tester.pump();
 
+    // Grouped into sections, in this order (FR-R2-15).
+    final headers = [
+      'section-overview',
+      'section-reading',
+      'section-records',
+      'section-library',
+    ];
+    final tops = [
+      for (final key in headers)
+        tester.getTopLeft(find.byKey(ValueKey(key))).dy,
+    ];
+    expect([...tops]..sort(), tops);
+
     expect(find.text('1.200'), findsOneWidget);
     expect(find.text('1.234.567'), findsOneWidget);
     expect(find.textContaining('12.345 Seiten'), findsOneWidget);
@@ -97,6 +110,10 @@ void main() {
     );
 
     final cubit = _LoadedStatisticsCubit(stats);
+    // Tall enough for the whole (lazily built) list.
+    tester.view.physicalSize = const Size(800, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
       MaterialApp(

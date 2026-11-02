@@ -1470,4 +1470,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String durationSec(int seconds) {
     return '$seconds s';
   }
+
+  @override
+  String get statsSectionOverview => 'Overview';
+
+  @override
+  String get statsSectionReading => 'Reading';
+
+  @override
+  String get statsSectionRecords => 'Averages & records';
+
+  @override
+  String get statsSectionLibrary => 'Library';
 }

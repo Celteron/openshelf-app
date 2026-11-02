@@ -692,5 +692,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "statsSectionOverview": "Overview",
+  "statsSectionReading": "Reading",
+  "statsSectionRecords": "Averages & records",
+  "statsSectionLibrary": "Library"
 }
