@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/statistics.dart';
 import 'package:openreads/domain/repositories/book_repository.dart';
 import 'package:openreads/domain/repositories/location_repository.dart';
 import 'package:openreads/features/statistics/statistics_cubit.dart';
+import 'package:openreads/features/statistics/statistics_books_screen.dart';
 import 'package:openreads/features/statistics/statistics_screen.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
@@ -136,5 +138,81 @@ void main() {
     expect(find.text('Ungelesen'), findsOneWidget);
 
     await cubit.close();
+  });
+
+  group('drill-down (FR-R2-17)', () {
+    Book book(int id, String title, BookStatus status, {DateTime? finished}) =>
+        Book(
+          id: id,
+          title: title,
+          authors: const ['A'],
+          status: status,
+          rating: 0,
+          finishedAt: finished,
+          editedFields: const [],
+          currentPage: 0,
+          isFavorite: false,
+          coverNotFound: false,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+
+    Future<void> pumpStats(WidgetTester tester) async {
+      final books = [
+        book(1, 'Märzbuch', BookStatus.read, finished: DateTime(2026, 3, 2)),
+        book(2, 'Stapel', BookStatus.unread),
+      ];
+      final stats = BookStatistics(
+        totalBooks: 2,
+        statusCounts: const {BookStatus.read: 1, BookStatus.unread: 1},
+        pagesRead: 0,
+        topLocations: const [],
+        topAuthors: const [],
+        year: 2026,
+        years: const [2026],
+        monthly: [
+          for (var m = 1; m <= 12; m++) MonthStat(m, m == 3 ? 1 : 0, 0),
+        ],
+        books: books,
+      );
+      final cubit = _LoadedStatisticsCubit(stats);
+      addTearDown(cubit.close);
+      tester.view.physicalSize = const Size(800, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: BlocProvider<StatisticsCubit>.value(
+            value: cubit,
+            child: const StatisticsScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('a month opens its finished books', (tester) async {
+      await pumpStats(tester);
+      await tester.tap(find.byKey(const ValueKey('chart-books-month-3')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StatisticsBooksScreen), findsOneWidget);
+      expect(find.text('März 2026'), findsOneWidget);
+      expect(find.text('Märzbuch'), findsOneWidget);
+      expect(find.text('Stapel'), findsNothing);
+    });
+
+    testWidgets('a status opens its books', (tester) async {
+      await pumpStats(tester);
+      await tester.tap(find.byKey(const ValueKey('status-books-unread')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StatisticsBooksScreen), findsOneWidget);
+      expect(find.text('Stapel'), findsOneWidget);
+      expect(find.text('Märzbuch'), findsNothing);
+    });
   });
 }

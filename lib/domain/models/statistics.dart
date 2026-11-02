@@ -83,7 +83,23 @@ class BookStatistics {
     this.shortestBook,
     this.fastestBook,
     this.slowestBook,
+    this.books = const [],
   });
+
+  /// The readable books in scope (all, or the year's finished ones); feeds
+  /// the drill-down (FR-R2-17).
+  final List<Book> books;
+
+  /// Finished books of [month] (1–12), within the selected year if any.
+  List<Book> finishedIn(int month) => [
+    for (final b in books)
+      if (b.status == BookStatus.read && finishedOn(b).month == month) b,
+  ];
+
+  List<Book> withStatus(BookStatus status) => [
+    for (final b in books)
+      if (b.status == status) b,
+  ];
 
   static const _maxEntries = 5;
 
@@ -237,6 +253,7 @@ class BookStatistics {
       longestBook: pickPages(true),
       shortestBook: pickPages(false),
       fastestBook: pickTimed(false),
+      books: books,
       slowestBook: pickTimed(true),
     );
   }

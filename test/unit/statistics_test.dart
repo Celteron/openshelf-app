@@ -211,6 +211,31 @@ void main() {
     });
   });
 
+  group('drill-down (FR-R2-17)', () {
+    final books = [
+      _book(1, status: BookStatus.read, finishedAt: DateTime(2026, 3, 2)),
+      _book(2, status: BookStatus.read, finishedAt: DateTime(2026, 4, 9)),
+      _book(3, status: BookStatus.read, finishedAt: DateTime(2025, 3, 9)),
+      _book(4, status: BookStatus.unread),
+    ];
+
+    test('a month lists the books finished in it', () {
+      final stats = BookStatistics.compute(books, const [], year: 2026);
+      expect(stats.finishedIn(3).map((b) => b.id), [1]);
+      expect(stats.finishedIn(5), isEmpty);
+    });
+
+    test('without a year a month spans all years', () {
+      final stats = BookStatistics.compute(books, const []);
+      expect(stats.finishedIn(3).map((b) => b.id), unorderedEquals([1, 3]));
+    });
+
+    test('a status lists its books', () {
+      final stats = BookStatistics.compute(books, const []);
+      expect(stats.withStatus(BookStatus.unread).map((b) => b.id), [4]);
+    });
+  });
+
   group('averages and records', () {
     final books = [
       _book(1, status: BookStatus.read, pages: 100, title: 'Kurz', rating: 4),

@@ -1,12 +1,15 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:openreads/data/database/app_database.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/goal_progress.dart';
 import 'package:openreads/features/common/format_count.dart';
 import 'package:openreads/features/common/format_duration.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/domain/models/statistics.dart';
+import 'package:openreads/features/statistics/statistics_books_screen.dart';
 import 'package:openreads/features/statistics/statistics_cubit.dart';
 import 'package:openreads/l10n/app_localizations.dart';
 
@@ -61,14 +64,18 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               if (stats.monthly.isNotEmpty) ...[
                 _MonthlyBarChart(
                   key: const ValueKey('chart-books'),
+                  id: 'chart-books',
                   title: l10n.finishedBooksByMonth,
                   values: [for (final m in stats.monthly) m.books],
+                  onMonth: (month) => _openMonth(context, stats, month),
                 ),
                 const SizedBox(height: 16),
                 _MonthlyBarChart(
                   key: const ValueKey('chart-pages'),
+                  id: 'chart-pages',
                   title: l10n.finishedPagesByMonth,
                   values: [for (final m in stats.monthly) m.pages],
+                  onMonth: (month) => _openMonth(context, stats, month),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -122,6 +129,62 @@ class _SectionHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+/// One invisible tap target per month over a monthly chart (FR-R2-17).
+class _MonthTapTargets extends StatelessWidget {
+  final String id;
+  final ValueChanged<int> onMonth;
+  final Widget child;
+
+  const _MonthTapTargets({
+    required this.id,
+    required this.onMonth,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    return Stack(
+      children: [
+        child,
+        Positioned.fill(
+          child: Row(
+            children: [
+              for (var m = 1; m <= 12; m++)
+                Expanded(
+                  child: Semantics(
+                    button: true,
+                    label: DateFormat.MMMM(locale).format(DateTime(2000, m)),
+                    child: InkWell(
+                      key: ValueKey('$id-month-$m'),
+                      onTap: () => onMonth(m),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+void _openBooks(BuildContext context, String title, List<Book> books) =>
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => StatisticsBooksScreen(title: title, books: books),
+      ),
+    );
+
+void _openMonth(BuildContext context, BookStatistics stats, int month) {
+  final locale = Localizations.localeOf(context).toLanguageTag();
+  final date = DateTime(stats.year ?? 2000, month);
+  final title = stats.year == null
+      ? DateFormat.MMMM(locale).format(date)
+      : DateFormat.yMMMM(locale).format(date);
+  _openBooks(context, title, stats.finishedIn(month));
 }
 
 class _SummaryCards extends StatelessWidget {
@@ -197,10 +260,18 @@ class _StatusBreakdown extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             for (final status in BookStatus.values)
-              _StatusRow(
-                label: _statusName(context, status),
-                count: stats.statusCounts[status] ?? 0,
-                total: total,
+              InkWell(
+                key: ValueKey('status-books-${status.name}'),
+                onTap: () => _openBooks(
+                  context,
+                  _statusName(context, status),
+                  stats.withStatus(status),
+                ),
+                child: _StatusRow(
+                  label: _statusName(context, status),
+                  count: stats.statusCounts[status] ?? 0,
+                  total: total,
+                ),
               ),
           ],
         ),
@@ -567,12 +638,19 @@ class _YearSelector extends StatelessWidget {
 
 /// Twelve bars, January to December.
 class _MonthlyBarChart extends StatelessWidget {
+  final String id;
   final String title;
   final List<int> values;
+
+  /// Opens the books of a month (1–12).
+  final ValueChanged<int> onMonth;
+
   const _MonthlyBarChart({
     super.key,
+    required this.id,
     required this.title,
     required this.values,
+    required this.onMonth,
   });
 
   @override
@@ -587,59 +665,63 @@ class _MonthlyBarChart extends StatelessWidget {
           children: [
             Text(title, style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
-            Semantics(
-              label: '$title: ${values.join(', ')}',
-              child: SizedBox(
-                height: 160,
-                child: BarChart(
-                  BarChartData(
-                    maxY: (max == 0 ? 1 : max * 1.15).toDouble(),
-                    gridData: const FlGridData(show: false),
-                    borderData: FlBorderData(show: false),
-                    titlesData: FlTitlesData(
-                      leftTitles: const AxisTitles(),
-                      rightTitles: const AxisTitles(),
-                      topTitles: const AxisTitles(),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 22,
-                          getTitlesWidget: (value, meta) => SideTitleWidget(
-                            meta: meta,
-                            child: Text(
-                              '${value.toInt() + 1}',
-                              style: theme.textTheme.labelSmall,
+            _MonthTapTargets(
+              id: id,
+              onMonth: onMonth,
+              child: Semantics(
+                label: '$title: ${values.join(', ')}',
+                child: SizedBox(
+                  height: 160,
+                  child: BarChart(
+                    BarChartData(
+                      maxY: (max == 0 ? 1 : max * 1.15).toDouble(),
+                      gridData: const FlGridData(show: false),
+                      borderData: FlBorderData(show: false),
+                      titlesData: FlTitlesData(
+                        leftTitles: const AxisTitles(),
+                        rightTitles: const AxisTitles(),
+                        topTitles: const AxisTitles(),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 22,
+                            getTitlesWidget: (value, meta) => SideTitleWidget(
+                              meta: meta,
+                              child: Text(
+                                '${value.toInt() + 1}',
+                                style: theme.textTheme.labelSmall,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    barGroups: [
-                      for (var i = 0; i < values.length; i++)
-                        BarChartGroupData(
-                          x: i,
-                          barRods: [
-                            BarChartRodData(
-                              toY: values[i].toDouble(),
-                              width: 12,
-                              color: theme.colorScheme.primary,
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(3),
+                      barGroups: [
+                        for (var i = 0; i < values.length; i++)
+                          BarChartGroupData(
+                            x: i,
+                            barRods: [
+                              BarChartRodData(
+                                toY: values[i].toDouble(),
+                                width: 12,
+                                color: theme.colorScheme.primary,
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(3),
+                                ),
                               ),
-                            ),
-                          ],
-                          showingTooltipIndicators: values[i] > 0 ? [0] : [],
-                        ),
-                    ],
-                    barTouchData: BarTouchData(
-                      enabled: false,
-                      touchTooltipData: BarTouchTooltipData(
-                        getTooltipColor: (_) => Colors.transparent,
-                        tooltipPadding: EdgeInsets.zero,
-                        tooltipMargin: 2,
-                        getTooltipItem: (group, _, rod, _) => BarTooltipItem(
-                          '${rod.toY.toInt()}',
-                          theme.textTheme.labelSmall ?? const TextStyle(),
+                            ],
+                            showingTooltipIndicators: values[i] > 0 ? [0] : [],
+                          ),
+                      ],
+                      barTouchData: BarTouchData(
+                        enabled: false,
+                        touchTooltipData: BarTouchTooltipData(
+                          getTooltipColor: (_) => Colors.transparent,
+                          tooltipPadding: EdgeInsets.zero,
+                          tooltipMargin: 2,
+                          getTooltipItem: (group, _, rod, _) => BarTooltipItem(
+                            '${rod.toY.toInt()}',
+                            theme.textTheme.labelSmall ?? const TextStyle(),
+                          ),
                         ),
                       ),
                     ),
