@@ -831,6 +831,14 @@ void main() {
       });
     });
 
+    testWidgets('a long page count is grouped (FR-R2-24)', (tester) async {
+      await pumpDetail(
+        tester,
+        book: sampleBook().copyWith(pageCount: const Value(1200)),
+      );
+      expect(find.text('1.200'), findsOneWidget);
+    });
+
     testWidgets('a book with an ISBN does not offer it', (tester) async {
       await pumpDetail(tester, book: sampleBook(isbn10: '3442719259'));
       expect(find.byKey(const ValueKey('complete-online')), findsNothing);

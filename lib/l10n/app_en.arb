@@ -331,10 +331,12 @@
   "@goalPagesProgress": {
     "placeholders": {
       "read": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "target": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -468,7 +470,8 @@
   "@pagesValue": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -670,5 +673,24 @@
   "completeOnline": "Complete online",
   "completeOnlineHint": "Without an ISBN the app finds neither cover nor details. Search the book online to add them.",
   "withoutCoverFilter": "Without cover",
-  "show": "Show"
+  "show": "Show",
+  "durationDh": "{days} d {hours} h",
+  "@durationDh": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationSec": "{seconds} s",
+  "@durationSec": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  }
 }

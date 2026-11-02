@@ -2443,6 +2443,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Anzeigen'**
   String get show;
+
+  /// No description provided for @durationDh.
+  ///
+  /// In de, this message translates to:
+  /// **'{days} T. {hours} Std.'**
+  String durationDh(int days, int hours);
+
+  /// No description provided for @durationSec.
+  ///
+  /// In de, this message translates to:
+  /// **'{seconds} Sek.'**
+  String durationSec(int seconds);
 }
 
 class _AppLocalizationsDelegate

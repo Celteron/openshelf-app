@@ -383,10 +383,12 @@
   "@goalPagesProgress": {
     "placeholders": {
       "read": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "target": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -530,7 +532,8 @@
   "@pagesValue": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -791,7 +794,8 @@
   "@pageCount": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -801,5 +805,24 @@
   "completeOnline": "Online vervollständigen",
   "completeOnlineHint": "Ohne ISBN findet die App weder Cover noch Daten. Such das Buch online, um sie zu ergänzen.",
   "withoutCoverFilter": "Ohne Cover",
-  "show": "Anzeigen"
+  "show": "Anzeigen",
+  "durationDh": "{days} T. {hours} Std.",
+  "@durationDh": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationSec": "{seconds} Sek.",
+  "@durationSec": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -32,6 +32,52 @@ class _NoopLocationRepository implements LocationRepository {
 }
 
 void main() {
+  testWidgets('large numbers and durations are easy to read (FR-R2-24)', (
+    tester,
+  ) async {
+    const stats = BookStatistics(
+      totalBooks: 1200,
+      statusCounts: {
+        BookStatus.unread: 0,
+        BookStatus.reading: 0,
+        BookStatus.read: 1200,
+        BookStatus.dnf: 0,
+        BookStatus.wishlist: 0,
+        BookStatus.reReading: 0,
+      },
+      pagesRead: 1234567,
+      topLocations: [],
+      topAuthors: [],
+      averagePages: 12345,
+      longestBook: NameCount('Dick', 23456),
+      fastestBook: NameCount('Lang gelesen', 3 * 86400 + 5 * 3600),
+    );
+    final cubit = _LoadedStatisticsCubit(stats);
+    addTearDown(cubit.close);
+    tester.view.physicalSize = const Size(800, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: BlocProvider<StatisticsCubit>.value(
+          value: cubit,
+          child: const StatisticsScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('1.200'), findsOneWidget);
+    expect(find.text('1.234.567'), findsOneWidget);
+    expect(find.textContaining('12.345 Seiten'), findsOneWidget);
+    expect(find.textContaining('23.456 Seiten'), findsOneWidget);
+    expect(find.textContaining('3 T. 5 Std.'), findsOneWidget);
+  });
+
   testWidgets('statistics screen renders totals and status breakdown', (
     tester,
   ) async {

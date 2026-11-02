@@ -630,7 +630,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String goalPagesProgress(int read, int target) {
-    return '$read von $target Seiten';
+    final intl.NumberFormat readNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String readString = readNumberFormat.format(read);
+    final intl.NumberFormat targetNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String targetString = targetNumberFormat.format(target);
+
+    return '$readString von $targetString Seiten';
   }
 
   @override
@@ -933,7 +941,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String pagesValue(int count) {
-    return '$count Seiten';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString Seiten';
   }
 
   @override
@@ -1422,7 +1434,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String pageCount(int count) {
-    return '$count Seiten';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString Seiten';
   }
 
   @override
@@ -1447,4 +1463,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get show => 'Anzeigen';
+
+  @override
+  String durationDh(int days, int hours) {
+    return '$days T. $hours Std.';
+  }
+
+  @override
+  String durationSec(int seconds) {
+    return '$seconds Sek.';
+  }
 }

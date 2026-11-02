@@ -232,7 +232,7 @@ void main() {
 
       expect(find.byKey(const ValueKey('goal-progress')), findsNothing);
       expect(find.byKey(const ValueKey('goal-pages-progress')), findsOneWidget);
-      expect(find.text('500 von 2000 Seiten'), findsOneWidget);
+      expect(find.text('500 von 2.000 Seiten'), findsOneWidget);
     });
 
     testWidgets('the dialog accepts a page goal without a book goal', (

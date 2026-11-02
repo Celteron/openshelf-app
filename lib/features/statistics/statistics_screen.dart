@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:openreads/domain/models/enums.dart';
 import 'package:openreads/domain/models/goal_progress.dart';
+import 'package:openreads/features/common/format_count.dart';
 import 'package:openreads/features/common/format_duration.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/domain/models/statistics.dart';
@@ -107,7 +108,7 @@ class _SummaryCards extends StatelessWidget {
           child: _Card(
             icon: Icons.book,
             label: l10n.totalBooks,
-            value: stats.totalBooks.toString(),
+            value: formatCount(context, stats.totalBooks),
           ),
         ),
         const SizedBox(width: 12),
@@ -115,7 +116,7 @@ class _SummaryCards extends StatelessWidget {
           child: _Card(
             icon: Icons.auto_stories,
             label: l10n.pagesRead,
-            value: stats.pagesRead.toString(),
+            value: formatCount(context, stats.pagesRead),
           ),
         ),
       ],
@@ -245,7 +246,7 @@ class _TopList extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(icon),
                   title: Text(entry.name),
-                  trailing: Text(entry.count.toString()),
+                  trailing: Text(formatCount(context, entry.count)),
                 ),
           ],
         ),

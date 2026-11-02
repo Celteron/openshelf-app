@@ -14,6 +14,7 @@ import 'package:openreads/domain/models/shelf_partition.dart';
 import 'package:openreads/domain/repositories/notes_repository.dart';
 import 'package:openreads/domain/repositories/reading_repository.dart';
 import 'package:openreads/domain/repositories/tag_repository.dart';
+import 'package:openreads/features/common/format_count.dart';
 import 'package:openreads/features/common/status_label.dart';
 import 'package:openreads/domain/models/app_preferences.dart';
 import 'package:openreads/features/common/widgets/book_cover.dart';
@@ -785,7 +786,10 @@ class _MetadataTable extends StatelessWidget {
       (l10n.genreLabel, book.genre),
       (l10n.publisherLabel, book.publisher),
       (l10n.yearLabel, book.publishedYear?.toString()),
-      (l10n.pagesLabel, book.pageCount?.toString()),
+      (
+        l10n.pagesLabel,
+        book.pageCount == null ? null : formatCount(context, book.pageCount!),
+      ),
       (l10n.languageLabel, book.language),
       (
         l10n.formatLabel,

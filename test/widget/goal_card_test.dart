@@ -133,7 +133,7 @@ void main() {
       ),
     );
 
-    expect(find.text('1000 von 4000 Seiten'), findsOneWidget);
+    expect(find.text('1.000 von 4.000 Seiten'), findsOneWidget);
     final bar = tester.widget<LinearProgressIndicator>(
       find.byKey(const ValueKey('goal-pages-progress')),
     );

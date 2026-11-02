@@ -629,7 +629,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String goalPagesProgress(int read, int target) {
-    return '$read of $target pages';
+    final intl.NumberFormat readNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String readString = readNumberFormat.format(read);
+    final intl.NumberFormat targetNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String targetString = targetNumberFormat.format(target);
+
+    return '$readString of $targetString pages';
   }
 
   @override
@@ -930,7 +938,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pagesValue(int count) {
-    return '$count pages';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString pages';
   }
 
   @override
@@ -1419,7 +1431,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pageCount(int count) {
-    return '$count pages';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString pages';
   }
 
   @override
@@ -1444,4 +1460,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get show => 'Show';
+
+  @override
+  String durationDh(int days, int hours) {
+    return '$days d $hours h';
+  }
+
+  @override
+  String durationSec(int seconds) {
+    return '$seconds s';
+  }
 }
