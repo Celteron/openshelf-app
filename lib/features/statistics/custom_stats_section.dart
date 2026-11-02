@@ -186,7 +186,9 @@ class _TileMenu extends StatelessWidget {
       case _TileAction.pin:
         final done = await cubit.setPinned(tile.id, pinned: !tile.pinned);
         if (!done) {
-          messenger.showSnackBar(SnackBar(content: Text(l10n.statPinLimit)));
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.statPinLimit(StatTile.maxPinned))),
+          );
         }
       case _TileAction.up:
         await cubit.moveTile(tile.id, -1);
@@ -202,7 +204,9 @@ class _TileMenu extends StatelessWidget {
               onPressed: () async {
                 if (!await undo()) {
                   messenger.showSnackBar(
-                    SnackBar(content: Text(l10n.statPinLimit)),
+                    SnackBar(
+                      content: Text(l10n.statPinLimit(StatTile.maxPinned)),
+                    ),
                   );
                 }
               },

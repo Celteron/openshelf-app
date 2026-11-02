@@ -1455,7 +1455,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'No cover found online. You can take a photo or pick one from the gallery.';
 
   @override
-  String get coverSearchOffline => 'No connection. Please try again later.';
+  String get coverSearchOffline =>
+      'The online search cannot be reached right now. Please try again later.';
 
   @override
   String get completeOnline => 'Complete online';
@@ -1685,7 +1686,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statUnpin => 'Remove from home';
 
   @override
-  String get statPinLimit => 'The home tab shows at most 3 statistics.';
+  String statPinLimit(int max) {
+    return 'The home tab shows at most $max statistics.';
+  }
 
   @override
   String get statMoveUp => 'Move up';

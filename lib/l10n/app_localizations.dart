@@ -2423,7 +2423,7 @@ abstract class AppLocalizations {
   /// No description provided for @coverSearchOffline.
   ///
   /// In de, this message translates to:
-  /// **'Keine Verbindung. Bitte später erneut versuchen.'**
+  /// **'Die Online-Suche ist gerade nicht erreichbar. Bitte später erneut versuchen.'**
   String get coverSearchOffline;
 
   /// No description provided for @completeOnline.
@@ -2837,8 +2837,8 @@ abstract class AppLocalizations {
   /// No description provided for @statPinLimit.
   ///
   /// In de, this message translates to:
-  /// **'Auf der Startseite sind höchstens 3 Statistiken möglich.'**
-  String get statPinLimit;
+  /// **'Auf der Startseite sind höchstens {max} Statistiken möglich.'**
+  String statPinLimit(int max);
 
   /// No description provided for @statMoveUp.
   ///

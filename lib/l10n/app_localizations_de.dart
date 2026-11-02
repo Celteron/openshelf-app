@@ -1459,7 +1459,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get coverSearchOffline =>
-      'Keine Verbindung. Bitte später erneut versuchen.';
+      'Die Online-Suche ist gerade nicht erreichbar. Bitte später erneut versuchen.';
 
   @override
   String get completeOnline => 'Online vervollständigen';
@@ -1689,8 +1689,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get statUnpin => 'Nicht mehr auf Startseite';
 
   @override
-  String get statPinLimit =>
-      'Auf der Startseite sind höchstens 3 Statistiken möglich.';
+  String statPinLimit(int max) {
+    return 'Auf der Startseite sind höchstens $max Statistiken möglich.';
+  }
 
   @override
   String get statMoveUp => 'Nach oben';

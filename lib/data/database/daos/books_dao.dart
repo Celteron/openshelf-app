@@ -199,8 +199,8 @@ class BooksDao {
     });
   }
 
-  /// Writes the locations, tags and goals that come with a backup independent
-  /// of any book. An existing goal keeps its book target; a missing page target is
+  /// Writes the locations, tags, goals and statistic tiles that come with a
+  /// backup independent of any book. An existing goal keeps its book target; a missing page target is
   /// filled in.
   Future<void> importExtras(ImportExtras extras) {
     return db.transaction(() async {

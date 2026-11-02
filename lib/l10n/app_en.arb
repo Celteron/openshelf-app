@@ -670,7 +670,7 @@
   "coverSearchOnline": "Search online",
   "coverSearchTitle": "Search cover online",
   "coverSearchEmpty": "No cover found online. You can take a photo or pick one from the gallery.",
-  "coverSearchOffline": "No connection. Please try again later.",
+  "coverSearchOffline": "The online search cannot be reached right now. Please try again later.",
   "completeOnline": "Complete online",
   "completeOnlineHint": "Without an ISBN the app finds neither cover nor details. Search the book online to add them.",
   "withoutCoverFilter": "Without cover",
@@ -763,7 +763,7 @@
   "statDeleted": "\"{title}\" deleted",
   "statPin": "Show on home",
   "statUnpin": "Remove from home",
-  "statPinLimit": "The home tab shows at most 3 statistics.",
+  "statPinLimit": "The home tab shows at most {max} statistics.",
   "statMoveUp": "Move up",
   "statMoveDown": "Move down",
   "statMenu": "Statistic menu"

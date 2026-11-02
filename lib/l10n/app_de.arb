@@ -802,7 +802,7 @@
   "coverSearchOnline": "Online suchen",
   "coverSearchTitle": "Cover online suchen",
   "coverSearchEmpty": "Kein Cover online gefunden. Du kannst eins fotografieren oder aus der Galerie wählen.",
-  "coverSearchOffline": "Keine Verbindung. Bitte später erneut versuchen.",
+  "coverSearchOffline": "Die Online-Suche ist gerade nicht erreichbar. Bitte später erneut versuchen.",
   "completeOnline": "Online vervollständigen",
   "completeOnlineHint": "Ohne ISBN findet die App weder Cover noch Daten. Such das Buch online, um sie zu ergänzen.",
   "withoutCoverFilter": "Ohne Cover",
@@ -934,7 +934,14 @@
   },
   "statPin": "Auf Startseite anzeigen",
   "statUnpin": "Nicht mehr auf Startseite",
-  "statPinLimit": "Auf der Startseite sind höchstens 3 Statistiken möglich.",
+  "statPinLimit": "Auf der Startseite sind höchstens {max} Statistiken möglich.",
+  "@statPinLimit": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "statMoveUp": "Nach oben",
   "statMoveDown": "Nach unten",
   "statMenu": "Statistik-Menü"

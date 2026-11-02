@@ -802,5 +802,39 @@ void main() {
       expect(result.skipped, 1);
       expect(result.errors.single.reason, 'Missing title');
     });
+
+    test('broken statistic tiles are skipped, good ones restored', () async {
+      String tile(Object? definition, {Object? title = 'T'}) =>
+          jsonEncode({'title': title, 'definition': definition});
+      final good = jsonEncode({
+        'measure': 'books',
+        'period': 'all',
+        'chart': 'number',
+      });
+      final json = jsonEncode({
+        'version': 2,
+        'exportedAt': '2026-01-01T00:00:00.000',
+        'books': [],
+        'locations': [],
+        'statTiles': [
+          for (final raw in [
+            tile(good, title: 'Gut'),
+            tile(42), // not a string
+            tile('{"measure":'), // broken JSON
+            tile('{"measure":"future","period":"all","chart":"number"}'),
+            tile(good, title: null), // no title
+          ])
+            jsonDecode(raw),
+          'kein Objekt',
+        ],
+      });
+
+      final result = await restore(target, json);
+
+      expect(result.errors, isEmpty);
+      expect(await tiles(target), [
+        'Gut|false|{"measure":"books","period":"all","chart":"number"}|[]',
+      ]);
+    });
   });
 }
