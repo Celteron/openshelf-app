@@ -108,6 +108,47 @@ class CustomStatsCubit extends Cubit<CustomStatsState> {
     StatDefinition? definition,
   }) => _tiles.updateTile(id, title: title, definition: definition);
 
+  /// `false` when the home tab already shows [StatTile.maxPinned] tiles.
+  Future<bool> setPinned(int id, {required bool pinned}) =>
+      _tiles.setPinned(id, pinned: pinned);
+
+  /// Moves a tile [delta] places (-1 up, 1 down) within the shown order.
+  Future<void> moveTile(int id, int delta) async {
+    final ids = _shownIds();
+    final from = ids.indexOf(id);
+    final to = from + delta;
+    if (from < 0 || to < 0 || to >= ids.length) return;
+    ids.insert(to, ids.removeAt(from));
+    await _tiles.reorder(ids);
+  }
+
+  /// Stores the order after a drag from [from] to [to] (indices before the
+  /// move, as [ReorderableListView] reports them).
+  Future<void> reorderTile(int from, int to) async {
+    final ids = _shownIds();
+    if (from < 0 || from >= ids.length) return;
+    final id = ids.removeAt(from);
+    ids.insert((to > from ? to - 1 : to).clamp(0, ids.length), id);
+    await _tiles.reorder(ids);
+  }
+
+  /// Deletes [tile] and returns what undoes it: the tile comes back at its
+  /// place with its pin (FR-05-08).
+  Future<Future<void> Function()> deleteTile(StatTile tile) async {
+    final order = _shownIds();
+    await _tiles.deleteTile(tile.id);
+    return () async {
+      final id = await _tiles.addTile(tile.title, tile.definition);
+      if (tile.pinned) await _tiles.setPinned(id, pinned: true);
+      await _tiles.reorder([for (final i in order) i == tile.id ? id : i]);
+    };
+  }
+
+  List<int> _shownIds() => switch (state) {
+    CustomStatsLoaded(:final tiles) => [for (final t in tiles) t.tile.id],
+    CustomStatsLoading() || CustomStatsError() => <int>[],
+  };
+
   @override
   Future<void> close() async {
     await _subscription?.cancel();

@@ -143,4 +143,59 @@ void main() {
       isA<CustomStatsError>(),
     );
   });
+
+  group('managing tiles (FR-05-08)', () {
+    Future<List<String>> titles() async => [
+      for (final t
+          in ((await cubit.stream.firstWhere((s) => s is CustomStatsLoaded))
+                  as CustomStatsLoaded)
+              .tiles)
+        t.tile.title,
+    ];
+
+    Future<List<EvaluatedTile>> settled(int count) async =>
+        ((await cubit.stream.firstWhere(
+                  (s) => s is CustomStatsLoaded && s.tiles.length == count,
+                ))
+                as CustomStatsLoaded)
+            .tiles;
+
+    test('moving a tile swaps it with its neighbour', () async {
+      await cubit.addTile('A', _count);
+      await cubit.addTile('B', _count);
+      final b = (await settled(2)).last.tile.id;
+
+      await cubit.moveTile(b, -1);
+
+      expect(await titles(), ['B', 'A']);
+    });
+
+    test('a drag stores the order the list reports', () async {
+      for (final t in ['A', 'B', 'C']) {
+        await cubit.addTile(t, _count);
+      }
+      await settled(3);
+
+      // ReorderableListView counts the target with the item still in place.
+      await cubit.reorderTile(0, 3);
+
+      expect(await titles(), ['B', 'C', 'A']);
+    });
+
+    test('a deleted tile comes back where it was, pinned as before', () async {
+      await cubit.addTile('A', _count);
+      final b = await cubit.addTile('B', _count);
+      await cubit.addTile('C', _count);
+      expect(await cubit.setPinned(b, pinned: true), isTrue);
+      final tile = (await settled(3))[1].tile;
+
+      final undo = await cubit.deleteTile(tile);
+      await settled(2);
+      await undo();
+
+      final tiles = await settled(3);
+      expect([for (final t in tiles) t.tile.title], ['A', 'B', 'C']);
+      expect(tiles[1].tile.pinned, isTrue);
+    });
+  });
 }
