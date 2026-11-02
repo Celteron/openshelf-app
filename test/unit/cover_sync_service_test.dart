@@ -1,0 +1,245 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:drift/drift.dart' show Value;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:openreads/data/cover/cover_cache_service.dart';
+import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/repositories/book_repository.dart';
+import 'package:openreads/domain/services/cover_sync_service.dart';
+
+import '../helpers/test_images.dart';
+
+class _Repo implements BookRepository {
+  final List<Book> books;
+  final paths = <int, String?>{};
+  final notFound = <int>{};
+  _Repo(this.books);
+
+  @override
+  Future<void> setCoverNotFound(int id) async => notFound.add(id);
+
+  @override
+  Future<List<Book>> getAllBooks() async => books;
+
+  /// Like the database: the book carries the path afterwards.
+  @override
+  Future<void> setCoverLocalPath(int id, String? path) async {
+    paths[id] = path;
+    final i = books.indexWhere((b) => b.id == id);
+    if (i >= 0) books[i] = books[i].copyWith(coverLocalPath: Value(path));
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+Book book(
+  int id, {
+  String? isbn13,
+  String? url,
+  String? local,
+  bool notFound = false,
+}) => Book(
+  id: id,
+  title: 'B$id',
+  authors: const ['A'],
+  status: BookStatus.unread,
+  rating: 0,
+  isbn13: isbn13,
+  coverUrl: url,
+  coverLocalPath: local,
+  editedFields: const [],
+  currentPage: 0,
+  isFavorite: false,
+  coverNotFound: notFound,
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
+
+void main() {
+  late Directory dir;
+  setUp(() => dir = Directory.systemTemp.createTempSync('cover_sync_test'));
+  tearDown(() => dir.deleteSync(recursive: true));
+
+  CoverCacheService cache(Set<String> failingUrls) => CoverCacheService(
+    baseDirectory: dir,
+    client: MockClient(
+      (req) async => failingUrls.contains(req.url.toString())
+          ? http.Response('x', 404)
+          : http.Response.bytes(
+              testPng(),
+              200,
+              headers: {'content-type': 'image/png'},
+            ),
+    ),
+  );
+
+  test(
+    'downloads only covers that are known by URL but missing locally',
+    () async {
+      final covers = cache({
+        'https://x/fail.jpg',
+        dnbCoverUrl('9783000000205'),
+        openLibraryCoverUrl('9783000000205'),
+      });
+      final existing = await covers.saveCover('present', testPng());
+      final repo = _Repo([
+        book(1, isbn13: '9783000000201', url: 'https://x/a.jpg'), // missing
+        book(2, url: 'https://x/b.jpg'), // missing, keyed by id
+        book(
+          3,
+          isbn13: '9783000000203',
+          url: 'https://x/c.jpg',
+          local: existing,
+        ),
+        book(4, isbn13: '9783000000204'), // no URL: Open Library by ISBN
+        book(5, isbn13: '9783000000205', url: 'https://x/fail.jpg'), // 404
+        book(
+          6,
+          isbn13: '9783000000206',
+          url: 'https://x/d.jpg',
+          local: '/gone.jpg',
+        ),
+      ]);
+      final progress = <(int, int)>[];
+
+      final result = await CoverSyncService(repo, covers).downloadMissing(
+        onProgress: (done, total) => progress.add((done, total)),
+      );
+
+      expect(result.total, 5);
+      expect(result.downloaded, 4);
+      expect(result.notFound, 1, reason: 'every source answered 404');
+      expect(result.failed, 0);
+      expect(repo.notFound, {5});
+      expect(repo.paths.keys, unorderedEquals([1, 2, 4, 6]));
+      expect(repo.paths[1], '${dir.path}/covers/9783000000201.jpg');
+      expect(repo.paths[2], '${dir.path}/covers/book-2.jpg');
+      expect(progress.last, (5, 5));
+    },
+  );
+
+  test('nothing missing is a quick no-op', () async {
+    final repo = _Repo([book(1), book(2)]);
+
+    final result = await CoverSyncService(repo, cache({})).downloadMissing();
+
+    expect(
+      (result.total, result.downloaded, result.notFound, result.failed),
+      (0, 0, 0, 0),
+    );
+    expect(repo.paths, isEmpty);
+  });
+  test('falls back to DNB when the stored URL and Open Library fail', () async {
+    const isbn = '9783833874239';
+    final repo = _Repo([
+      book(1, isbn13: isbn, url: 'https://google.test/c.jpg'),
+    ]);
+    final covers = cache({
+      'https://google.test/c.jpg',
+      openLibraryCoverUrl(isbn),
+    });
+
+    final result = await CoverSyncService(repo, covers).downloadMissing();
+
+    expect((result.downloaded, result.failed), (1, 0));
+    expect(repo.paths[1], '${dir.path}/covers/$isbn.jpg');
+  });
+
+  test('an unreachable source is a failure, not "no cover"', () async {
+    final repo = _Repo([book(1, isbn13: '9783000000201')]);
+    final covers = CoverCacheService(
+      baseDirectory: dir,
+      client: MockClient((_) async => throw const SocketException('offline')),
+    );
+
+    final result = await CoverSyncService(repo, covers).downloadMissing();
+
+    expect((result.notFound, result.failed), (0, 1));
+    expect(repo.notFound, isEmpty);
+  });
+
+  test('books already known to have no cover online are skipped', () async {
+    var requests = 0;
+    final repo = _Repo([book(1, isbn13: '9783000000201', notFound: true)]);
+    final covers = CoverCacheService(
+      baseDirectory: dir,
+      client: MockClient((_) async {
+        requests++;
+        return http.Response('', 404);
+      }),
+    );
+
+    final result = await CoverSyncService(repo, covers).downloadMissing();
+
+    expect(requests, 0);
+    expect((result.total, result.notFound), (0, 1));
+  });
+
+  test('overlapping runs share one pass instead of asking twice', () async {
+    var requests = 0;
+    final repo = _Repo([book(1, isbn13: '9783000000201', url: 'https://x/a')]);
+    final covers = CoverCacheService(
+      baseDirectory: dir,
+      client: MockClient((_) async {
+        requests++;
+        return http.Response.bytes(
+          testPng(),
+          200,
+          headers: {'content-type': 'image/png'},
+        );
+      }),
+    );
+    final service = CoverSyncService(repo, covers);
+
+    final results = await Future.wait([
+      service.downloadMissing(),
+      service.downloadMissing(),
+    ]);
+
+    expect(requests, 1);
+    expect(results[0].downloaded, 1);
+    expect(identical(results[0], results[1]), isTrue);
+  });
+
+  test(
+    'books added while a pass runs are searched in a follow-up pass',
+    () async {
+      final gate = Completer<void>();
+      var firstRequest = true;
+      final repo = _Repo([
+        book(1, isbn13: '9783000000201', url: 'https://x/a'),
+      ]);
+      final covers = CoverCacheService(
+        baseDirectory: dir,
+        client: MockClient((_) async {
+          if (firstRequest) {
+            firstRequest = false;
+            await gate.future;
+          }
+          return http.Response.bytes(
+            testPng(),
+            200,
+            headers: {'content-type': 'image/png'},
+          );
+        }),
+      );
+      final service = CoverSyncService(repo, covers);
+
+      final first = service.downloadMissing();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      // A second batch is saved while the first pass still waits on the network.
+      repo.books.add(book(2, isbn13: '9783000000202', url: 'https://x/b'));
+      final second = service.downloadMissing();
+      gate.complete();
+      final results = await Future.wait([first, second]);
+
+      expect(repo.paths.keys, unorderedEquals([1, 2]));
+      expect(results.first.downloaded, 2, reason: 'both passes are summed');
+    },
+  );
+}

@@ -1,0 +1,723 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:openreads/core/helpers/maybe_read.dart';
+import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/domain/models/book_metadata.dart';
+import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/repositories/location_repository.dart';
+import 'package:openreads/features/common/status_label.dart';
+import 'package:openreads/domain/models/scan_verdict.dart';
+import 'package:openreads/features/scanner/scanner_cubit.dart';
+import 'package:openreads/features/settings/settings_cubit.dart';
+import 'package:openreads/features/common/widgets/book_cover.dart';
+import 'package:openreads/l10n/app_localizations.dart';
+
+/// Continuous batch barcode scanner with a staging shelf and "save all" CTA
+/// (spec §6.2, US5). On platforms without a camera implementation (e.g. Linux
+/// desktop) the preview degrades gracefully to a notice.
+class ScannerScreen extends StatefulWidget {
+  const ScannerScreen({super.key});
+
+  @override
+  State<ScannerScreen> createState() => _ScannerScreenState();
+}
+
+class _ScannerScreenState extends State<ScannerScreen> {
+  MobileScannerController? _controller;
+
+  /// Kept for dispose(): looking up the cubit through a deactivated context
+  /// is unsafe.
+  late final ScannerCubit _cubit;
+
+  static bool get _supportsCamera =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+
+  @override
+  void initState() {
+    super.initState();
+    if (_supportsCamera) {
+      _controller = MobileScannerController(
+        formats: const [BarcodeFormat.ean13],
+        detectionSpeed: DetectionSpeed.noDuplicates,
+      );
+    }
+    _cubit = context.read<ScannerCubit>()..start(defaults: _defaults());
+  }
+
+  StagedDefaults _defaults() {
+    final settings = context.maybeRead<SettingsCubit>()?.state;
+    // No settings in isolated widget tests.
+    if (settings == null) return const StagedDefaults();
+    return StagedDefaults(
+      format: settings.defaultFormat,
+      status: settings.defaultStatus,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    _cubit.stop();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return BlocListener<ScannerCubit, ScannerState>(
+      listenWhen: (before, now) =>
+          now is ScannerActive &&
+          now.saveFailed &&
+          !(before is ScannerActive && before.saveFailed),
+      listener: (context, _) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.scanSaveFailed))),
+      child: _scaffold(context, l10n),
+    );
+  }
+
+  Widget _scaffold(BuildContext context, AppLocalizations l10n) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.scannerTitle),
+        actions: const [_LookupModeChip()],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: _supportsCamera
+                ? Semantics(
+                    label: l10n.scannerTitle,
+                    image: true,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        MobileScanner(
+                          controller: _controller!,
+                          onDetect: (capture) {
+                            for (final barcode in capture.barcodes) {
+                              final raw = barcode.rawValue;
+                              if (raw != null) {
+                                context.read<ScannerCubit>().onScanned(raw);
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  )
+                : Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        l10n.scannerUnsupported,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+          ),
+          const _VerdictCard(),
+          _StagingShelf(),
+        ],
+      ),
+    );
+  }
+}
+
+/// "In the shop": scans only answer "do I have it?" and stage nothing.
+class _LookupModeChip extends StatelessWidget {
+  const _LookupModeChip();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return BlocBuilder<ScannerCubit, ScannerState>(
+      buildWhen: (a, b) =>
+          (a is ScannerActive ? a.lookupOnly : false) !=
+          (b is ScannerActive ? b.lookupOnly : false),
+      builder: (context, state) {
+        final on = state is ScannerActive && state.lookupOnly;
+        return Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: Tooltip(
+            message: l10n.scanLookupModeHint,
+            child: FilterChip(
+              key: const ValueKey('scan-lookup-mode'),
+              avatar: const Icon(Icons.storefront_outlined, size: 18),
+              label: Text(l10n.scanLookupMode),
+              selected: on,
+              onSelected: (value) =>
+                  context.read<ScannerCubit>().setLookupOnly(value),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The answer to the latest scan: owned (and where), wishlist, in the trash,
+/// or new with the actions to add it.
+class _VerdictCard extends StatelessWidget {
+  const _VerdictCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ScannerCubit, ScannerState>(
+      buildWhen: (a, b) =>
+          (a is ScannerActive ? a.verdict : null) !=
+              (b is ScannerActive ? b.verdict : null) ||
+          (a is ScannerActive && a.verdictFailed) !=
+              (b is ScannerActive && b.verdictFailed),
+      builder: (context, state) {
+        final verdict = state is ScannerActive ? state.verdict : null;
+        return AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          child: verdict == null
+              ? const SizedBox(width: double.infinity)
+              : _VerdictBody(
+                  verdict: verdict,
+                  failed: state is ScannerActive && state.verdictFailed,
+                ),
+        );
+      },
+    );
+  }
+}
+
+class _VerdictBody extends StatelessWidget {
+  final ScanVerdict verdict;
+  final bool failed;
+  const _VerdictBody({required this.verdict, required this.failed});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final cubit = context.read<ScannerCubit>();
+
+    final (IconData icon, Color color, String headline) = switch (verdict) {
+      OwnedVerdict() => (Icons.check_circle, scheme.primary, l10n.verdictOwned),
+      WishlistVerdict() => (
+        Icons.favorite_border,
+        scheme.tertiary,
+        l10n.verdictWishlist,
+      ),
+      TrashedVerdict() => (
+        Icons.delete_outline,
+        scheme.error,
+        l10n.verdictTrashed,
+      ),
+      NewVerdict() => (
+        Icons.add_circle_outline,
+        scheme.secondary,
+        l10n.verdictNew,
+      ),
+    };
+    final title = switch (verdict) {
+      OwnedVerdict(:final book) || WishlistVerdict(:final book) => book.title,
+      NewVerdict(:final metadata) => metadata?.title,
+      TrashedVerdict() => null,
+    };
+    final series = switch (verdict) {
+      OwnedVerdict(:final series) || WishlistVerdict(:final series) => series,
+      _ => null,
+    };
+
+    return Card(
+      margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 4, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: color),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Semantics(
+                    liveRegion: true,
+                    child: Text(
+                      headline,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  key: const ValueKey('verdict-dismiss'),
+                  icon: const Icon(Icons.close),
+                  tooltip: l10n.verdictDismiss,
+                  onPressed: cubit.dismissVerdict,
+                ),
+              ],
+            ),
+            if (failed)
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  l10n.verdictSaveFailed,
+                  style: TextStyle(color: scheme.error),
+                ),
+              ),
+            if (title != null) Text(title),
+            if (verdict case OwnedVerdict(:final locationPath))
+              Text(locationPath ?? l10n.verdictNoLocation),
+            if (series != null) ...[
+              if (series.missing.isNotEmpty)
+                Text(
+                  l10n.verdictSeriesMissing(
+                    series.name,
+                    series.missing.length,
+                    series.missing.join(', '),
+                  ),
+                )
+              else if (series.total != null)
+                Text(l10n.verdictSeriesComplete(series.name, series.total!)),
+            ],
+            if (verdict is NewVerdict)
+              Wrap(
+                spacing: 8,
+                children: [
+                  FilledButton.tonalIcon(
+                    key: const ValueKey('verdict-add'),
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.verdictAdd),
+                    onPressed: cubit.addVerdictToStaged,
+                  ),
+                  OutlinedButton.icon(
+                    key: const ValueKey('verdict-wishlist'),
+                    icon: const Icon(Icons.favorite_border),
+                    label: Text(l10n.verdictToWishlist),
+                    onPressed: cubit.addVerdictToWishlist,
+                  ),
+                ],
+              ),
+            if (verdict is WishlistVerdict)
+              FilledButton.tonalIcon(
+                key: const ValueKey('verdict-bought'),
+                icon: const Icon(Icons.shopping_bag_outlined),
+                label: Text(l10n.verdictBought),
+                onPressed: cubit.moveVerdictToLibrary,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StagingShelf extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return BlocBuilder<ScannerCubit, ScannerState>(
+      builder: (context, state) {
+        if (state is! ScannerActive) return const SizedBox.shrink();
+        if (state.lookupOnly && state.staged.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        final cubit = context.read<ScannerCubit>();
+        return Container(
+          constraints: const BoxConstraints(maxHeight: 280),
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: Text(l10n.stagedCount(state.staged.length))),
+                  IconButton(
+                    key: const ValueKey('staged-shared'),
+                    icon: const Icon(Icons.tune),
+                    tooltip: l10n.sharedValuesTitle,
+                    onPressed: () => showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      showDragHandle: true,
+                      builder: (_) => BlocProvider.value(
+                        value: cubit,
+                        child: _SharedValuesSheet(initial: state.shared),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              _SharedSummary(shared: state.shared),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final book in state.staged)
+                      ListTile(
+                        dense: true,
+                        leading: book.duplicate
+                            ? Icon(
+                                Icons.warning,
+                                color: Theme.of(context).colorScheme.error,
+                              )
+                            : UrlCover(
+                                key: ValueKey('staged-cover:${book.isbn13}'),
+                                cacheKey: book.isbn13,
+                                url: book.metadata?.coverUrl,
+                                width: 32,
+                                height: 46,
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                        title: Text(book.metadata?.title ?? book.isbn13),
+                        subtitle: Text(
+                          book.duplicate
+                              ? l10n.alreadyInLibrary
+                              : switch (book.metadata?.authors) {
+                                  final authors? when authors.isNotEmpty =>
+                                    authors.join(', '),
+                                  _ => book.isbn13,
+                                },
+                        ),
+                        trailing: IconButton(
+                          key: ValueKey('staged-remove:${book.isbn13}'),
+                          icon: const Icon(Icons.close),
+                          tooltip: l10n.removeStaged,
+                          onPressed: () => cubit.removeStaged(book.isbn13),
+                        ),
+                        // An owned book is skipped on save; nothing to edit.
+                        onTap: book.duplicate
+                            ? null
+                            : () => showModalBottomSheet<void>(
+                                context: context,
+                                isScrollControlled: true,
+                                showDragHandle: true,
+                                builder: (_) => BlocProvider.value(
+                                  value: cubit,
+                                  child: _StagedEditor(book: book),
+                                ),
+                              ),
+                      ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: state.saving ? null : cubit.saveAll,
+                  child: Text(state.saving ? l10n.saving : l10n.saveAll),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// One line saying what "save all" will apply.
+class _SharedSummary extends StatefulWidget {
+  final StagedDefaults shared;
+  const _SharedSummary({required this.shared});
+
+  @override
+  State<_SharedSummary> createState() => _SharedSummaryState();
+}
+
+class _SharedSummaryState extends State<_SharedSummary> {
+  /// Read once per chosen location, not on every scan that rebuilds the
+  /// shelf (the line would also flicker while the query runs).
+  Future<List<Location>>? _locations;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(_SharedSummary old) {
+    super.didUpdateWidget(old);
+    if (old.shared.locationId != widget.shared.locationId) _load();
+  }
+
+  void _load() => _locations = widget.shared.locationId == null
+      ? null
+      : context.read<LocationRepository>().getLocations();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final shared = widget.shared;
+    return FutureBuilder<List<Location>>(
+      future: _locations,
+      builder: (context, snapshot) {
+        final location = [
+          for (final l in snapshot.data ?? const <Location>[])
+            if (l.id == shared.locationId) l.name,
+        ];
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            [
+              statusLabel(l10n, shared.status),
+              if (shared.format case final format?) formatLabel(l10n, format),
+              if (shared.receivedAs case final received?)
+                receivedAsLabel(l10n, received),
+              ...location,
+            ].join(' · '),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Corrects what the lookup found for one staged book; only changed fields
+/// count as user edits.
+class _StagedEditor extends StatefulWidget {
+  final StagedBook book;
+  const _StagedEditor({required this.book});
+
+  @override
+  State<_StagedEditor> createState() => _StagedEditorState();
+}
+
+class _StagedEditorState extends State<_StagedEditor> {
+  late final BookMetadata _initial =
+      widget.book.metadata ?? const BookMetadata();
+  late final _title = TextEditingController(text: _initial.title ?? '');
+  late final _authors = TextEditingController(
+    text: _initial.authors.join(', '),
+  );
+  late final _pages = TextEditingController(
+    text: _initial.pageCount?.toString() ?? '',
+  );
+  late final _publisher = TextEditingController(text: _initial.publisher ?? '');
+  late final _year = TextEditingController(
+    text: _initial.publishedYear?.toString() ?? '',
+  );
+
+  @override
+  void dispose() {
+    for (final c in [_title, _authors, _pages, _publisher, _year]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  String? _text(TextEditingController c) =>
+      c.text.trim().isEmpty ? null : c.text.trim();
+
+  void _save() {
+    final edited = BookMetadata(
+      title: _text(_title),
+      authors: [
+        for (final a in _authors.text.split(','))
+          if (a.trim().isNotEmpty) a.trim(),
+      ],
+      pageCount: int.tryParse(_pages.text.trim()),
+      publisher: _text(_publisher),
+      publishedYear: int.tryParse(_year.text.trim()),
+    );
+    final changed = {
+      if (edited.title != _initial.title) 'title',
+      if (edited.authors.join(', ') != _initial.authors.join(', ')) 'authors',
+      if (edited.pageCount != _initial.pageCount) 'pageCount',
+      if (edited.publisher != _initial.publisher) 'publisher',
+      if (edited.publishedYear != _initial.publishedYear) 'publishedYear',
+    };
+    if (changed.isNotEmpty) {
+      context.read<ScannerCubit>().editStaged(
+        widget.book.isbn13,
+        edited,
+        changed,
+      );
+    }
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    Widget field(
+      String key,
+      TextEditingController controller,
+      String label, {
+      bool number = false,
+    }) => Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextField(
+        key: ValueKey(key),
+        controller: controller,
+        keyboardType: number ? TextInputType.number : null,
+        decoration: InputDecoration(labelText: label),
+      ),
+    );
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        16 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.editStagedTitle,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            Text(widget.book.isbn13),
+            const SizedBox(height: 16),
+            field('staged-edit-title', _title, l10n.fieldTitle),
+            field('staged-edit-authors', _authors, l10n.fieldAuthors),
+            field('staged-edit-pages', _pages, l10n.fieldPages, number: true),
+            field('staged-edit-publisher', _publisher, l10n.fieldPublisher),
+            field('staged-edit-year', _year, l10n.fieldYear, number: true),
+            FilledButton(
+              key: const ValueKey('staged-edit-save'),
+              onPressed: _save,
+              child: Text(l10n.save),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Location, format, status and "received as" for every book of the batch.
+class _SharedValuesSheet extends StatefulWidget {
+  final StagedDefaults initial;
+  const _SharedValuesSheet({required this.initial});
+
+  @override
+  State<_SharedValuesSheet> createState() => _SharedValuesSheetState();
+}
+
+class _SharedValuesSheetState extends State<_SharedValuesSheet> {
+  late int? _locationId = widget.initial.locationId;
+  late BookFormat? _format = widget.initial.format;
+  late BookStatus _status = widget.initial.status;
+  late ReceivedAs? _receivedAs = widget.initial.receivedAs;
+  // A location deleted meanwhile is dropped, so "save all" cannot fail on
+  // it.
+  late final Future<List<Location>> _locations = context
+      .read<LocationRepository>()
+      .getLocations()
+      .then((list) {
+        if (!list.any((l) => l.id == _locationId)) _locationId = null;
+        return list;
+      });
+
+  Widget _dropdown<T>({
+    required String key,
+    required String label,
+    required T value,
+    required List<(T, String)> items,
+    required ValueChanged<T> onChanged,
+  }) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: InputDecorator(
+      decoration: InputDecoration(labelText: label),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          key: ValueKey(key),
+          value: value,
+          isExpanded: true,
+          items: [
+            for (final (v, text) in items)
+              DropdownMenuItem<T>(value: v, child: Text(text)),
+          ],
+          onChanged: (v) => setState(() => onChanged(v as T)),
+        ),
+      ),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.sharedValuesTitle,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            Text(l10n.sharedValuesHint),
+            const SizedBox(height: 16),
+            FutureBuilder<List<Location>>(
+              future: _locations,
+              builder: (context, snapshot) => _dropdown<int?>(
+                key: 'shared-location',
+                label: l10n.fieldLocation,
+                // Until the list is loaded only "no location" is an item.
+                value: snapshot.hasData ? _locationId : null,
+                items: [
+                  (null, l10n.noLocation),
+                  for (final l in snapshot.data ?? const <Location>[])
+                    (l.id, l.name),
+                ],
+                onChanged: (v) => _locationId = v,
+              ),
+            ),
+            _dropdown<BookFormat?>(
+              key: 'shared-format',
+              label: l10n.fieldFormat,
+              value: _format,
+              items: [
+                (null, l10n.formatUnknown),
+                for (final f in BookFormat.values) (f, formatLabel(l10n, f)),
+              ],
+              onChanged: (v) => _format = v,
+            ),
+            _dropdown<BookStatus>(
+              key: 'shared-status',
+              label: l10n.statusLabel,
+              value: _status,
+              items: [
+                for (final s in BookStatus.values) (s, statusLabel(l10n, s)),
+              ],
+              onChanged: (v) => _status = v,
+            ),
+            _dropdown<ReceivedAs?>(
+              key: 'shared-received-as',
+              label: l10n.fieldReceivedAs,
+              value: _receivedAs,
+              items: [
+                (null, l10n.receivedAsUnknown),
+                for (final r in ReceivedAs.values)
+                  (r, receivedAsLabel(l10n, r)),
+              ],
+              onChanged: (v) => _receivedAs = v,
+            ),
+            FilledButton(
+              key: const ValueKey('shared-apply'),
+              onPressed: () {
+                context.read<ScannerCubit>().setShared(
+                  StagedDefaults(
+                    locationId: _locationId,
+                    format: _format,
+                    status: _status,
+                    receivedAs: _receivedAs,
+                  ),
+                );
+                Navigator.of(context).pop();
+              },
+              child: Text(l10n.apply),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

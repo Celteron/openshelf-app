@@ -1,0 +1,858 @@
+{
+  "@@locale": "en",
+  "appTitle": "OpenShelf",
+  "navLibrary": "Library",
+  "navShelf": "Shelf",
+  "navScan": "Scan",
+  "assignLocation": "Assign location",
+  "selectedCount": "{count} selected",
+  "chooseLocation": "Choose location",
+  "searchHint": "Search",
+  "noBooksYet": "No books yet",
+  "errorLoadingLibrary": "Error loading library",
+  "addBookTitle": "Add book",
+  "editBookTitle": "Edit book",
+  "fieldTitle": "Title",
+  "fieldSubtitle": "Subtitle",
+  "fieldAuthors": "Authors (comma-separated)",
+  "fieldIsbn": "ISBN",
+  "fieldPublisher": "Publisher",
+  "fieldYear": "Year",
+  "fieldPages": "Pages",
+  "fieldLanguage": "Language",
+  "fieldFormat": "Format",
+  "fieldStatus": "Status",
+  "fieldLocation": "Location",
+  "noLocation": "No location",
+  "save": "Save",
+  "lookupMetadataTooltip": "Lookup metadata",
+  "invalidIsbn": "Invalid ISBN",
+  "noMetadataFound": "No metadata found",
+  "ratingLabel": "Rating",
+  "statusLabel": "Status",
+  "publisherLabel": "Publisher",
+  "yearLabel": "Year",
+  "pagesLabel": "Pages",
+  "languageLabel": "Language",
+  "formatLabel": "Format",
+  "seriesVolumeLabel": "Series volume",
+  "lentTo": "Lent to {name}",
+  "markReturned": "Returned",
+  "borrowerNameHint": "Borrower name",
+  "lend": "Lend",
+  "dnbVerified": "DNB-verified",
+  "edited": "edited",
+  "myShelf": "My Shelf",
+  "noLocationsYet": "No locations yet",
+  "shelfUnassigned": "No location",
+  "shelfEmptyRow": "Empty",
+  "shelfManage": "Manage locations",
+  "shelfSpineLabel": "{title}, {authors}",
+  "shelfSpineLabelPages": "{title}, {authors}, {pages} pages",
+  "shelfSlipcaseCount": "{count} volumes",
+  "shelfFind": "Find on the shelf",
+  "shelfFindHint": "Title or author",
+  "shelfFindCount": "{current} of {total}",
+  "shelfFindNone": "Nothing found",
+  "shelfFindNext": "Next hit",
+  "shelfFindPrevious": "Previous hit",
+  "shelfFindClose": "Close search",
+  "shelfMoveTo": "Move to …",
+  "shelfMoved": "Moved to {place}",
+  "shelfMoveFailed": "Moving failed",
+  "shelfUndo": "Undo",
+  "locationName": "Location name",
+  "cancel": "Cancel",
+  "ok": "OK",
+  "locationNotEmpty": "Location not empty — move books first",
+  "scannerTitle": "Scanner",
+  "scannerUnsupported": "The scanner is not available on this platform. Please add the ISBN manually.",
+  "stagedCount": "{count} staged",
+  "alreadyInLibrary": "Already in library",
+  "scanLookupMode": "In the shop",
+  "scanLookupModeHint": "Look up only, stage nothing",
+  "verdictOwned": "You own this",
+  "verdictNoLocation": "No location",
+  "verdictWishlist": "On your wishlist",
+  "verdictTrashed": "In the trash",
+  "verdictNew": "Not in your library yet",
+  "verdictAdd": "Add",
+  "verdictToWishlist": "Wishlist",
+  "verdictBought": "Bought",
+  "verdictDismiss": "Close",
+  "verdictSaveFailed": "Saving failed. Please try again.",
+  "verdictSeriesMissing": "{series}: {count, plural, =1{volume {volumes} is missing} other{volumes {volumes} are missing}}",
+  "verdictSeriesComplete": "{series}: complete ({total} volumes)",
+  "shoppingTitle": "Shopping list",
+  "shoppingWishlistHeading": "Wishlist",
+  "shoppingGapsHeading": "Missing volumes",
+  "shoppingOpenHeading": "Series without a length",
+  "shoppingSetLength": "Set the number of volumes",
+  "shoppingLengthLabel": "Number of volumes",
+  "shoppingEmpty": "Nothing to buy: the wishlist is empty and every series with a known length is complete.",
+  "shoppingCopy": "Copy as text",
+  "shoppingCopied": "Copied to the clipboard",
+  "saveAll": "Save all",
+  "saving": "Saving…",
+  "chooseFile": "Choose CSV/JSON file",
+  "detectedFormat": "Format: {name}",
+  "importAction": "Import",
+  "importedCount": "Imported: {count}",
+  "skippedCount": "Skipped: {count}",
+  "updatedCount": "Updated: {count}",
+  "@updatedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "duplicatesSkippedCount": "Of those, already-present duplicates: {count}",
+  "@duplicatesSkippedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rowError": "Row {row}: {reason}",
+  "navStats": "Statistics",
+  "statisticsTitle": "Statistics",
+  "totalBooks": "Total books",
+  "pagesRead": "Pages read",
+  "topLocations": "Top locations",
+  "topAuthors": "Top authors",
+  "statusUnread": "Unread",
+  "statusReading": "Reading",
+  "statusRead": "Read",
+  "statusDnf": "Abandoned",
+  "statusWishlist": "Wishlist",
+  "statusReReading": "Re-reading",
+  "settingsTitle": "Settings",
+  "themeLabel": "Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "languageGerman": "Deutsch",
+  "languageEnglish": "English",
+  "importExportTitle": "Import & export",
+  "exportJson": "Export JSON",
+  "exportCsv": "Export CSV",
+  "exportDone": "Exported to:",
+  "exportFailed": "Export failed",
+  "appInfoLabel": "App info",
+  "versionLabel": "Version",
+  "licenseLabel": "License",
+  "licenseText": "GPL-2.0",
+  "openSourceCreditsLabel": "Open source credits",
+  "creditsText": "Flutter, Drift, BLoC",
+  "delete": "Delete",
+  "copy": "Copy",
+  "copiedToClipboard": "Copied to clipboard",
+  "enterPositiveNumber": "Enter a number greater than 0",
+  "clearFilters": "Clear filters",
+  "readingTitle": "Reading progress",
+  "readingStart": "Start reading",
+  "readingStop": "Stop reading",
+  "currentPageLabel": "Current page",
+  "savePage": "Save page",
+  "pageOfTotal": "Page {page} of {total}",
+  "@pageOfTotal": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pageOnly": "Page {page}",
+  "@pageOnly": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "readingSpeed": "Reading speed",
+  "pagesPerHourValue": "{value} pages/h",
+  "@pagesPerHourValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "notEnoughData": "Not enough data yet",
+  "totalReadingTime": "Total reading time",
+  "readingSessionsTitle": "Reading sessions",
+  "noSessionsYet": "No reading sessions yet",
+  "sessionPagesLine": "{pages} pages · {duration}",
+  "@sessionPagesLine": {
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "logSession": "Log a session",
+  "sessionStartPage": "From page",
+  "sessionDate": "Date",
+  "deleteSession": "Delete session",
+  "durationHm": "{hours} h {minutes} min",
+  "@durationHm": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationMin": "{minutes} min",
+  "@durationMin": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "readingSessionsCount": "{count, plural, =0{No sessions} =1{1 session} other{{count} sessions}}",
+  "@readingSessionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notesTitle": "Notes & quotes",
+  "noteKindNote": "Note",
+  "noteKindQuote": "Quote",
+  "notesTabNotes": "Notes",
+  "notesTabQuotes": "Quotes",
+  "addNote": "Add entry",
+  "editNote": "Edit entry",
+  "noteContentLabel": "Text",
+  "notePhoto": "Text from photo",
+  "notePhotoCamera": "Camera",
+  "notePhotoGallery": "Gallery",
+  "noteOcrWorking": "Reading the text…",
+  "noteOcrNone": "No text was recognised.",
+  "noteOcrFailed": "The text recognition failed.",
+  "notePageLabel": "Page (optional)",
+  "notePage": "p. {page}",
+  "@notePage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "noNotesYet": "No entries yet",
+  "notesCount": "{count, plural, =0{No entries} =1{1 entry} other{{count} entries}}",
+  "@notesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tagsTitle": "Tags",
+  "manageTags": "Manage tags",
+  "editTags": "Edit tags",
+  "addTag": "Add tag",
+  "newTagHint": "New tag",
+  "renameTag": "Rename tag",
+  "deleteTagTitle": "Delete tag “{name}”?",
+  "@deleteTagTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTagBody": "The books are kept.",
+  "tagNameTaken": "A tag with this name already exists",
+  "noTagsYet": "No tags yet",
+  "tagBookCount": "{count, plural, =1{1 book} other{{count} books}}",
+  "@tagBookCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalTitle": "Reading goal {year}",
+  "@goalTitle": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "setGoal": "Set goal",
+  "editGoal": "Change goal",
+  "clearGoal": "Remove goal",
+  "goalBooksLabel": "Number of books",
+  "noGoalYet": "No goal set for {year} yet",
+  "@noGoalYet": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "goalProgress": "{completed} of {target} books",
+  "@goalProgress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "goalRemaining": "{count, plural, =1{1 book} other{{count} books}} to go",
+  "@goalRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalReached": "Goal reached!",
+  "goalOnTrack": "Right on track",
+  "goalAhead": "{count, plural, =1{1 book} other{{count} books}} ahead of schedule",
+  "@goalAhead": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalBehind": "{count, plural, =1{1 book} other{{count} books}} behind schedule",
+  "@goalBehind": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moveToLibrary": "Add to library",
+  "movedToLibrary": "Added to library",
+  "deleteBook": "Move to trash",
+  "deleteBookTitle": "Move “{title}” to the trash?",
+  "@deleteBookTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteBookBody": "You can restore the book from the trash or delete it permanently.",
+  "bookDeleted": "Book moved to the trash",
+  "addFavorite": "Add to favorites",
+  "removeFavorite": "Remove from favorites",
+  "favoritesFilter": "Favorites",
+  "sortBy": "Sort",
+  "sortTitle": "Title",
+  "sortAuthor": "Author",
+  "sortRating": "Rating",
+  "sortAdded": "Date added",
+  "sortProgress": "Reading progress",
+  "sortAscending": "Ascending",
+  "sortDescending": "Descending",
+  "reviewTitle": "Review",
+  "noReviewYet": "No review yet",
+  "editReview": "Edit review",
+  "reviewHint": "Your thoughts on the book",
+  "goalPagesLabel": "Page goal (optional)",
+  "goalPagesProgress": "{read} of {target} pages",
+  "@goalPagesProgress": {
+    "placeholders": {
+      "read": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "target": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "fieldDescription": "Description",
+  "coverFromGallery": "From gallery",
+  "coverFromCamera": "Camera",
+  "coverRemove": "Remove cover",
+  "coverMissingShort": "No cover",
+  "coverMissingBanner": "No cover – add manually",
+  "coverPickFailed": "Could not load the image",
+  "sortModified": "Date modified",
+  "sortPages": "Page count",
+  "sortPublicationYear": "Publication year",
+  "sortStatus": "Status",
+  "sortLastRead": "Last read",
+  "sortStartDate": "Start date",
+  "sortFinishDate": "Finish date",
+  "showAsGrid": "Grid view",
+  "showAsList": "List view",
+  "yearFilter": "Year",
+  "allYears": "All years",
+  "bulkSetFormat": "Change format",
+  "bulkSetAuthor": "Change author",
+  "bulkDeleteTitle": "Move {count} books to the trash?",
+  "@bulkDeleteTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moveToTrash": "Move to trash",
+  "moveToTrashBody": "You can restore the books from the trash.",
+  "movedToTrash": "{count, plural, =1{1 book} other{{count} books}} moved to the trash",
+  "@movedToTrash": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionEndDate": "Finish date (optional)",
+  "sessionEndDateHint": "Same day – pick an end date for multi-day readings",
+  "undo": "Undo",
+  "skip": "Skip",
+  "quickRatingTitle": "How did you like the book?",
+  "olidLabel": "Open Library ID",
+  "dateAddedLabel": "Added",
+  "dateModifiedLabel": "Modified",
+  "trashTitle": "Trash",
+  "trashEmpty": "The trash is empty",
+  "restore": "Restore",
+  "deleteForever": "Delete permanently",
+  "deleteForeverTitle": "Delete “{title}” permanently?",
+  "@deleteForeverTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteForeverBody": "The book will be deleted irrevocably together with its notes, tags and reading sessions.",
+  "emptyTrash": "Empty trash",
+  "emptyTrashTitle": "Empty the trash?",
+  "appearanceSection": "Appearance",
+  "materialYou": "Material You",
+  "materialYouHint": "Use system (wallpaper) colours where available",
+  "accentColor": "Accent colour",
+  "accentColorDisabledHint": "Not available with Material You",
+  "resetToDefault": "Reset",
+  "amoledDark": "AMOLED dark mode",
+  "amoledDarkHint": "Pure black in the dark theme",
+  "fontLabel": "Font",
+  "ratingStyleLabel": "Show rating as",
+  "ratingAsBar": "Stars",
+  "ratingAsNumber": "Number",
+  "listLayoutLabel": "Library layout",
+  "displayList": "List",
+  "displayCompactList": "Compact list",
+  "displayGrid": "Grid",
+  "displayDetailedGrid": "Detailed grid",
+  "booksSection": "Books",
+  "defaultFormat": "Default format",
+  "defaultStatus": "Default status",
+  "defaultTags": "Default tags",
+  "defaultTagsHint": "{count, plural, =0{No tags} =1{1 tag} other{{count} tags}} for new books",
+  "@defaultTagsHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadMissingCovers": "Download missing covers",
+  "downloadMissingCoversHint": "Fetches covers that are only known by link",
+  "googleBooksKey": "Google Books API key",
+  "googleBooksKeyNone": "Not set (shared quota)",
+  "googleBooksKeySet": "Set (…{suffix})",
+  "showKey": "Show key",
+  "hideKey": "Hide key",
+  "googleBooksKeyHint": "Without your own key all users share a quota that is often used up. Leave empty to send no key.",
+  "coversDownloading": "Downloading covers …",
+  "coversNoneMissing": "No covers are missing",
+  "coversDownloaded": "{ok} covers loaded, {missing} without an online cover, {failed} unreachable",
+  "@coversDownloaded": {
+    "placeholders": {
+      "ok": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "exportJsonHint": "Full backup – can be restored",
+  "exportCsvHint": "All fields, compatible with the Openreads CSV import",
+  "restoreBackupHint": "Bookstats, OpenShelf backup, Openreads, Goodreads, StoryGraph, Bookwyrm …",
+  "sourceCode": "Source code",
+  "reportIssue": "Report an issue",
+  "standardColors": "Standard",
+  "customColor": "Custom colour",
+  "finishedBooksByMonth": "Books finished per month",
+  "finishedPagesByMonth": "Pages finished per month",
+  "averagesTitle": "Averages & records",
+  "averageRating": "Average rating",
+  "averagePages": "Average pages",
+  "averageReadingTime": "Average reading time",
+  "longestBook": "Longest book",
+  "shortestBook": "Shortest book",
+  "fastestBook": "Read fastest",
+  "slowestBook": "Read slowest",
+  "pagesValue": "{count} pages",
+  "@pagesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "openLibrarySearch": "Open Library search",
+  "olSearchHint": "Title, author, ISBN or OLID",
+  "olTypeGeneral": "General",
+  "olTypeTitle": "Title",
+  "olTypeAuthor": "Author",
+  "olTypeIsbn": "ISBN",
+  "olTypeOlid": "OLID",
+  "olNoResults": "No results",
+  "olEditions": "Editions",
+  "search": "Search",
+  "lendingHistory": "Past lendings ({count})",
+  "@lendingHistory": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filePickerFailed": "The file dialog is unavailable (Linux needs zenity or kdialog). Enter the path below.",
+  "fileNotReadable": "The file could not be read",
+  "importPathLabel": "File path",
+  "importFromPath": "Load from path",
+  "genreLabel": "Genre",
+  "priceLabel": "Price",
+  "receivedAtLabel": "Received on",
+  "readingStartedLabel": "Reading started",
+  "readingFinishedLabel": "Reading finished",
+  "readingTimeLabel": "Reading time",
+  "readingDuration": "{hours} h {minutes} min",
+  "@readingDuration": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "daysCount": "{count, plural, =1{1 day} other{{count} days}}",
+  "@daysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copyValue": "Copy {label}",
+  "@copyValue": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldGenre": "Genre",
+  "fieldPrice": "Price in euro",
+  "fieldReceivedAt": "Received on",
+  "invalidPrice": "Enter a valid price, e.g. 12.90",
+  "clearDate": "Clear date",
+  "importFieldName": "{field, select, title{Title} subtitle{Subtitle} authors{Author(s)} isbn{ISBN} isbn13{ISBN-13} isbn10{ISBN-10} publisher{Publisher} publishedYear{Year published} pageCount{Page count} format{Format} language{Language} description{Description} rating{Rating} status{Reading status} seriesName{Series} seriesVolume{Volume} favorite{Favourite} review{Review} notes{Notes} tags{Tags} startDate{Reading started} finishDate{Reading finished} readings{Readings} dateAdded{Added on} olid{Open Library ID} quotes{Quotes} currentPage{Current page} finishedAt{Finished on} location{Location} borrower{Lent to} lentAt{Lent on} expectedReturn{Return by} lendingStatus{Lending status} coverUrl{Cover URL} dateModified{Modified on} genre{Genre} price{Price} receivedAt{Received on} durationHours{Reading time (hours)} durationMinutes{Reading time (minutes)} readingSeconds{Reading time (seconds)} receivedAs{Received as} other{{field}}}",
+  "@importFieldName": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "importIgnoreColumn": "Do not import",
+  "importFormatLabel": "Import format",
+  "importColumnsHint": "Assign each column to a field. Columns without an assignment are not imported.",
+  "sessionTimeRead": "Time read (optional)",
+  "sessionTimeReadHint": "Only the time actually spent reading. The period follows from the start and end date.",
+  "unitMinutes": "Minutes",
+  "unitHours": "Hours",
+  "sessionEndPageOptional": "To page (optional)",
+  "readingSpanLabel": "Reading period",
+  "dataSection": "Data",
+  "clearLibrary": "Empty library",
+  "clearLibraryHint": "Remove all books; locations, tags and settings stay",
+  "clearLibraryTitle": "Empty the library?",
+  "clearLibraryBody": "Move all books to the trash (restorable) or delete them permanently?",
+  "deleteForeverAllTitle": "Really delete permanently?",
+  "deleteForeverAllBody": "All books with their notes, tag assignments, reading sessions and covers, including those in the trash, are deleted for good. Export a backup first if you want to keep the data.",
+  "libraryTrashed": "{count, plural, =1{1 book moved to the trash} other{{count} books moved to the trash}}",
+  "@libraryTrashed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeleted": "{count, plural, =1{1 book deleted permanently} other{{count} books deleted permanently}}",
+  "@libraryDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAllData": "Delete all data",
+  "deleteAllDataHint": "Library, locations, tags, goals, covers and settings",
+  "deleteAllDataTitle": "Delete all data?",
+  "deleteAllDataBody": "Everything the app stores locally is deleted for good: books, locations, tags, reading sessions, goals, covers and settings. The app itself stays installed. Export a backup first if you want to keep the data.",
+  "confirmWord": "DELETE",
+  "typeToConfirm": "Type “{word}” to confirm",
+  "@typeToConfirm": {
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteEverything": "Delete everything",
+  "allDataDeleted": "All data was deleted",
+  "selectAll": "Select all",
+  "importColumnN": "Column {n}",
+  "@importColumnN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "importNeedsTitle": "Assign at least one column to the title.",
+  "importFormatOwnCsv": "Custom CSV",
+  "saveFailed": "The book could not be saved: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tagFilterLabel": "{count, plural, =0{Tags} other{Tags ({count})}}",
+  "filterByTags": "Filter by tags",
+  "tagSearchHint": "Search tags",
+  "clearTagFilter": "Clear selection",
+  "noMatchingTags": "No matching tag",
+  "removeTagFilter": "Remove “{name}”",
+  "importExportHint": "Import Bookstats, backups and CSV, or back up all data",
+  "exportAction": "Export",
+  "exportActionHint": "Save all data to a file, e.g. before switching phones",
+  "importRunning": "Importing …",
+  "importProgress": "{done} of {total} rows",
+  "importDoneTitle": "Import finished",
+  "importFailedTitle": "Import failed",
+  "importAgain": "New import",
+  "importFinish": "Done",
+  "importUnsupportedFormat": "The file format is not recognised.",
+  "importAborted": "The import was cancelled.",
+  "importPathHint": "/path/to/file.csv",
+  "fieldReceivedAs": "Received as",
+  "receivedAsUnknown": "Unknown",
+  "receivedAsPurchase": "Purchase",
+  "receivedAsGift": "Gift",
+  "receivedAsLoan": "Loan",
+  "receivedAsReviewCopy": "Review copy",
+  "receivedAsOther": "Other",
+  "moreActions": "More actions",
+  "splitVolumesAction": "Split into volumes",
+  "splitVolumesHint": "The slipcase stays the physical object with ISBN, price, location and cover. Every volume gets its own title, pages and reading status. Sessions, notes and review move to volume 1.",
+  "volumeTitleLabel": "Title of volume {number}",
+  "volumePagesLabel": "Pages",
+  "addVolume": "Add volume",
+  "removeVolume": "Remove volume",
+  "splitVolumesSave": "Split",
+  "splitVolumesFailed": "Splitting failed",
+  "volumesTitle": "Volumes",
+  "volumesReadProgress": "{read} of {total} read",
+  "partOfSlipcase": "Part of “{title}”",
+  "volumeCount": "{count, plural, =1{1 volume} other{{count} volumes}}",
+  "trashedWithVolumes": "with {count, plural, =1{1 volume} other{{count} volumes}}",
+  "showVolumes": "Show volumes",
+  "hideVolumes": "Hide volumes",
+  "addScanTitle": "Scan ISBN",
+  "addScanHint": "Capture barcodes with the camera, several in a row",
+  "addSearchTitle": "Search online",
+  "addSearchHint": "Search Open Library by title or author",
+  "addManualTitle": "Enter manually",
+  "addManualHint": "Fill in all details yourself",
+  "formatHardcover": "Hardcover",
+  "formatPaperback": "Paperback",
+  "formatEbook": "E-book",
+  "formatAudiobook": "Audiobook",
+  "formatUnknown": "Unknown",
+  "editStagedTitle": "Edit captured book",
+  "removeStaged": "Remove",
+  "sharedValuesTitle": "Apply to all",
+  "sharedValuesHint": "All captured books get these details when saved.",
+  "apply": "Apply",
+  "pageCount": "{count, plural, =1{1 page} other{{count} pages}}",
+  "coverSearchOnline": "Search online",
+  "coverSearchTitle": "Search cover online",
+  "coverSearchEmpty": "No cover found online. You can take a photo or pick one from the gallery.",
+  "coverSearchOffline": "The online search cannot be reached right now. Please try again later.",
+  "completeOnline": "Complete online",
+  "completeOnlineHint": "Without an ISBN the app finds neither cover nor details. Search the book online to add them.",
+  "withoutCoverFilter": "Without cover",
+  "show": "Show",
+  "durationDh": "{days} d {hours} h",
+  "@durationDh": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationSec": "{seconds} s",
+  "@durationSec": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "statsSectionOverview": "Overview",
+  "statsSectionReading": "Reading",
+  "statsSectionRecords": "Averages & records",
+  "statsSectionLibrary": "Library",
+  "addedBooksByMonth": "Books added per month",
+  "unreadStackByMonth": "Unread stack at month end",
+  "spendingByYear": "Spending per year",
+  "showInLibrary": "Show in library",
+  "selectionFilter": "Selection ({count})",
+  "@selectionFilter": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "navHome": "Home",
+  "homeRecentlyAdded": "Recently added",
+  "homeCurrentlyReading": "Currently reading",
+  "homeUnreadTrend": "Unread stack, last 6 months",
+  "homeEmpty": "No books yet. Tap + in the library to get started.",
+  "homeCustomizeTitle": "Customize home",
+  "homeCustomizeHint": "Drag blocks by the handle, switch them on or off.",
+  "homeCustomizeReset": "Reset",
+  "homeCustomizeDrag": "Move",
+  "homeModuleDonut": "Overview (donut)",
+  "homeModulePinned": "Pinned statistics",
+  "homeModuleGoal": "Reading goal",
+  "homeModuleReading": "Currently reading",
+  "homeModuleRecent": "Recently added",
+  "homeModuleTrend": "Unread stack",
+  "homeModuleFavourites": "Favourites",
+  "homeModuleHeatmap": "Reading calendar",
+  "homeAllHidden": "All blocks are hidden. Use the icon at the top right to switch them back on.",
+  "heatmapTitle": "Reading calendar",
+  "heatmapSummary": "{withTime, plural, =1{1 day with reading time} other{{withTime} days with reading time}} · {inProgress, plural, =1{1 day with a book in progress} other{{inProgress} days with a book in progress}}",
+  "heatmapDayNothing": "{date}: nothing read",
+  "heatmapDayDetail": "{date}: {time} read · {books, plural, =0{no book in progress} =1{1 book in progress} other{{books} books in progress}}",
+  "heatmapDayProgress": "{date}: {books, plural, =1{1 book in progress} other{{books} books in progress}}",
+  "heatmapEmpty": "No reading data yet. Start a reading session or enter a start and end date for a book.",
+  "heatmapLess": "Less",
+  "heatmapMore": "More",
+  "heatmapPrevYear": "Previous year",
+  "heatmapNextYear": "Next year",
+  "reviewOpen": "Review {year}",
+  "reviewIntro": "Your reading year {year}",
+  "reviewBooks": "{count, plural, =1{1 book} other{{count} books}}",
+  "reviewPages": "{count} pages",
+  "reviewTimeHeading": "Your reading time",
+  "reviewDays": "{count, plural, =1{read on 1 day} other{read on {count} days}}",
+  "reviewLongest": "Longest book",
+  "reviewBest": "Your highlight",
+  "reviewTopAuthor": "Favourite author",
+  "reviewBestMonth": "Strongest month",
+  "reviewCoversHeading": "Your books",
+  "reviewSave": "Save as image",
+  "reviewSaved": "Saved: {name}",
+  "reviewSaveFailed": "The image could not be saved",
+  "reviewEmpty": "There are no finished books for {year} yet.",
+  "reviewPage": "Page {current} of {total}",
+  "homeReadAction": "Read now",
+  "scanSaveFailed": "Saving failed. Check the location and try again.",
+  "statNoData": "No data yet.",
+  "statOther": "Other",
+  "statTagsCountTwice": "Books with several tags count more than once.",
+  "statShowAll": "Show all {count}",
+  "statsSectionCustom": "My statistics",
+  "statAdd": "Add statistic",
+  "statNew": "New statistic",
+  "statEdit": "Edit statistic",
+  "statPresets": "Presets",
+  "statStepMeasure": "1 · What is measured?",
+  "statStepGrouping": "2 · Grouped by",
+  "statStepPeriod": "3 · Period and filter",
+  "statStepChart": "4 · Chart and title",
+  "statPreview": "Preview",
+  "statTitle": "Title",
+  "statAllTime": "All time",
+  "statNoGrouping": "None (one number)",
+  "statFilterStatus": "Only with status",
+  "statFilterFormat": "Only format",
+  "statFilterTags": "Only with tag",
+  "statMeasureBooks": "Number of books",
+  "statMeasurePagesRead": "Pages read",
+  "statMeasureReadingTime": "Reading time",
+  "statMeasureAverageRating": "Average rating",
+  "statMeasureSpending": "Spending",
+  "statGroupMonth": "Month",
+  "statGroupYear": "Year",
+  "statGroupStatus": "Status",
+  "statGroupFormat": "Format",
+  "statGroupGenre": "Genre",
+  "statGroupAuthor": "Author",
+  "statGroupLocation": "Location",
+  "statGroupReceivedAs": "Received as",
+  "statGroupTag": "Tag",
+  "statChartNumber": "Number",
+  "statChartBar": "Bars",
+  "statChartLine": "Line",
+  "statChartDonut": "Donut",
+  "statPresetPagesPerMonth": "Pages per month {year}",
+  "statPresetBooksByGenre": "Books by genre",
+  "statPresetSpendingPerYear": "Spending per year",
+  "statPresetReadingTimePerMonth": "Reading time per month {year}",
+  "statPresetBooksByFormat": "Books by format",
+  "statAutoTitle": "{measure} by {grouping}",
+  "statDeleted": "\"{title}\" deleted",
+  "statPin": "Show on home",
+  "statUnpin": "Remove from home",
+  "statPinLimit": "The home tab shows at most {max} statistics.",
+  "statMoveUp": "Move up",
+  "statMoveDown": "Move down",
+  "statMenu": "Statistic menu"
+}

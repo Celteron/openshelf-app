@@ -1,6 +1,5 @@
 plugins {
     id "com.android.application"
-    id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
 
@@ -26,10 +25,13 @@ def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+} else {
+    logger.warn("android/key.properties not found: release is signed with this machine's debug key. " +
+            "Updates only install over builds signed with the same key.")
 }
 
 android {
-    namespace "software.mdev.bookstracker"
+    namespace "de.openshelf.app"
     compileSdk flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -38,16 +40,12 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
-    }
-
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
     defaultConfig {
-        applicationId "software.mdev.bookstracker"
+        applicationId "de.openshelf.app"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
@@ -66,8 +64,16 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            // Without a local key.properties (e.g. private sideload builds) the
+            // release build falls back to the debug key instead of failing.
+            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
@@ -75,7 +81,10 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    // Offline OCR for quote photos (Apache-2.0); see ADR-0006.
+    implementation 'cz.adaptech.tesseract4android:tesseract4android:4.9.0'
+}
 
 // run with ./gradlew printSdkVersions
 task printSdkVersions {

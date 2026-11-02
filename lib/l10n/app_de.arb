@@ -1,0 +1,1143 @@
+{
+  "@@locale": "de",
+  "appTitle": "OpenShelf",
+  "navLibrary": "Bibliothek",
+  "navShelf": "Regal",
+  "navScan": "Scannen",
+  "assignLocation": "Standort zuweisen",
+  "selectedCount": "{count} ausgewählt",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chooseLocation": "Standort wählen",
+  "searchHint": "Suchen",
+  "noBooksYet": "Noch keine Bücher",
+  "errorLoadingLibrary": "Fehler beim Laden der Bibliothek",
+  "addBookTitle": "Buch hinzufügen",
+  "editBookTitle": "Buch bearbeiten",
+  "fieldTitle": "Titel",
+  "fieldSubtitle": "Untertitel",
+  "fieldAuthors": "Autoren (durch Komma getrennt)",
+  "fieldIsbn": "ISBN",
+  "fieldPublisher": "Verlag",
+  "fieldYear": "Jahr",
+  "fieldPages": "Seiten",
+  "fieldLanguage": "Sprache",
+  "fieldFormat": "Format",
+  "fieldStatus": "Status",
+  "fieldLocation": "Standort",
+  "noLocation": "Kein Standort",
+  "save": "Speichern",
+  "lookupMetadataTooltip": "Metadaten suchen",
+  "invalidIsbn": "Ungültige ISBN",
+  "noMetadataFound": "Keine Metadaten gefunden",
+  "ratingLabel": "Bewertung",
+  "statusLabel": "Status",
+  "publisherLabel": "Verlag",
+  "yearLabel": "Jahr",
+  "pagesLabel": "Seiten",
+  "languageLabel": "Sprache",
+  "formatLabel": "Format",
+  "seriesVolumeLabel": "Band",
+  "lentTo": "Verliehen an {name}",
+  "@lentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "markReturned": "Zurückgegeben",
+  "borrowerNameHint": "Name des Entleihers",
+  "lend": "Verleihen",
+  "dnbVerified": "DNB-verifiziert",
+  "edited": "bearbeitet",
+  "myShelf": "Mein Regal",
+  "noLocationsYet": "Noch keine Orte",
+  "shelfUnassigned": "Ohne Standort",
+  "shelfEmptyRow": "Leer",
+  "shelfManage": "Standorte verwalten",
+  "shelfSpineLabel": "{title}, {authors}",
+  "@shelfSpineLabel": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "authors": {"type": "String"}
+    }
+  },
+  "shelfSpineLabelPages": "{title}, {authors}, {pages} Seiten",
+  "@shelfSpineLabelPages": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "authors": {"type": "String"},
+      "pages": {"type": "int"}
+    }
+  },
+  "shelfSlipcaseCount": "{count} Bände",
+  "@shelfSlipcaseCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "shelfFind": "Im Regal finden",
+  "shelfFindHint": "Titel oder Autor",
+  "shelfFindCount": "{current} von {total}",
+  "@shelfFindCount": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "shelfFindNone": "Nichts gefunden",
+  "shelfFindNext": "Nächster Treffer",
+  "shelfFindPrevious": "Voriger Treffer",
+  "shelfFindClose": "Suche schließen",
+  "shelfMoveTo": "Verschieben nach …",
+  "shelfMoved": "Verschoben nach {place}",
+  "@shelfMoved": {
+    "placeholders": {
+      "place": {"type": "String"}
+    }
+  },
+  "shelfMoveFailed": "Verschieben fehlgeschlagen",
+  "shelfUndo": "Rückgängig",
+  "locationName": "Ortsname",
+  "cancel": "Abbrechen",
+  "ok": "OK",
+  "locationNotEmpty": "Ort ist nicht leer — zuerst Bücher verschieben",
+  "scannerTitle": "Scanner",
+  "scannerUnsupported": "Scanner ist auf dieser Plattform nicht verfügbar. ISBN bitte manuell hinzufügen.",
+  "stagedCount": "{count} erfasst",
+  "@stagedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alreadyInLibrary": "Bereits in der Bibliothek",
+  "scanLookupMode": "Im Laden",
+  "scanLookupModeHint": "Nur nachschlagen, nichts vormerken",
+  "verdictOwned": "Besitzt du",
+  "verdictNoLocation": "Kein Standort",
+  "verdictWishlist": "Auf deiner Wunschliste",
+  "verdictTrashed": "Liegt im Papierkorb",
+  "verdictNew": "Noch nicht in der Bibliothek",
+  "verdictAdd": "Hinzufügen",
+  "verdictToWishlist": "Wunschliste",
+  "verdictBought": "Gekauft",
+  "verdictDismiss": "Schließen",
+  "verdictSaveFailed": "Speichern fehlgeschlagen. Bitte noch einmal versuchen.",
+  "verdictSeriesMissing": "{series}: {count, plural, =1{Band {volumes} fehlt} other{Bände {volumes} fehlen}}",
+  "@verdictSeriesMissing": {
+    "placeholders": {
+      "series": {"type": "String"},
+      "count": {"type": "int"},
+      "volumes": {"type": "String"}
+    }
+  },
+  "verdictSeriesComplete": "{series}: komplett ({total} Bände)",
+  "@verdictSeriesComplete": {
+    "placeholders": {
+      "series": {"type": "String"},
+      "total": {"type": "int"}
+    }
+  },
+  "shoppingTitle": "Einkaufsliste",
+  "shoppingWishlistHeading": "Wunschliste",
+  "shoppingGapsHeading": "Fehlende Bände",
+  "shoppingOpenHeading": "Reihen ohne Längenangabe",
+  "shoppingSetLength": "Anzahl Bände festlegen",
+  "shoppingLengthLabel": "Anzahl Bände",
+  "shoppingEmpty": "Nichts zu kaufen: Die Wunschliste ist leer und bei allen Reihen mit bekannter Länge sind alle Bände da.",
+  "shoppingCopy": "Als Text kopieren",
+  "shoppingCopied": "In die Zwischenablage kopiert",
+  "saveAll": "Alle speichern",
+  "saving": "Speichern…",
+  "chooseFile": "CSV/JSON-Datei auswählen",
+  "detectedFormat": "Format: {name}",
+  "@detectedFormat": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "importAction": "Importieren",
+  "importedCount": "Importiert: {count}",
+  "@importedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "skippedCount": "Übersprungen: {count}",
+  "updatedCount": "Aktualisiert: {count}",
+  "@updatedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "duplicatesSkippedCount": "Davon bereits vorhandene Duplikate: {count}",
+  "@duplicatesSkippedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@skippedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rowError": "Zeile {row}: {reason}",
+  "@rowError": {
+    "placeholders": {
+      "row": {
+        "type": "int"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "navStats": "Statistik",
+  "statisticsTitle": "Statistik",
+  "totalBooks": "Bücher gesamt",
+  "pagesRead": "Gelesene Seiten",
+  "topLocations": "Top Standorte",
+  "topAuthors": "Top Autoren",
+  "statusUnread": "Ungelesen",
+  "statusReading": "Am Lesen",
+  "statusRead": "Gelesen",
+  "statusDnf": "Abgebrochen",
+  "statusWishlist": "Wunschliste",
+  "statusReReading": "Wiederlesen",
+  "settingsTitle": "Einstellungen",
+  "themeLabel": "Darstellung",
+  "themeSystem": "System",
+  "themeLight": "Hell",
+  "themeDark": "Dunkel",
+  "languageGerman": "Deutsch",
+  "languageEnglish": "English",
+  "importExportTitle": "Import & Export",
+  "exportJson": "JSON exportieren",
+  "exportCsv": "CSV exportieren",
+  "exportDone": "Exportiert nach:",
+  "exportFailed": "Export fehlgeschlagen",
+  "appInfoLabel": "App-Info",
+  "versionLabel": "Version",
+  "licenseLabel": "Lizenz",
+  "licenseText": "GPL-2.0",
+  "openSourceCreditsLabel": "Open-Source-Danksagungen",
+  "creditsText": "Flutter, Drift, BLoC",
+  "delete": "Löschen",
+  "copy": "Kopieren",
+  "copiedToClipboard": "In die Zwischenablage kopiert",
+  "enterPositiveNumber": "Bitte eine Zahl größer 0 eingeben",
+  "clearFilters": "Filter zurücksetzen",
+  "readingTitle": "Lesefortschritt",
+  "readingStart": "Lesen starten",
+  "readingStop": "Lesen beenden",
+  "currentPageLabel": "Aktuelle Seite",
+  "savePage": "Seite speichern",
+  "pageOfTotal": "Seite {page} von {total}",
+  "@pageOfTotal": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pageOnly": "Seite {page}",
+  "@pageOnly": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "readingSpeed": "Lesegeschwindigkeit",
+  "pagesPerHourValue": "{value} Seiten/Std.",
+  "@pagesPerHourValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "notEnoughData": "Noch nicht genug Daten",
+  "totalReadingTime": "Gesamte Lesezeit",
+  "readingSessionsTitle": "Lesesitzungen",
+  "noSessionsYet": "Noch keine Lesesitzungen",
+  "sessionPagesLine": "{pages} Seiten · {duration}",
+  "@sessionPagesLine": {
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "logSession": "Sitzung nachtragen",
+  "sessionStartPage": "Von Seite",
+  "sessionDate": "Datum",
+  "deleteSession": "Sitzung löschen",
+  "durationHm": "{hours} Std. {minutes} Min.",
+  "@durationHm": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationMin": "{minutes} Min.",
+  "@durationMin": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "readingSessionsCount": "{count, plural, =0{Keine Sitzungen} =1{1 Sitzung} other{{count} Sitzungen}}",
+  "@readingSessionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notesTitle": "Notizen & Zitate",
+  "noteKindNote": "Notiz",
+  "noteKindQuote": "Zitat",
+  "notesTabNotes": "Notizen",
+  "notesTabQuotes": "Zitate",
+  "addNote": "Eintrag hinzufügen",
+  "editNote": "Eintrag bearbeiten",
+  "noteContentLabel": "Text",
+  "notePhoto": "Text aus Foto",
+  "notePhotoCamera": "Kamera",
+  "notePhotoGallery": "Galerie",
+  "noteOcrWorking": "Text wird erkannt…",
+  "noteOcrNone": "Es wurde kein Text erkannt.",
+  "noteOcrFailed": "Die Texterkennung ist fehlgeschlagen.",
+  "notePageLabel": "Seite (optional)",
+  "notePage": "S. {page}",
+  "@notePage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "noNotesYet": "Noch keine Einträge",
+  "notesCount": "{count, plural, =0{Keine Einträge} =1{1 Eintrag} other{{count} Einträge}}",
+  "@notesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tagsTitle": "Tags",
+  "manageTags": "Tags verwalten",
+  "editTags": "Tags bearbeiten",
+  "addTag": "Tag hinzufügen",
+  "newTagHint": "Neuer Tag",
+  "renameTag": "Tag umbenennen",
+  "deleteTagTitle": "Tag „{name}“ löschen?",
+  "@deleteTagTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTagBody": "Die Bücher bleiben erhalten.",
+  "tagNameTaken": "Ein Tag mit diesem Namen existiert bereits",
+  "noTagsYet": "Noch keine Tags",
+  "tagBookCount": "{count, plural, =1{1 Buch} other{{count} Bücher}}",
+  "@tagBookCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalTitle": "Leseziel {year}",
+  "@goalTitle": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "setGoal": "Ziel festlegen",
+  "editGoal": "Ziel ändern",
+  "clearGoal": "Ziel entfernen",
+  "goalBooksLabel": "Anzahl Bücher",
+  "noGoalYet": "Für {year} ist noch kein Ziel gesetzt",
+  "@noGoalYet": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "goalProgress": "{completed} von {target} Büchern",
+  "@goalProgress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "goalRemaining": "Noch {count, plural, =1{1 Buch} other{{count} Bücher}}",
+  "@goalRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalReached": "Ziel erreicht!",
+  "goalOnTrack": "Genau im Plan",
+  "goalAhead": "{count, plural, =1{1 Buch} other{{count} Bücher}} vor dem Plan",
+  "@goalAhead": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalBehind": "{count, plural, =1{1 Buch} other{{count} Bücher}} hinter dem Plan",
+  "@goalBehind": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moveToLibrary": "In Bestand übernehmen",
+  "movedToLibrary": "Zum Bestand hinzugefügt",
+  "deleteBook": "In den Papierkorb",
+  "deleteBookTitle": "„{title}“ in den Papierkorb?",
+  "@deleteBookTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteBookBody": "Das Buch kann im Papierkorb wiederhergestellt oder endgültig gelöscht werden.",
+  "bookDeleted": "Buch im Papierkorb",
+  "addFavorite": "Zu Favoriten hinzufügen",
+  "removeFavorite": "Aus Favoriten entfernen",
+  "favoritesFilter": "Favoriten",
+  "sortBy": "Sortieren",
+  "sortTitle": "Titel",
+  "sortAuthor": "Autor",
+  "sortRating": "Bewertung",
+  "sortAdded": "Hinzugefügt am",
+  "sortProgress": "Lese-Fortschritt",
+  "sortAscending": "Aufsteigend",
+  "sortDescending": "Absteigend",
+  "reviewTitle": "Rezension",
+  "noReviewYet": "Noch keine Rezension",
+  "editReview": "Rezension bearbeiten",
+  "reviewHint": "Deine Meinung zum Buch",
+  "goalPagesLabel": "Seitenziel (optional)",
+  "goalPagesProgress": "{read} von {target} Seiten",
+  "@goalPagesProgress": {
+    "placeholders": {
+      "read": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "target": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "fieldDescription": "Beschreibung",
+  "coverFromGallery": "Aus Galerie",
+  "coverFromCamera": "Kamera",
+  "coverRemove": "Cover entfernen",
+  "coverMissingShort": "Cover fehlt",
+  "coverMissingBanner": "Cover fehlt – manuell ergänzen",
+  "coverPickFailed": "Bild konnte nicht geladen werden",
+  "sortModified": "Geändert am",
+  "sortPages": "Seitenzahl",
+  "sortPublicationYear": "Erscheinungsjahr",
+  "sortStatus": "Status",
+  "sortLastRead": "Zuletzt gelesen",
+  "sortStartDate": "Lesebeginn",
+  "sortFinishDate": "Leseende",
+  "showAsGrid": "Rasteransicht",
+  "showAsList": "Listenansicht",
+  "yearFilter": "Jahr",
+  "allYears": "Alle Jahre",
+  "bulkSetFormat": "Format ändern",
+  "bulkSetAuthor": "Autor ändern",
+  "bulkDeleteTitle": "{count} Bücher in den Papierkorb?",
+  "@bulkDeleteTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moveToTrash": "In den Papierkorb",
+  "moveToTrashBody": "Du kannst die Bücher im Papierkorb wiederherstellen.",
+  "movedToTrash": "{count, plural, =1{1 Buch} other{{count} Bücher}} im Papierkorb",
+  "@movedToTrash": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionEndDate": "Leseende (optional)",
+  "sessionEndDateHint": "Gleicher Tag – für mehrtägiges Lesen ein Enddatum wählen",
+  "undo": "Rückgängig",
+  "skip": "Überspringen",
+  "quickRatingTitle": "Wie hat dir das Buch gefallen?",
+  "olidLabel": "Open-Library-ID",
+  "dateAddedLabel": "Hinzugefügt",
+  "dateModifiedLabel": "Geändert",
+  "trashTitle": "Papierkorb",
+  "trashEmpty": "Der Papierkorb ist leer",
+  "restore": "Wiederherstellen",
+  "deleteForever": "Endgültig löschen",
+  "deleteForeverTitle": "„{title}“ endgültig löschen?",
+  "@deleteForeverTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteForeverBody": "Das Buch wird samt Notizen, Tags und Lesesitzungen unwiderruflich gelöscht.",
+  "emptyTrash": "Papierkorb leeren",
+  "emptyTrashTitle": "Papierkorb leeren?",
+  "appearanceSection": "Darstellung",
+  "materialYou": "Material You",
+  "materialYouHint": "Systemfarben (Hintergrundbild) verwenden, wo verfügbar",
+  "accentColor": "Akzentfarbe",
+  "accentColorDisabledHint": "Bei Material You nicht verfügbar",
+  "resetToDefault": "Zurücksetzen",
+  "amoledDark": "AMOLED-Dunkelmodus",
+  "amoledDarkHint": "Reines Schwarz im dunklen Design",
+  "fontLabel": "Schriftart",
+  "ratingStyleLabel": "Bewertung anzeigen als",
+  "ratingAsBar": "Sterne",
+  "ratingAsNumber": "Zahl",
+  "listLayoutLabel": "Ansicht der Bibliothek",
+  "displayList": "Liste",
+  "displayCompactList": "Kompakte Liste",
+  "displayGrid": "Raster",
+  "displayDetailedGrid": "Detailliertes Raster",
+  "booksSection": "Bücher",
+  "defaultFormat": "Standardformat",
+  "defaultStatus": "Standardstatus",
+  "defaultTags": "Standard-Tags",
+  "defaultTagsHint": "{count, plural, =0{Keine} =1{1 Tag} other{{count} Tags}} für neue Bücher",
+  "@defaultTagsHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadMissingCovers": "Fehlende Cover laden",
+  "downloadMissingCoversHint": "Lädt Cover nach, die nur als Link bekannt sind",
+  "googleBooksKey": "Google-Books-API-Key",
+  "googleBooksKeyNone": "Nicht gesetzt (gemeinsames Kontingent)",
+  "googleBooksKeySet": "Gesetzt (…{suffix})",
+  "@googleBooksKeySet": {
+    "placeholders": {
+      "suffix": {
+        "type": "String"
+      }
+    }
+  },
+  "showKey": "Key anzeigen",
+  "hideKey": "Key verbergen",
+  "googleBooksKeyHint": "Ohne eigenen Key teilen sich alle Nutzer ein Kontingent, das oft ausgeschöpft ist. Leer lassen, um keinen Key zu senden.",
+  "coversDownloading": "Cover werden geladen …",
+  "coversNoneMissing": "Es fehlen keine Cover",
+  "coversDownloaded": "{ok} Cover geladen, {missing} ohne Online-Cover, {failed} nicht erreichbar",
+  "@coversDownloaded": {
+    "placeholders": {
+      "ok": {
+        "type": "int"
+      },
+      "missing": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "exportJsonHint": "Vollständiges Backup – lässt sich wiederherstellen",
+  "exportCsvHint": "Alle Felder, kompatibel mit dem Openreads-CSV-Import",
+  "restoreBackupHint": "Bookstats, OpenShelf-Backup, Openreads, Goodreads, StoryGraph, Bookwyrm …",
+  "sourceCode": "Quellcode",
+  "reportIssue": "Fehler melden",
+  "standardColors": "Standard",
+  "customColor": "Eigene Farbe",
+  "finishedBooksByMonth": "Gelesene Bücher pro Monat",
+  "finishedPagesByMonth": "Gelesene Seiten pro Monat",
+  "averagesTitle": "Durchschnitte & Rekorde",
+  "averageRating": "Ø Bewertung",
+  "averagePages": "Ø Seitenzahl",
+  "averageReadingTime": "Ø Lesezeit",
+  "longestBook": "Längstes Buch",
+  "shortestBook": "Kürzestes Buch",
+  "fastestBook": "Am schnellsten gelesen",
+  "slowestBook": "Am langsamsten gelesen",
+  "pagesValue": "{count} Seiten",
+  "@pagesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "openLibrarySearch": "Open-Library-Suche",
+  "olSearchHint": "Titel, Autor, ISBN oder OLID",
+  "olTypeGeneral": "Allgemein",
+  "olTypeTitle": "Titel",
+  "olTypeAuthor": "Autor",
+  "olTypeIsbn": "ISBN",
+  "olTypeOlid": "OLID",
+  "olNoResults": "Keine Treffer",
+  "olEditions": "Ausgaben",
+  "search": "Suchen",
+  "lendingHistory": "Frühere Leihen ({count})",
+  "@lendingHistory": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filePickerFailed": "Der Dateidialog ist nicht verfügbar (unter Linux wird zenity oder kdialog benötigt). Gib den Pfad unten ein.",
+  "fileNotReadable": "Die Datei konnte nicht gelesen werden",
+  "importPathLabel": "Dateipfad",
+  "importFromPath": "Aus Pfad laden",
+  "genreLabel": "Genre",
+  "priceLabel": "Preis",
+  "receivedAtLabel": "Erhalten am",
+  "readingStartedLabel": "Lesebeginn",
+  "readingFinishedLabel": "Leseende",
+  "readingTimeLabel": "Lesezeit",
+  "readingDuration": "{hours} Std. {minutes} Min.",
+  "@readingDuration": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "daysCount": "{count, plural, =1{1 Tag} other{{count} Tage}}",
+  "@daysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copyValue": "{label} kopieren",
+  "@copyValue": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldGenre": "Genre",
+  "fieldPrice": "Preis in Euro",
+  "fieldReceivedAt": "Erhalten am",
+  "invalidPrice": "Bitte einen gültigen Preis eingeben, z. B. 12,90",
+  "clearDate": "Datum entfernen",
+  "importFieldName": "{field, select, title{Titel} subtitle{Untertitel} authors{Autor(en)} isbn{ISBN} isbn13{ISBN-13} isbn10{ISBN-10} publisher{Verlag} publishedYear{Erscheinungsjahr} pageCount{Seitenzahl} format{Format} language{Sprache} description{Beschreibung} rating{Bewertung} status{Lesestatus} seriesName{Reihe} seriesVolume{Band} favorite{Favorit} review{Rezension} notes{Notizen} tags{Tags} startDate{Lesebeginn} finishDate{Leseende} readings{Lesungen} dateAdded{Hinzugefügt am} olid{Open-Library-ID} quotes{Zitate} currentPage{Aktuelle Seite} finishedAt{Beendet am} location{Standort} borrower{Verleihen an} lentAt{Verliehen am} expectedReturn{Rückgabe bis} lendingStatus{Verleihstatus} coverUrl{Cover-URL} dateModified{Geändert am} genre{Genre} price{Preis} receivedAt{Erhalten am} durationHours{Lesedauer (Stunden)} durationMinutes{Lesedauer (Minuten)} readingSeconds{Lesezeit (Sekunden)} receivedAs{Erhalten als} other{{field}}}",
+  "@importFieldName": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "importIgnoreColumn": "Nicht importieren",
+  "importFormatLabel": "Importformat",
+  "importColumnsHint": "Ordne jede Spalte einem Feld zu. Spalten ohne Zuordnung werden nicht importiert.",
+  "sessionTimeRead": "Gelesene Zeit (optional)",
+  "sessionTimeReadHint": "Nur die tatsächliche Lesezeit. Der Zeitraum ergibt sich aus Start- und Enddatum.",
+  "unitMinutes": "Minuten",
+  "unitHours": "Stunden",
+  "sessionEndPageOptional": "Bis Seite (optional)",
+  "readingSpanLabel": "Lesezeitraum",
+  "dataSection": "Daten",
+  "clearLibrary": "Bibliothek leeren",
+  "clearLibraryHint": "Alle Bücher entfernen; Orte, Tags und Einstellungen bleiben",
+  "clearLibraryTitle": "Bibliothek leeren?",
+  "clearLibraryBody": "Alle Bücher in den Papierkorb verschieben (wiederherstellbar) oder endgültig löschen?",
+  "deleteForeverAllTitle": "Wirklich endgültig löschen?",
+  "deleteForeverAllBody": "Alle Bücher samt Notizen, Tag-Zuordnungen, Lesesitzungen und Covern, auch im Papierkorb, werden unwiderruflich gelöscht. Exportiere vorher ein Backup, wenn du die Daten behalten willst.",
+  "libraryTrashed": "{count, plural, =1{1 Buch in den Papierkorb verschoben} other{{count} Bücher in den Papierkorb verschoben}}",
+  "@libraryTrashed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeleted": "{count, plural, =1{1 Buch endgültig gelöscht} other{{count} Bücher endgültig gelöscht}}",
+  "@libraryDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAllData": "Alle Daten löschen",
+  "deleteAllDataHint": "Bibliothek, Orte, Tags, Ziele, Cover und Einstellungen",
+  "deleteAllDataTitle": "Alle Daten löschen?",
+  "deleteAllDataBody": "Alles, was die App lokal speichert, wird unwiderruflich gelöscht: Bücher, Orte, Tags, Lesesitzungen, Ziele, Cover und Einstellungen. Die App selbst bleibt installiert. Exportiere vorher ein Backup, wenn du die Daten behalten willst.",
+  "confirmWord": "LÖSCHEN",
+  "typeToConfirm": "Tippe „{word}“ zur Bestätigung",
+  "@typeToConfirm": {
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteEverything": "Alles löschen",
+  "allDataDeleted": "Alle Daten wurden gelöscht",
+  "selectAll": "Alle auswählen",
+  "importColumnN": "Spalte {n}",
+  "@importColumnN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "importNeedsTitle": "Ordne mindestens eine Spalte dem Titel zu.",
+  "importFormatOwnCsv": "Eigene CSV",
+  "saveFailed": "Das Buch konnte nicht gespeichert werden: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tagFilterLabel": "{count, plural, =0{Tags} other{Tags ({count})}}",
+  "@tagFilterLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filterByTags": "Nach Tags filtern",
+  "tagSearchHint": "Tag suchen",
+  "clearTagFilter": "Auswahl aufheben",
+  "noMatchingTags": "Kein passender Tag",
+  "removeTagFilter": "„{name}“ entfernen",
+  "@removeTagFilter": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "importExportHint": "Bookstats, Backups und CSV importieren oder alle Daten sichern",
+  "exportAction": "Exportieren",
+  "exportActionHint": "Alle Daten als Datei sichern, z. B. vor einem Handywechsel",
+  "importRunning": "Import läuft …",
+  "importProgress": "{done} von {total} Zeilen",
+  "importDoneTitle": "Import abgeschlossen",
+  "importFailedTitle": "Import fehlgeschlagen",
+  "importAgain": "Neuer Import",
+  "importFinish": "Fertig",
+  "@importProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "importUnsupportedFormat": "Das Dateiformat wird nicht erkannt.",
+  "importAborted": "Der Import wurde abgebrochen.",
+  "importPathHint": "/pfad/zur/datei.csv",
+  "fieldReceivedAs": "Erhalten als",
+  "receivedAsUnknown": "Unbekannt",
+  "receivedAsPurchase": "Kauf",
+  "receivedAsGift": "Geschenk",
+  "receivedAsLoan": "Leihe",
+  "receivedAsReviewCopy": "Rezensionsexemplar",
+  "receivedAsOther": "Sonstiges",
+  "moreActions": "Weitere Aktionen",
+  "splitVolumesAction": "In Bände aufteilen",
+  "splitVolumesHint": "Der Schuber bleibt das physische Objekt mit ISBN, Preis, Standort und Cover. Jeder Band bekommt eigenen Titel, eigene Seiten und eigenen Lesestatus. Sitzungen, Notizen und Rezension wandern zu Band 1.",
+  "volumeTitleLabel": "Titel Band {number}",
+  "@volumeTitleLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "volumePagesLabel": "Seiten",
+  "addVolume": "Band hinzufügen",
+  "removeVolume": "Band entfernen",
+  "splitVolumesSave": "Aufteilen",
+  "splitVolumesFailed": "Aufteilen fehlgeschlagen",
+  "volumesTitle": "Bände",
+  "volumesReadProgress": "{read} von {total} gelesen",
+  "@volumesReadProgress": {
+    "placeholders": {
+      "read": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "partOfSlipcase": "Teil von „{title}“",
+  "@partOfSlipcase": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "volumeCount": "{count, plural, =1{1 Band} other{{count} Bände}}",
+  "@volumeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashedWithVolumes": "mit {count, plural, =1{1 Band} other{{count} Bänden}}",
+  "@trashedWithVolumes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "showVolumes": "Bände anzeigen",
+  "hideVolumes": "Bände ausblenden",
+  "addScanTitle": "ISBN scannen",
+  "addScanHint": "Barcode mit der Kamera erfassen, auch mehrere nacheinander",
+  "addSearchTitle": "Online suchen",
+  "addSearchHint": "Nach Titel oder Autor bei Open Library suchen",
+  "addManualTitle": "Manuell eingeben",
+  "addManualHint": "Alle Angaben selbst ausfüllen",
+  "formatHardcover": "Hardcover",
+  "formatPaperback": "Taschenbuch",
+  "formatEbook": "E-Book",
+  "formatAudiobook": "Hörbuch",
+  "formatUnknown": "Unbekannt",
+  "editStagedTitle": "Erfasstes Buch bearbeiten",
+  "removeStaged": "Entfernen",
+  "sharedValuesTitle": "Für alle übernehmen",
+  "sharedValuesHint": "Diese Angaben bekommen alle erfassten Bücher beim Speichern.",
+  "apply": "Übernehmen",
+  "pageCount": "{count, plural, =1{1 Seite} other{{count} Seiten}}",
+  "@pageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "coverSearchOnline": "Online suchen",
+  "coverSearchTitle": "Cover online suchen",
+  "coverSearchEmpty": "Kein Cover online gefunden. Du kannst eins fotografieren oder aus der Galerie wählen.",
+  "coverSearchOffline": "Die Online-Suche ist gerade nicht erreichbar. Bitte später erneut versuchen.",
+  "completeOnline": "Online vervollständigen",
+  "completeOnlineHint": "Ohne ISBN findet die App weder Cover noch Daten. Such das Buch online, um sie zu ergänzen.",
+  "withoutCoverFilter": "Ohne Cover",
+  "show": "Anzeigen",
+  "durationDh": "{days} T. {hours} Std.",
+  "@durationDh": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationSec": "{seconds} Sek.",
+  "@durationSec": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "statsSectionOverview": "Überblick",
+  "statsSectionReading": "Lesen",
+  "statsSectionRecords": "Durchschnitt & Rekorde",
+  "statsSectionLibrary": "Bibliothek",
+  "addedBooksByMonth": "Hinzugefügte Bücher pro Monat",
+  "unreadStackByMonth": "Ungelesen-Stapel am Monatsende",
+  "spendingByYear": "Ausgaben pro Jahr",
+  "showInLibrary": "In Bibliothek zeigen",
+  "selectionFilter": "Auswahl ({count})",
+  "@selectionFilter": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "navHome": "Start",
+  "homeRecentlyAdded": "Zuletzt hinzugefügt",
+  "homeCurrentlyReading": "Gerade am Lesen",
+  "homeUnreadTrend": "Ungelesen-Stapel, letzte 6 Monate",
+  "homeEmpty": "Noch keine Bücher. Tippe in der Bibliothek auf +, um loszulegen.",
+  "homeCustomizeTitle": "Startseite anpassen",
+  "homeCustomizeHint": "Blöcke per Griff verschieben, mit dem Schalter ein- oder ausblenden.",
+  "homeCustomizeReset": "Zurücksetzen",
+  "homeCustomizeDrag": "Verschieben",
+  "homeModuleDonut": "Übersicht (Donut)",
+  "homeModulePinned": "Angepinnte Statistiken",
+  "homeModuleGoal": "Leseziel",
+  "homeModuleReading": "Gerade am Lesen",
+  "homeModuleRecent": "Zuletzt hinzugefügt",
+  "homeModuleTrend": "Ungelesen-Stapel",
+  "homeModuleFavourites": "Favoriten",
+  "homeModuleHeatmap": "Lesekalender",
+  "homeAllHidden": "Alle Blöcke sind ausgeblendet. Über das Symbol oben rechts kannst du sie wieder einschalten.",
+  "heatmapTitle": "Lesekalender",
+  "heatmapSummary": "{withTime, plural, =1{1 Tag mit Lesezeit} other{{withTime} Tage mit Lesezeit}} · {inProgress, plural, =1{1 Tag mit Buch in Arbeit} other{{inProgress} Tage mit Buch in Arbeit}}",
+  "@heatmapSummary": {
+    "placeholders": {
+      "withTime": {"type": "int"},
+      "inProgress": {"type": "int"}
+    }
+  },
+  "heatmapDayNothing": "{date}: nichts gelesen",
+  "@heatmapDayNothing": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "heatmapDayDetail": "{date}: {time} gelesen · {books, plural, =0{kein Buch in Arbeit} =1{1 Buch in Arbeit} other{{books} Bücher in Arbeit}}",
+  "@heatmapDayDetail": {
+    "placeholders": {
+      "date": {"type": "String"},
+      "time": {"type": "String"},
+      "books": {"type": "int"}
+    }
+  },
+  "heatmapDayProgress": "{date}: {books, plural, =1{1 Buch in Arbeit} other{{books} Bücher in Arbeit}}",
+  "@heatmapDayProgress": {
+    "placeholders": {
+      "date": {"type": "String"},
+      "books": {"type": "int"}
+    }
+  },
+  "heatmapEmpty": "Noch keine Lesedaten. Starte eine Lesesitzung oder trage bei einem Buch Lesestart und -ende ein.",
+  "heatmapLess": "Weniger",
+  "heatmapMore": "Mehr",
+  "heatmapPrevYear": "Vorheriges Jahr",
+  "heatmapNextYear": "Nächstes Jahr",
+  "reviewOpen": "Rückblick {year}",
+  "@reviewOpen": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "reviewIntro": "Dein Lesejahr {year}",
+  "@reviewIntro": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "reviewBooks": "{count, plural, =1{1 Buch} other{{count} Bücher}}",
+  "@reviewBooks": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "reviewPages": "{count} Seiten",
+  "@reviewPages": {
+    "placeholders": {
+      "count": {"type": "String"}
+    }
+  },
+  "reviewTimeHeading": "Deine Lesezeit",
+  "reviewDays": "{count, plural, =1{an 1 Tag gelesen} other{an {count} Tagen gelesen}}",
+  "@reviewDays": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "reviewLongest": "Dickstes Buch",
+  "reviewBest": "Dein Highlight",
+  "reviewTopAuthor": "Lieblings-Autor:in",
+  "reviewBestMonth": "Stärkster Monat",
+  "reviewCoversHeading": "Deine Bücher",
+  "reviewSave": "Als Bild speichern",
+  "reviewSaved": "Gespeichert: {name}",
+  "@reviewSaved": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "reviewSaveFailed": "Bild konnte nicht gespeichert werden",
+  "reviewEmpty": "Für {year} gibt es noch keine beendeten Bücher.",
+  "@reviewEmpty": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "reviewPage": "Seite {current} von {total}",
+  "@reviewPage": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "homeReadAction": "Jetzt lesen",
+  "scanSaveFailed": "Speichern fehlgeschlagen. Prüfe den Standort und versuche es erneut.",
+  "statNoData": "Noch keine Daten.",
+  "statOther": "Andere",
+  "statTagsCountTwice": "Bücher mit mehreren Tags zählen mehrfach.",
+  "statShowAll": "Alle {count} anzeigen",
+  "@statShowAll": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "statsSectionCustom": "Eigene Statistiken",
+  "statAdd": "Statistik hinzufügen",
+  "statNew": "Neue Statistik",
+  "statEdit": "Statistik bearbeiten",
+  "statPresets": "Vorlagen",
+  "statStepMeasure": "1 · Was wird gemessen?",
+  "statStepGrouping": "2 · Gruppiert nach",
+  "statStepPeriod": "3 · Zeitraum und Filter",
+  "statStepChart": "4 · Darstellung und Titel",
+  "statPreview": "Vorschau",
+  "statTitle": "Titel",
+  "statAllTime": "Gesamt",
+  "statNoGrouping": "Keine (eine Zahl)",
+  "statFilterStatus": "Nur mit Status",
+  "statFilterFormat": "Nur Buchart",
+  "statFilterTags": "Nur mit Tag",
+  "statMeasureBooks": "Anzahl Bücher",
+  "statMeasurePagesRead": "Gelesene Seiten",
+  "statMeasureReadingTime": "Lesezeit",
+  "statMeasureAverageRating": "Durchschnittliche Bewertung",
+  "statMeasureSpending": "Ausgaben",
+  "statGroupMonth": "Monat",
+  "statGroupYear": "Jahr",
+  "statGroupStatus": "Status",
+  "statGroupFormat": "Buchart",
+  "statGroupGenre": "Genre",
+  "statGroupAuthor": "Autor",
+  "statGroupLocation": "Standort",
+  "statGroupReceivedAs": "Erhalten als",
+  "statGroupTag": "Tag",
+  "statChartNumber": "Zahl",
+  "statChartBar": "Balken",
+  "statChartLine": "Linie",
+  "statChartDonut": "Ring",
+  "statPresetPagesPerMonth": "Seiten pro Monat {year}",
+  "@statPresetPagesPerMonth": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "statPresetBooksByGenre": "Bücher nach Genre",
+  "statPresetSpendingPerYear": "Ausgaben pro Jahr",
+  "statPresetReadingTimePerMonth": "Lesezeit pro Monat {year}",
+  "@statPresetReadingTimePerMonth": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "statPresetBooksByFormat": "Bücher nach Buchart",
+  "statAutoTitle": "{measure} nach {grouping}",
+  "@statAutoTitle": {
+    "placeholders": {
+      "measure": {
+        "type": "String"
+      },
+      "grouping": {
+        "type": "String"
+      }
+    }
+  },
+  "statDeleted": "„{title}“ gelöscht",
+  "@statDeleted": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "statPin": "Auf Startseite anzeigen",
+  "statUnpin": "Nicht mehr auf Startseite",
+  "statPinLimit": "Auf der Startseite sind höchstens {max} Statistiken möglich.",
+  "@statPinLimit": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "statMoveUp": "Nach oben",
+  "statMoveDown": "Nach unten",
+  "statMenu": "Statistik-Menü"
+}

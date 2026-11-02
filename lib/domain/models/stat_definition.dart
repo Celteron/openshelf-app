@@ -1,0 +1,306 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:openreads/domain/models/enums.dart';
+
+/// What a user-defined statistic measures (spec 005, FR-05-01). [code] is
+/// stored, so renaming a value never breaks a saved tile.
+enum StatMeasure {
+  books('books'),
+  pagesRead('pages_read'),
+  readingTime('reading_time'),
+  averageRating('average_rating'),
+  spending('spending');
+
+  final String code;
+  const StatMeasure(this.code);
+}
+
+/// How a statistic is grouped (FR-05-02); none means a single number.
+enum StatGrouping {
+  month('month', isTime: true),
+  year('year', isTime: true),
+  status('status'),
+  format('format'),
+  genre('genre'),
+  author('author'),
+  location('location'),
+  receivedAs('received_as'),
+  tag('tag');
+
+  final String code;
+  final bool isTime;
+  const StatGrouping(this.code, {this.isTime = false});
+}
+
+/// How a statistic is drawn (FR-05-05).
+enum StatChart {
+  number('number'),
+  bar('bar'),
+  line('line'),
+  donut('donut');
+
+  final String code;
+  const StatChart(this.code);
+}
+
+/// The period a statistic covers (FR-05-03).
+sealed class StatPeriod {
+  const StatPeriod();
+
+  String get code;
+
+  static StatPeriod? tryParse(Object? code) {
+    if (code == 'all') return const StatAllTime();
+    if (code is String && code.startsWith('year:')) {
+      final year = int.tryParse(code.substring(5));
+      if (year != null) return StatYear(year);
+    }
+    return null;
+  }
+}
+
+class StatAllTime extends StatPeriod {
+  const StatAllTime();
+
+  @override
+  String get code => 'all';
+
+  @override
+  bool operator ==(Object other) => other is StatAllTime;
+
+  @override
+  int get hashCode => (StatAllTime).hashCode;
+}
+
+class StatYear extends StatPeriod {
+  final int year;
+  const StatYear(this.year);
+
+  @override
+  String get code => 'year:$year';
+
+  @override
+  bool operator ==(Object other) => other is StatYear && other.year == year;
+
+  @override
+  int get hashCode => year.hashCode;
+}
+
+/// One tile of the user-defined statistics (spec 005, T5-01): a typed,
+/// immutable definition that is stored as JSON and validated when read back.
+@immutable
+class StatDefinition {
+  final StatMeasure measure;
+
+  /// `null`: a single number.
+  final StatGrouping? grouping;
+  final StatPeriod period;
+  final StatChart chart;
+
+  /// Optional filters (FR-05-04); empty means "all".
+  final Set<BookStatus> statuses;
+  final Set<BookFormat> formats;
+  final Set<int> tagIds;
+
+  const StatDefinition({
+    required this.measure,
+    this.grouping,
+    required this.period,
+    required this.chart,
+    this.statuses = const {},
+    this.formats = const {},
+    this.tagIds = const {},
+  });
+
+  /// The charts that fit [grouping] and [measure]: a number without
+  /// grouping, bars or lines over time, bars or a donut over categories.
+  /// Slices must add up to the whole, so no donut where they do not: a book
+  /// counts once per tag, and averages are no shares.
+  static List<StatChart> chartsFor(
+    StatGrouping? grouping, [
+    StatMeasure? measure,
+  ]) => switch (grouping) {
+    null => const [StatChart.number],
+    StatGrouping(isTime: true) => const [StatChart.bar, StatChart.line],
+    StatGrouping.tag => const [StatChart.bar],
+    StatGrouping() when measure == StatMeasure.averageRating => const [
+      StatChart.bar,
+    ],
+    StatGrouping() => const [StatChart.bar, StatChart.donut],
+  };
+
+  StatDefinition copyWith({
+    StatMeasure? measure,
+    StatPeriod? period,
+    StatChart? chart,
+    Set<BookStatus>? statuses,
+    Set<BookFormat>? formats,
+    Set<int>? tagIds,
+  }) {
+    final nextMeasure = measure ?? this.measure;
+    final charts = chartsFor(grouping, nextMeasure);
+    final nextChart = chart ?? this.chart;
+    return StatDefinition(
+      measure: nextMeasure,
+      grouping: grouping,
+      period: period ?? this.period,
+      // Another measure may rule out the chart (an average has no donut).
+      chart: charts.contains(nextChart) ? nextChart : charts.first,
+      statuses: statuses ?? this.statuses,
+      formats: formats ?? this.formats,
+      tagIds: tagIds ?? this.tagIds,
+    );
+  }
+
+  /// Another grouping (`null`: one number). The chart stays if it fits the
+  /// new grouping, else it becomes the first that does.
+  StatDefinition withGrouping(StatGrouping? grouping) {
+    final charts = chartsFor(grouping, measure);
+    return StatDefinition(
+      measure: measure,
+      grouping: grouping,
+      period: period,
+      chart: charts.contains(chart) ? chart : charts.first,
+      statuses: statuses,
+      formats: formats,
+      tagIds: tagIds,
+    );
+  }
+
+  Map<String, Object?> toJson() => {
+    'measure': measure.code,
+    if (grouping != null) 'grouping': grouping!.code,
+    'period': period.code,
+    'chart': chart.code,
+    if (statuses.isNotEmpty) 'statuses': [for (final s in statuses) s.name],
+    if (formats.isNotEmpty) 'formats': [for (final f in formats) f.name],
+    if (tagIds.isNotEmpty) 'tags': tagIds.toList(),
+  };
+
+  factory StatDefinition.fromJson(Map<String, Object?> json) =>
+      tryFromJson(json) ??
+      (throw FormatException('Invalid statistic definition: $json'));
+
+  /// Reads a stored definition; `null` when a required code is unknown or
+  /// the chart does not fit the grouping. Unknown filter values are dropped.
+  static StatDefinition? tryFromJson(Map<String, Object?> json) {
+    T? byCode<T>(List<T> values, String Function(T) code, Object? value) {
+      for (final v in values) {
+        if (code(v) == value) return v;
+      }
+      return null;
+    }
+
+    Set<T> named<T extends Enum>(List<T> values, Object? list) => {
+      if (list is List)
+        for (final item in list)
+          if (byCode(values, (T v) => v.name, item) case final v?) v,
+    };
+
+    final measure = byCode(StatMeasure.values, (m) => m.code, json['measure']);
+    final rawGrouping = json['grouping'];
+    final grouping = rawGrouping == null
+        ? null
+        : byCode(StatGrouping.values, (g) => g.code, rawGrouping);
+    final period = StatPeriod.tryParse(json['period']);
+    final chart = byCode(StatChart.values, (c) => c.code, json['chart']);
+    if (measure == null ||
+        (rawGrouping != null && grouping == null) ||
+        period == null ||
+        chart == null ||
+        !chartsFor(grouping, measure).contains(chart)) {
+      return null;
+    }
+    final tags = json['tags'];
+    return StatDefinition(
+      measure: measure,
+      grouping: grouping,
+      period: period,
+      chart: chart,
+      statuses: named(BookStatus.values, json['statuses']),
+      formats: named(BookFormat.values, json['formats']),
+      tagIds: {
+        if (tags is List)
+          for (final t in tags)
+            if (t is int) t,
+      },
+    );
+  }
+
+  /// Reads a definition as stored (JSON text); `null` when it is broken or
+  /// from a newer app version.
+  static StatDefinition? tryDecode(String stored) {
+    try {
+      final json = jsonDecode(stored);
+      return json is Map<String, Object?> ? tryFromJson(json) : null;
+    } on FormatException {
+      return null;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is StatDefinition &&
+      other.measure == measure &&
+      other.grouping == grouping &&
+      other.period == period &&
+      other.chart == chart &&
+      setEquals(other.statuses, statuses) &&
+      setEquals(other.formats, formats) &&
+      setEquals(other.tagIds, tagIds);
+
+  @override
+  int get hashCode => Object.hash(
+    measure,
+    grouping,
+    period,
+    chart,
+    Object.hashAllUnordered(statuses),
+    Object.hashAllUnordered(formats),
+    Object.hashAllUnordered(tagIds),
+  );
+}
+
+/// Starting points of the builder (spec 005, 4.3).
+enum StatPreset {
+  pagesPerMonth,
+  booksByGenre,
+  spendingPerYear,
+  readingTimePerMonth,
+  booksByFormat;
+
+  /// The preset's definition; time presets cover [year].
+  StatDefinition definition(int year) => switch (this) {
+    pagesPerMonth => StatDefinition(
+      measure: StatMeasure.pagesRead,
+      grouping: StatGrouping.month,
+      period: StatYear(year),
+      chart: StatChart.bar,
+    ),
+    booksByGenre => const StatDefinition(
+      measure: StatMeasure.books,
+      grouping: StatGrouping.genre,
+      period: StatAllTime(),
+      chart: StatChart.donut,
+    ),
+    spendingPerYear => const StatDefinition(
+      measure: StatMeasure.spending,
+      grouping: StatGrouping.year,
+      period: StatAllTime(),
+      chart: StatChart.bar,
+    ),
+    readingTimePerMonth => StatDefinition(
+      measure: StatMeasure.readingTime,
+      grouping: StatGrouping.month,
+      period: StatYear(year),
+      chart: StatChart.line,
+    ),
+    booksByFormat => const StatDefinition(
+      measure: StatMeasure.books,
+      grouping: StatGrouping.format,
+      period: StatAllTime(),
+      chart: StatChart.donut,
+    ),
+  };
+}

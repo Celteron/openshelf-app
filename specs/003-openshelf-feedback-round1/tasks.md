@@ -1,0 +1,45 @@
+# Tasks: OpenShelf Feedback Round 1
+
+Legend: `[X]` done, `[ ]` open. Each task traces to FR-F1-xx in `spec.md`.
+
+## Schema & data (FR-F1-01..04)
+- [X] T3-01 `Books.genre/priceCents/receivedAt`, `schemaVersion = 4`, migration `from < 4`, snapshot `drift_schema_v4.json`, generated verifier helpers. (FR-F1-01)
+- [X] T3-02 Migration tests v1/v2/v3 → v4 incl. data preservation (`database_upgrade_test.dart`). (FR-F1-01)
+- [X] T3-03 `core/helpers/price.dart` (parse/format cents) + `price_test.dart`. (FR-F1-02)
+- [X] T3-04 `BookDraft`, `BookImport`, `ImportService`, `mergeMissingFields` (fill-only), JSON + CSV export, JSON/CSV restore + `book_extra_fields_test.dart`. (FR-F1-02, -03)
+- [X] T3-05 Bookstats CSV/JSON: `Genre`, `Preis`, `Erhalten am`, `Dauer (Stunden/Minuten)`; genre stays a tag as well. (FR-F1-04)
+
+## UI (FR-F1-05..07)
+- [X] T3-06 `ReadingSummary` (start, end, time, day span) + tests. (FR-F1-05)
+- [X] T3-07 Detail view: new rows, reading start/end/time, selectable + copy button per value. (FR-F1-05, -06)
+- [X] T3-08 `VerificationBadge` without edit icon. (FR-F1-07)
+- [X] T3-09 Book form: genre, price (validated), received date (picker, clearable). (FR-F1-02)
+- [X] T3-10 l10n DE + EN for all new strings (parity test green).
+
+## Importer matcher (FR-F1-08)
+- [X] T3-11 `CsvImporter.parse(mapper:)`, `columns()`, `mappableFields`; `ImportColumn`.
+- [X] T3-12 `ImporterCubit`: columns, `assign`, `changeImporter`, import with chosen mapping + tests.
+- [X] T3-13 Matcher screen (format switch, per-column dropdown with sample) + widget tests.
+
+## Covers (FR-F1-09)
+- [X] T3-14 `coverCandidates` / `dnbCoverUrl` / `CoverCacheService.resolveAny` (429 = next source) + tests.
+- [X] T3-15 `BookCover` and `CoverSyncService` use the chain.
+- [X] T3-16 Live check `test/integration/cover_live_test.dart` (1 request, tag `live-network`).
+
+## Licence (FR-F1-10)
+- [X] T3-17 Licence reverted to GPL-2.0: `LICENSE` restored from `1b4b606c`, `licenseText` DE/EN, tests; decision in `doc/adr/0001-lizenz-gpl-2-0.md`.
+
+## Round 2 (FR-F1-11..15)
+- [X] T3-18 Undo SnackBar `persist: false`; five-star `RatingControl` with half/full zones.
+- [X] T3-19 One ISBN row; reading period vs. time read; schema v5 `readingSeconds` (migration, import, merge, export, restore); manual session dialog with optional time + unit.
+- [X] T3-20 `trashAllBooks` / `deleteAllBooksPermanently`, `DataResetRepository`, `DataWipeService`; Settings → Data; "select all".
+- [X] T3-21 Matcher by column index, `canImport` needs a title, `OwnCsvImporter` (last in detection order).
+- [X] T3-22 DNB cover URL fallback in the aggregator; optional `apiKey` in `GoogleBooksClient` (live test reads `GOOGLE_BOOKS_API_KEY`).
+- [X] T3-23 Camera cover photo with crop: `ScannerCoverPicker` uses the ML Kit document scanner on Android (edge detection as a crop suggestion, draggable corners, perspective correction, gallery import); gallery and devices without Play services keep `image_picker`; scans shrink to 1200 px. Decision: `doc/adr/0002-cover-zuschnitt-mlkit-document-scanner.md`.
+- [X] T3-28 Google Books API key in Settings → Books: baked in at build time (`--dart-define=GOOGLE_BOOKS_API_KEY=…`, never in the repo), overridable, clearable (= anonymous quota) and resettable; read per request, shown only by its last four characters.
+- [X] T3-29 Toolchain to Flutter 3.47's recommended versions: Gradle 9.3.1, AGP 9.1.0, Kotlin 2.3.20 as built-in Kotlin; `file_picker` 8 → 13 (static API, `saveFile` declares `CREATE_DOCUMENT` itself, so the app's own `<queries>` entry is gone) and `package_info_plus` 8 → 10.
+- [X] T3-30 Own logo replaces the Openreads one: design B (glass open book with spines behind, teal to petrol), alternative A kept; sources and generator in `doc/logo/`, adaptive icon with background, foreground and Android 13 monochrome layer via `flutter_launcher_icons` 0.14.4; old `ic_launcher_round`, vector icons and the unused `assets/icons/` removed.
+- [X] T3-24 Review fixes: edit keeps `readingSeconds`; `CoverCacheService.deleteAll` only removes its own `*.jpg` (never a user folder); lookup never swaps an existing cover for the DNB guess; failing DNB guess still tries Open Library; non-finite session time rejected; failing import ends in an error state; rating control exposes increase/decrease.
+- [X] T3-26 Rating bar enlarged (60×56 dp per star) with tap + drag; a failing save shows the error and keeps the form.
+- [ ] T3-25 Open: Statistics ignore `readingSeconds`. Cover folder still lives in the documents directory. (Done in T3-27: the selection is pruned to the shown books on every list change.)
+- [X] T3-27 Android sideload readiness: `MainActivity` in package `de.openshelf.app` (crashed at launch); Gradle 8.14.3 / AGP 8.13.0 / Kotlin 2.2.20 (Flutter 3.47 minimums); release falls back to the debug key without `key.properties`; 29 unused upstream dependencies removed (old plugins broke the build) incl. the uCrop activity; scanner tab built only while open (camera started at launch); `ExportFileSaver` with the system "save as" dialog on mobile + `<queries>` for `CREATE_DOCUMENT`; denied camera/full storage on cover pick shows an error; selection pruned on filter change.

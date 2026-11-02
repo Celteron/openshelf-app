@@ -1,0 +1,5 @@
+# Declares tags used across the test suite. The `live-network` tag identifies
+# integration tests that perform real network requests. Such tests self-skip
+# unless the LIVE_NETWORK=1 environment variable is set.
+tags:
+  live-network:

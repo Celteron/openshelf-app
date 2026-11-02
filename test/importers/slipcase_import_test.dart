@@ -1,0 +1,300 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:openreads/data/database/app_database.dart';
+import 'package:openreads/data/database/daos/books_dao.dart';
+import 'package:openreads/data/database/daos/notes_dao.dart';
+import 'package:openreads/data/database/daos/reading_dao.dart';
+import 'package:openreads/data/export/export_service.dart';
+import 'package:openreads/data/importers/json_backup_importer.dart';
+import 'package:openreads/data/importers/openreads_csv_importer.dart';
+import 'package:openreads/data/repositories/book_repository_impl.dart';
+import 'package:openreads/data/repositories/notes_repository_impl.dart';
+import 'package:openreads/data/repositories/reading_repository_impl.dart';
+import 'package:openreads/domain/models/book_draft.dart';
+import 'package:openreads/domain/models/enums.dart';
+import 'package:openreads/domain/models/import.dart';
+import 'package:openreads/domain/services/import_service.dart';
+
+/// Slipcases survive export and import (ADR-0003, Constitution I.3).
+void main() {
+  late AppDatabase source;
+  late AppDatabase target;
+
+  setUp(() async {
+    source = AppDatabase(NativeDatabase.memory());
+    target = AppDatabase(NativeDatabase.memory());
+    await source.customSelect('select 1').get();
+    await target.customSelect('select 1').get();
+  });
+  tearDown(() async {
+    await source.close();
+    await target.close();
+  });
+
+  Future<int> add(AppDatabase db, String title, {String? isbn13}) =>
+      BookRepositoryImpl(BooksDao(db)).insertBook(
+        BooksCompanion.insert(
+          title: title,
+          authors: const ['Suzanne Collins'],
+          editedFields: const [],
+          isbn13: Value(isbn13),
+        ),
+      );
+
+  Future<void> boxWithVolumes(AppDatabase db, String box, String isbn) async {
+    final id = await add(db, box, isbn13: isbn);
+    await BookRepositoryImpl(BooksDao(db)).splitIntoVolumes(id, const [
+      // Same volume titles in every box: matching must not merge them.
+      VolumeDraft(title: 'Band 1', pageCount: 414),
+      VolumeDraft(title: 'Band 2', pageCount: 432),
+    ]);
+  }
+
+  /// slipcase title → its volume titles, as stored in [db].
+  Future<Map<String, List<String>>> slipcases(AppDatabase db) async {
+    final books = await db.select(db.books).get();
+    final byId = {for (final b in books) b.id: b};
+    final result = <String, List<String>>{};
+    for (final b in books) {
+      final parent = b.parentId;
+      if (parent != null) (result[byId[parent]!.title] ??= []).add(b.title);
+    }
+    return result;
+  }
+
+  Future<ImportResult> importInto(AppDatabase db, Stream<ImportRow> rows) =>
+      ImportService(BookRepositoryImpl(BooksDao(db))).import(rows);
+
+  const expected = {
+    'Panem-Schuber': ['Band 1', 'Band 2'],
+    'Other-Schuber': ['Band 1', 'Band 2'],
+  };
+
+  test('a JSON backup restores slipcases and their volumes', () async {
+    await boxWithVolumes(source, 'Panem-Schuber', '9783789132100');
+    await boxWithVolumes(source, 'Other-Schuber', '9783789132117');
+    final json = await ExportService(source).exportJson();
+
+    final result = await importInto(
+      target,
+      JsonBackupImporter().parse(
+        ImportFile(name: 'b.json', content: json, type: ImportFileType.json),
+      ),
+    );
+
+    expect(result.imported, 6);
+    expect(await slipcases(target), expected);
+  });
+
+  test('the CSV export carries the relation in id/slipcase_id', () async {
+    await boxWithVolumes(source, 'Panem-Schuber', '9783789132100');
+    await boxWithVolumes(source, 'Other-Schuber', '9783789132117');
+    final csv = await ExportService(source).exportBooksCsv();
+    expect(ExportService.csvColumns, containsAll(['id', 'slipcase_id']));
+
+    await importInto(
+      target,
+      OpenreadsCsvImporter().parse(
+        ImportFile(name: 'b.csv', content: csv, type: ImportFileType.csv),
+      ),
+    );
+
+    expect(await slipcases(target), expected);
+  });
+
+  test('the relation resolves across import batches', () async {
+    Stream<ImportRow> rows() async* {
+      var n = 0;
+      yield ImportRow(
+        rowNumber: ++n,
+        book: const BookImport(title: 'Schuber', sourceKey: '1'),
+      );
+      // More than one batch (100 rows) between slipcase and volume.
+      for (var i = 0; i < 150; i++) {
+        yield ImportRow(
+          rowNumber: ++n,
+          book: BookImport(title: 'Füller $i', sourceKey: '${i + 10}'),
+        );
+      }
+      yield ImportRow(
+        rowNumber: ++n,
+        book: const BookImport(
+          title: 'Band',
+          sourceKey: '2',
+          parentSourceKey: '1',
+        ),
+      );
+    }
+
+    await importInto(target, rows());
+
+    expect(await slipcases(target), {
+      'Schuber': ['Band'],
+    });
+  });
+
+  test(
+    'a volume whose slipcase is missing imports alone, with a warning',
+    () async {
+      final result = await importInto(
+        target,
+        Stream.value(
+          const ImportRow(
+            rowNumber: 7,
+            book: BookImport(
+              title: 'Band',
+              sourceKey: '2',
+              parentSourceKey: '1',
+            ),
+          ),
+        ),
+      );
+
+      expect(result.imported, 1);
+      expect((await target.select(target.books).getSingle()).parentId, isNull);
+      expect(result.errors.single.rowNumber, 7);
+    },
+  );
+
+  test('re-importing a backup into the same library changes nothing', () async {
+    await boxWithVolumes(source, 'Panem-Schuber', '9783789132100');
+    final json = await ExportService(source).exportJson();
+
+    final result = await importInto(
+      source,
+      JsonBackupImporter().parse(
+        ImportFile(name: 'b.json', content: json, type: ImportFileType.json),
+      ),
+    );
+
+    expect(result.imported, 0);
+    expect(await source.select(source.books).get(), hasLength(3));
+  });
+
+  group('importing into an existing library', () {
+    Future<int> readBox(AppDatabase db) async {
+      final id = await add(db, 'Panem-Schuber', isbn13: '9783789132100');
+      final repo = BookRepositoryImpl(BooksDao(db));
+      await repo.updateStatus(id, BookStatus.read);
+      await repo.updateReview(id, 'Toll');
+      await ReadingRepositoryImpl(ReadingDao(db)).logSession(
+        id,
+        startedAt: DateTime(2024, 1, 1, 20),
+        duration: const Duration(minutes: 30),
+        startPage: 0,
+        endPage: 40,
+      );
+      await NotesRepositoryImpl(
+        NotesDao(db),
+      ).addNote(id, kind: NoteKind.quote, content: 'Zitat');
+      return id;
+    }
+
+    Future<ImportResult> restore(AppDatabase into, String json) => importInto(
+      into,
+      JsonBackupImporter().parse(
+        ImportFile(name: 'b.json', content: json, type: ImportFileType.json),
+      ),
+    );
+
+    test(
+      'an export from before the split adds nothing to the slipcase',
+      () async {
+        final box = await readBox(source);
+        final oldExport = await ExportService(source).exportJson();
+        await BookRepositoryImpl(BooksDao(source)).splitIntoVolumes(box, const [
+          VolumeDraft(title: 'Band 1'),
+          VolumeDraft(title: 'Band 2'),
+        ]);
+
+        await restore(source, oldExport);
+
+        expect(await source.select(source.readingSessions).get(), hasLength(1));
+        expect(await source.select(source.bookNotes).get(), hasLength(1));
+        final slipcase = (await BooksDao(source).getById(box))!;
+        expect(slipcase.status, BookStatus.unread, reason: 'volumes are read');
+        expect(slipcase.review, isNull);
+      },
+    );
+
+    test('a split backup turns the single book into the slipcase', () async {
+      await readBox(source);
+      final unsplit = await ExportService(source).exportJson();
+      await restore(target, unsplit);
+      final box = (await target.select(target.books).getSingle()).id;
+      // Split on another device: the backup carries the volumes.
+      await BookRepositoryImpl(BooksDao(source)).splitIntoVolumes(
+        (await source.select(source.books).getSingle()).id,
+        const [VolumeDraft(title: 'Band 1'), VolumeDraft(title: 'Band 2')],
+      );
+
+      await restore(target, await ExportService(source).exportJson());
+
+      expect(await slipcases(target), {
+        'Panem-Schuber': ['Band 1', 'Band 2'],
+      });
+      final slipcase = (await BooksDao(target).getById(box))!;
+      expect(slipcase.status, BookStatus.unread);
+      expect(slipcase.review, isNull);
+      final sessions = await target.select(target.readingSessions).get();
+      expect(sessions, hasLength(1), reason: 'moved, not copied');
+      expect(sessions.single.bookId, isNot(box));
+      expect(await target.select(target.bookNotes).get(), hasLength(1));
+    });
+
+    test('rating and finish of the single book go to volume 1', () async {
+      final original = await add(
+        source,
+        'Panem-Schuber',
+        isbn13: '9783789132100',
+      );
+      await restore(target, await ExportService(source).exportJson());
+      final box = (await target.select(target.books).getSingle()).id;
+      // Rated and finished here; split unrated on the other device.
+      await BooksDao(target).update(
+        box,
+        BooksCompanion(
+          status: const Value(BookStatus.read),
+          rating: const Value(5),
+          finishedAt: Value(DateTime(2025, 5, 1)),
+        ),
+      );
+      await BookRepositoryImpl(BooksDao(source)).splitIntoVolumes(
+        original,
+        const [VolumeDraft(title: 'Band 1'), VolumeDraft(title: 'Band 2')],
+      );
+
+      await restore(target, await ExportService(source).exportJson());
+
+      final first = (await BooksDao(target).getVolumes(box)).first;
+      expect(first.rating, 5);
+      expect(first.status, BookStatus.read);
+      expect(first.finishedAt, DateTime(2025, 5, 1));
+    });
+
+    test('a volume matched by ISBN to another book is reported', () async {
+      await add(target, 'Einzeln', isbn13: '9783000000001');
+      final result = await importInto(
+        target,
+        Stream.fromIterable(const [
+          ImportRow(
+            rowNumber: 1,
+            book: BookImport(title: 'Schuber', sourceKey: '1'),
+          ),
+          ImportRow(
+            rowNumber: 2,
+            book: BookImport(
+              title: 'Band',
+              isbn13: '9783000000001',
+              sourceKey: '2',
+              parentSourceKey: '1',
+            ),
+          ),
+        ]),
+      );
+
+      expect(result.errors.map((e) => e.rowNumber), [2]);
+    });
+  });
+}
